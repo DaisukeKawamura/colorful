@@ -7,7 +7,7 @@
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
 
-const WCHAR title[] = L"Fighter"; //タイトル
+const WCHAR title[] = L"title"; //タイトル
 
 const float clearColor[] = { 0.1f,0.1f,0.1f,0.0f }; //背景色
 

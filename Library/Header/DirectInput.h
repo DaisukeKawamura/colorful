@@ -11,16 +11,6 @@
 #define CHECKINPUT_MOUSE (0x04) //マウスボタン入力を調べる
 #define CHECKINPUT_ALL   (CHECKINPUT_KEY | CHECKINPUT_PAD | CHECKINPUT_MOUSE) //すべての入力を調べる
 
-//namespace DirectInput
-//{
-//	int InputInit(HINSTANCE hInstance, HWND hWnd);
-//	bool CheckHitKey(int keyCode);
-//	int CheckHitKeyAll(int CheckType = CHECKINPUT_ALL);
-//	int GetHitKeyStateAll(char* KeyStateArray);
-//}
-
-//using namespace DirectInput;
-
 class DirectInput final
 {
 private:

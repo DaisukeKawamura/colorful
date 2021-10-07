@@ -1,5 +1,6 @@
 #include "./Header/Win32API.h"
 
+// ウィンドウプロシージャ
 LRESULT WindowProc(HWND hWnd, UINT msg, WPARAM wparam, LPARAM lparam)
 {
 	switch (msg)

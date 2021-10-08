@@ -11,15 +11,62 @@
 
 class DirectXInit : public Win32API
 {
-	/*namespace名省略*/
-protected:
-	template<class T>
-	using vector = std::vector<T>;
-	template<class T>
-	using ComPtr = Microsoft::WRL::ComPtr<T>;
+protected: // エイリアス
+	// std::を省略
+	template<class T> using vector = std::vector<T>;
+	// Microsoft::WRL::を省略
+	template<class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	/*メンバ変数*/
-public:
+public: // メンバ関数
+	// デフォルトコンストラクタ
+	DirectXInit();
+#ifdef UNICODE
+	/// <summary>
+	/// コンストラクタ
+	/// </summary>
+	/// <param name="windowSize"> ウィンドウサイズ </param>
+	/// <param name="title"> タイトル </param>
+	/// <param name="className"> クラス名 </param>
+	DirectXInit(RECT windowSize, LPCWSTR title, LPCWSTR className = L"DirectX");
+#else
+	/// <summary>
+	/// コンストラクタ
+	/// </summary>
+	/// <param name="windowSize"> ウィンドウサイズ </param>
+	/// <param name="title"> タイトル </param>
+	/// <param name="className"> クラス名 </param>
+	DirectXInit(RECT windowSize, LPCSTR title, LPCSTR className = "DirectX");
+#endif // UNICODE
+	// デストラクタ
+	~DirectXInit();
+
+	// 初期化
+	HRESULT Init();
+
+	// 描画前処理
+	void ClearScreen();
+	// 描画後処理
+	void ScreenFlip();
+
+	// ウィンドウサイズの設定
+	int SetWindowSize(int width, int height);
+
+	// ウィンドウの横幅の取得(整数型)
+	LONG GetWindowWidth() const;
+	// ウィンドウの縦幅の取得(整数型)
+	LONG GetWindowHeight() const;
+	// ウィンドウの横幅の取得(浮動小数点型)
+	float GetWindowWidthF() const;
+	// ウィンドウの横幅の取得(浮動小数点型)
+	float GetWindowHeightF() const;
+private:
+	// デバッグレイヤー
+	void DebugLayer();
+
+	// 深度バッファの生成
+	HRESULT CreateDepthBuffer();
+
+public: // メンバ変数
 	float clearColor[4]; //背景色
 
 	ComPtr<ID3D12Device> dev;
@@ -56,30 +103,4 @@ private:
 
 	SIZE_T bbIndex; //バックバッファのインデックス
 
-	/*メンバ関数*/
-public:
-	DirectXInit();
-#ifdef UNICODE
-	DirectXInit(RECT windowSize, LPCWSTR title, LPCWSTR className = L"DirectX");
-#else
-	DirectXInit(RECT windowSize, LPCSTR title, LPCSTR className = "DirectX");
-#endif // UNICODE
-	~DirectXInit();
-
-	HRESULT Init();
-
-	void ClearScreen();
-	void ScreenFlip();
-
-	int SetWindowSize(int width, int height);
-
-	LONG GetWindowWidth() const;
-	LONG GetWindowHeight() const;
-	float GetWindowWidthF() const;
-	float GetWindowHeightF() const;
-private:
-	void DebugLayer();
-
-	// 深度バッファの生成
-	HRESULT CreateDepthBuffer();
 };

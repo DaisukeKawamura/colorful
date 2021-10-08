@@ -6,16 +6,17 @@
 auto blendState = BLENDMODE_NOBLEND;
 
 CommonData::CommonData() :
-	pipelinestate{},
-	rootsignature{},
-	matProjection{}
+	pipelinestate(nullptr),
+	rootsignature(nullptr)
 {
+	matProjection[CommonData::Projection::ORTHOGRAPHIC] = DirectX::XMMatrixIdentity();
+	matProjection[CommonData::Projection::PERSPECTIVE] = DirectX::XMMatrixIdentity();
 }
 
 /*static変数の初期化*/
 CommonData DirectDrawing::spriteData = {};
 DirectDrawing::vector<Sprite> DirectDrawing::sprite = {};
-DirectDrawing::vector<IndexData> DirectDrawing::spriteIndex = {};
+DirectDrawing::vector<DirectDrawing::IndexData> DirectDrawing::spriteIndex = {};
 
 DirectDrawing::DirectDrawing(const DirectXInit* w) :
 	w(w),
@@ -42,28 +43,22 @@ DirectDrawing::DirectDrawing(const DirectXInit* w) :
 	float winW = w->GetWindowWidthF();
 	float winH = w->GetWindowHeightF();
 
-	objectData.pipelinestate = nullptr;
-	objectData.rootsignature = nullptr;
+	objectData = {};
 	objectData.matProjection[CommonData::Projection::ORTHOGRAPHIC] = 
 		XMMatrixOrthographicOffCenterLH(0.0f, winW, winH, 0.0f, 0.0f, 1.0f);
 	objectData.matProjection[CommonData::Projection::PERSPECTIVE] =
 		XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), winW / winH, 0.1f, 1000.0f);
 
-	spriteData.pipelinestate = nullptr;
-	spriteData.rootsignature = nullptr;
+	spriteData = {};
 	spriteData.matProjection[CommonData::Projection::ORTHOGRAPHIC] = 
 		XMMatrixOrthographicOffCenterLH(0.0f, winW, winH, 0.0f, 0.0f, 1.0f);
-	spriteData.matProjection[CommonData::Projection::PERSPECTIVE] = XMMatrixIdentity();
-}
-
-DirectDrawing::~DirectDrawing()
-{
 }
 
 HRESULT DirectDrawing::Init()
 {
 	static bool isInit = false;
 
+	// 一度でも初期化していればreturnする
 	if (isInit == true)
 	{
 		return S_OK;
@@ -104,7 +99,7 @@ HRESULT DirectDrawing::DrawingInit()
 
 	// 頂点シェーダの読み込みとコンパイル
 	hr = D3DCompileFromFile(
-		L"./lib/Shaders/ObjectVS.hlsl",       //シェーダファイル名
+		L"./lib/Shaders/ObjectVS.hlsl", //シェーダファイル名
 		nullptr,
 		D3D_COMPILE_STANDARD_FILE_INCLUDE,               //インクルード可能にする
 		"main",                                          //エントリーポイント名
@@ -713,13 +708,15 @@ void DirectDrawing::UpdataConstant(
 
 	using namespace DirectX;
 
-	bool dirtyFlag = false;
+	bool dirtyFlag = false; //ダーティフラグ
 
+	// 頂点情報が違ったら更新
 	if (obj[objectIndex].polygonData != polygonData)
 	{
 		obj[objectIndex].polygonData = polygonData;
 	}
 
+	// 座標が違ったら更新し、ダーティフラグをtrueにする
 	if (obj[objectIndex].position.x != pos.x ||
 		obj[objectIndex].position.y != pos.y ||
 		obj[objectIndex].position.z != pos.z)
@@ -728,6 +725,7 @@ void DirectDrawing::UpdataConstant(
 		dirtyFlag = true;
 	}
 
+	// 回転行列が違ったら更新し、ダーティフラグをtrueにする
 	if ((obj[objectIndex].rotation.r[0].m128_f32[0] != rota.r[0].m128_f32[0]) ||
 		(obj[objectIndex].rotation.r[0].m128_f32[1] != rota.r[0].m128_f32[1]) ||
 		(obj[objectIndex].rotation.r[0].m128_f32[2] != rota.r[0].m128_f32[2]) ||
@@ -749,6 +747,7 @@ void DirectDrawing::UpdataConstant(
 		dirtyFlag = true;
 	}
 
+	// スケールが違ったら更新し、ダーティフラグをtrueにする
 	if (obj[objectIndex].scale.x != scale.x ||
 		obj[objectIndex].scale.y != scale.y ||
 		obj[objectIndex].scale.z != scale.z)
@@ -757,12 +756,14 @@ void DirectDrawing::UpdataConstant(
 		dirtyFlag = true;
 	}
 
+	// 親の要素番号が違ったら更新し、ダーティフラグをtrueにする
 	if (obj[objectIndex].parent != parent)
 	{
 		obj[objectIndex].parent = parent;
 		dirtyFlag = true;
 	}
 
+	// ダーティフラグがtrueだったら、ワールド行列を更新
 	if (dirtyFlag == true)
 	{
 		obj[objectIndex].matWorld = XMMatrixIdentity();
@@ -1008,7 +1009,7 @@ HRESULT DirectDrawing::SetNearFar(float nearClip, float farClip)
 	);
 
 	objectData.matProjection[CommonData::Projection::PERSPECTIVE] = XMMatrixPerspectiveFovLH(
-		XMConvertToRadians(60.0f),                  //上下画角60度
+		XMConvertToRadians(60.0f),                    //上下画角60度
 		w->GetWindowWidthF() / w->GetWindowHeightF(), //アスペクト比
 		this->nearClip, //前端
 		this->farClip   //奥端

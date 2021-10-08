@@ -27,11 +27,14 @@ struct Vertex
 	DirectX::XMFLOAT2 uv;     //uv座標
 };
 
+// 1オブジェクトの頂点情報をまとめた構造体
 struct VertexData
 {
-private:
-	template<class T>
-	using ComPtr = Microsoft::WRL::ComPtr<T>;
+	/*配列にして使うことが前提*/
+
+private: // エイリアス
+	// Microsoft::WRL::を省略
+	template<class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
 public:
 	std::vector<Vertex> vertices;    //頂点データ
@@ -46,8 +49,8 @@ public:
 // 頂点データ構造体(スプライト用)
 struct SpriteVertex
 {
-	DirectX::XMFLOAT3 pos;    //xyz座標
-	DirectX::XMFLOAT2 uv;     //uv座標
+	DirectX::XMFLOAT3 pos; //xyz座標
+	DirectX::XMFLOAT2 uv;  //uv座標
 };
 
 // 定数バッファ用データ構造体
@@ -60,8 +63,8 @@ struct ConstBufferData
 // 定数バッファ用データ構造体(スプライト用)
 struct SpriteConstBufferData
 {
-	DirectX::XMFLOAT4 color;    //色 (RGBA)
-	DirectX::XMMATRIX mat;      //3D変換行列
+	DirectX::XMFLOAT4 color; //色 (RGBA)
+	DirectX::XMMATRIX mat;   //3D変換行列
 };
 
 // ディスクリプタハンドル
@@ -77,93 +80,152 @@ struct CommonData
 	/*'matProjection'の引数*/
 	enum Projection
 	{
-		ORTHOGRAPHIC,
-		PERSPECTIVE
+		ORTHOGRAPHIC, //平行投影
+		PERSPECTIVE   //透視投影
 	};
 
 	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelinestate; //パイプラインの状態
 	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootsignature; //ルートシグネチャ
 
-	DirectX::XMMATRIX matProjection[2] = {};
+	DirectX::XMMATRIX matProjection[2] = {}; //射影行列
 
+	// コンストラクタ
 	CommonData();
-};
-
-struct IndexData
-{
-	int constant;
-	int textrue;
 };
 
 // オブジェクトのワールド行列をまとめた構造体
 struct Object
 {
-	int polygonData = -1;
-	Microsoft::WRL::ComPtr<ID3D12Resource> constBuff;
+	/*配列にして使うことが前提*/
 
-	DirectX::XMFLOAT3 position = { 0, 0, 0 };
-	DirectX::XMMATRIX rotation = DirectX::XMMatrixIdentity();
-	DirectX::XMFLOAT3 scale = { 1, 1, 1 };
+	int polygonData = -1; //頂点情報の要素番号
+	Microsoft::WRL::ComPtr<ID3D12Resource> constBuff; //定数バッファ
 
-	DirectX::XMMATRIX matWorld = DirectX::XMMatrixIdentity();
+	DirectX::XMFLOAT3 position = { 0, 0, 0 }; //座標
+	DirectX::XMMATRIX rotation = DirectX::XMMatrixIdentity(); //回転行列
+	DirectX::XMFLOAT3 scale = { 1, 1, 1 }; //スケール
 
-	int parent = -1;
+	DirectX::XMMATRIX matWorld = DirectX::XMMatrixIdentity(); //ワールド行列
+
+	int parent = -1; //親の要素番号
 };
 
 // スプライト一枚分のデータをまとめた構造体
 struct Sprite
 {
+	/*配列にして使うことが前提*/
+
 	Microsoft::WRL::ComPtr<ID3D12Resource> vertBuff;  //頂点バッファ
 	D3D12_VERTEX_BUFFER_VIEW vbView;                  //頂点バッファビュー
 	Microsoft::WRL::ComPtr<ID3D12Resource> constBuff; //定数バッファ
 
-	DirectX::XMMATRIX matWorld = DirectX::XMMatrixIdentity();
-	DirectX::XMFLOAT4 color = { 1, 1, 1, 1 };
+	DirectX::XMMATRIX matWorld = DirectX::XMMatrixIdentity(); //ワールド行列
+	DirectX::XMFLOAT4 color = { 1, 1, 1, 1 }; //色 (RGBA)
 
-	DirectX::XMFLOAT3 pos = { 0, 0, 0 };
-	float rotation = 0.0f;
-	DirectX::XMFLOAT2 size = { 0.000000001f, 0.000000001f };
+	DirectX::XMFLOAT3 pos = { 0, 0, 0 }; //座標
+	float rotation = 0.0f; //回転角
+	DirectX::XMFLOAT2 size = { 0.000000001f, 0.000000001f }; //大きさ
 
-	DirectX::XMFLOAT2 anchorpoint = { 0.5f, 0.5f };
+	DirectX::XMFLOAT2 anchorpoint = { 0.5f, 0.5f }; //アンカーポイント
 
+	// 描画範囲
 	DirectX::XMFLOAT2 texLeftTop = { 0, 0 };
 	DirectX::XMFLOAT2 texSize = { 100, 100 };
 };
 
 class DirectDrawing
 {
-	/*namespace名省略*/
-protected:
+public: // サブクラス
+	// オブジェクトデータ（スプライトのデータ）のインデックス
+	struct IndexData
+	{
+		int constant; //定数バッファ
+		int textrue;  //テクスチャ
+	};
+
+protected: // エイリアス
+	// DirectX::を省略
 	using XMFLOAT3 = DirectX::XMFLOAT3;
 	using XMMATRIX = DirectX::XMMATRIX;
-	template<class T>
-	using vector = std::vector<T>;
-	template<class T>
-	using ComPtr = Microsoft::WRL::ComPtr<T>;
+	// std::を省略
+	template<class T> using vector = std::vector<T>;
+	// Microsoft::WRL::を省略
+	template<class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-	/*メンバ変数*/
+protected: // 静的メンバ変数
+	static vector<Sprite> sprite; //スプライトのデータ
+	static vector<IndexData> spriteIndex; //スプライトのデータのインデックス
+
+	static CommonData spriteData; //スプライトのデータで共通のデータ
+
+public: // メンバ関数
+	// コンストラクタ
+	DirectDrawing(const DirectXInit* w);
+	// デストラクタ
+	~DirectDrawing() {};
+
+	/// <summary>
+	/// 空の定数バッファの生成
+	/// </summary>
+	/// <param name="pos"> 座標 </param>
+	/// <param name="rota"> 回転行列 </param>
+	/// <param name="scale"> スケール </param>
+	/// <returns> オブジェクトデータの要素番号 </returns>
+	int CreateNullConstant(const XMFLOAT3& pos, const XMMATRIX& rota, const XMFLOAT3& scale);
+	/// <summary>
+	/// 定数バッファの更新
+	/// </summary>
+	/// <param name="pos"> 座標 </param>
+	/// <param name="rota"> 回転行列 </param>
+	/// <param name="scale"> スケール </param>
+	/// <param name="objectIndex"> オブジェクトデータの要素番号 </param>
+	/// <param name="polygonData"> 頂点情報の要素番号 </param>
+	/// <param name="parent"> 親の要素番号 </param>
+	void UpdataConstant(const XMFLOAT3& pos, const XMMATRIX& rota, const XMFLOAT3& scale,
+		const int& objectIndex, const int& polygonData = -1, const int& parent = -1);
+	// 描画の際のブレンドモードをセットする（今は初期化の前じゃないと変えられない）
+	int SetDrawBlendMode(int blendMode);
+	// カメラのニアクリップ距離とファークリップ距離を設定する
+	HRESULT SetNearFar(float nearClip, float farClip);
 protected:
+	// 初期化
+	HRESULT Init();
+	// オブジェクトの描画関係の初期化
+	HRESULT DrawingInit();
+	// スプライトの描画関係の初期化
+	HRESULT SpriteDrawingInit();
+	// 頂点バッファとインデックスバッファの生成
+	int CreateVertexAndIndexBuffer();
+	// 定数バッファの生成
+	HRESULT CreateConstBuffer(int* objIndex);
+	// スプライトの生成
+	int CreateSprite();
+	// ディスクリプタヒープの初期化
+	HRESULT BasicDescHeapInit();
+
+	// 描画処理の共通部分
+	void BaseDrawGraphics();
+	// 描画処理の共通部分(スプライト用)
+	void BaseDrawSpriteGraphics();
+
+protected: // メンバ変数
 	const DirectXInit* w;
 
 	vector<VertexData> vertices; //頂点データ
 	Vertex* vertMap;
 
-	vector<Object> obj;
-	vector<IndexData> objIndex;
+	vector<Object> obj; //オブジェクトデータ
+	vector<IndexData> objIndex; //オブジェクトデータのインデックス
 	ComPtr<ID3D12DescriptorHeap> basicDescHeap; //定数バッファ用のデスクリプタヒープ
 	vector<DescHandle> srvHandle;
-	size_t nullBufferCount;
-
-	static vector<Sprite> sprite;
-	static vector<IndexData> spriteIndex;
+	size_t nullBufferCount; //ワールド行列だけのオブジェクトデータの数
 
 	ComPtr<ID3DBlob> vsBlob;    //頂点シェーダオブジェクト
 	ComPtr<ID3DBlob> psBlob;    //ピクセルシェーダオブジェクト
 	ComPtr<ID3DBlob> errorBlob; //エラーオブジェクト
 	ComPtr<ID3DBlob> rootSigBlob;
 
-	CommonData objectData;
-	static CommonData spriteData;
+	CommonData objectData; //オブジェクトデータで共通のデータ
 private:
 	// グラフィックスパイプライン設定
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline;
@@ -174,32 +236,4 @@ private:
 	float nearClip; //ニアクリップ距離
 	float farClip;  //ファークリップ距離
 
-	/*メンバ関数*/
-public:
-	DirectDrawing(const DirectXInit* w);
-	~DirectDrawing();
-
-	// 空の定数バッファの生成
-	int CreateNullConstant(const XMFLOAT3& pos, const XMMATRIX& rota, const XMFLOAT3& scale);
-	// 定数バッファの更新
-	void UpdataConstant(const XMFLOAT3& pos, const XMMATRIX& rota, const XMFLOAT3& scale,
-		const int& objectIndex, const int& polygonData = -1, const int& parent = -1);
-	int SetDrawBlendMode(int blendMode);
-	HRESULT SetNearFar(float nearClip, float farClip);
-protected:
-	HRESULT Init();
-	HRESULT DrawingInit();
-	HRESULT SpriteDrawingInit();
-	// 頂点バッファとインデックスバッファの生成
-	int CreateVertexAndIndexBuffer();
-	// 定数バッファの生成
-	HRESULT CreateConstBuffer(int* objIndex);
-	// スプライトの生成
-	int CreateSprite();
-	HRESULT BasicDescHeapInit();
-
-	// 描画処理の共通部分
-	void BaseDrawGraphics();
-	// 描画処理の共通部分(スプライト用)
-	void BaseDrawSpriteGraphics();
 };

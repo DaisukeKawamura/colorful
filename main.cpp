@@ -160,6 +160,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			XMFLOAT2(0.0f, 1.0f)
 		);
 
+		draw.DrawString(0, 0, 2.5f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "cameraPos.x:%f", cameraPos.x);
+		draw.DrawString(0, 16 * 2.5f, 2.5f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "cameraPos.y:%f", cameraPos.y);
+
 		// ÉãÅ[ÉvÇÃèIóπèàóù
 		draw.PolygonLoopEnd();
 		w.ScreenFlip();

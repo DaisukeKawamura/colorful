@@ -345,7 +345,7 @@ int LoadTex::DrawTextrue(const float& posX, const float& posY, const float& widt
 
 int LoadTex::DrawCutTextrue(const float& posX, const float& posY, const float& width, const float& height,
 	const DirectX::XMFLOAT2& texPos, const DirectX::XMFLOAT2& texSize, const float& angle,
-	const int& graphHandle, const XMFLOAT4& color, const int& parent)
+	const int& graphHandle, const DirectX::XMFLOAT2& anchorpoint, const XMFLOAT4& color, const int& parent)
 {
 	using namespace DirectX;
 
@@ -373,7 +373,7 @@ int LoadTex::DrawCutTextrue(const float& posX, const float& posY, const float& w
 		spriteIndex.push_back({ size, graphHandle });
 	}
 
-	if (spriteCount == 0)
+	if (spriteIndex.size() == 0)
 	{
 		return EoF;
 	}
@@ -390,11 +390,14 @@ int LoadTex::DrawCutTextrue(const float& posX, const float& posY, const float& w
 		sprite[spriteCount].texLeftTop.x != texPos.x ||
 		sprite[spriteCount].texLeftTop.y != texPos.y ||
 		sprite[spriteCount].texSize.x != texSize.x ||
-		sprite[spriteCount].texSize.y != texSize.y)
+		sprite[spriteCount].texSize.y != texSize.y ||
+		sprite[spriteIndex[spriteCount].constant].anchorpoint.x != anchorpoint.x ||
+		sprite[spriteIndex[spriteCount].constant].anchorpoint.y != anchorpoint.y)
 	{
 		sprite[spriteCount].size = { width, height };
 		sprite[spriteCount].texLeftTop = texPos;
 		sprite[spriteCount].texSize = texSize;
+		sprite[spriteCount].anchorpoint = anchorpoint;
 
 		enum Corner { LB, LT, RB, RT };
 

@@ -26,13 +26,12 @@ public:
 	// インスタンスの取得
 	static DirectInput* GetInstance();
 
-public: // 静的メンバ変数
+private: // 静的メンバ変数
 	static BYTE key[256];
-private:
 	static IDirectInput8* dinput;
 	static IDirectInputDevice8* devkeyborad;
 
-public: //メンバ関数
+public: // メンバ関数
 	// 入力デバイスの初期化
 	int InputInit(HINSTANCE hInstance, HWND hWnd);
 	// 特定のキーボードの入力状態の取得

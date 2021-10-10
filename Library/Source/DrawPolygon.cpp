@@ -7,8 +7,6 @@ DrawPolygon::DrawPolygon(const DirectXInit* w) :
 	DebugText(w),
 	polygonCount(0),
 	loopCount(0),
-	constMap{},
-	mat(DirectX::XMMatrixIdentity()),
 	lightVec{},
 	light(100, -100, 100),
 	cameraNo(MAIN_CAMERA)
@@ -113,6 +111,83 @@ int DrawPolygon::CreateCircle(const float& r, const size_t& divNum, const bool& 
 
 	free(v);
 	free(index);
+
+	return CreateVertexAndIndexBuffer();
+}
+
+int DrawPolygon::Create3Dbox(const float& width, const float& height, const float& depth, const bool& isFill)
+{
+	vertices.push_back({});
+
+	// 前
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, -depth / 2 }, {}, { 0.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, -depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, -depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, -depth / 2 }, {}, { 1.0f, 1.0f } });
+	// 後ろ
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, +depth / 2 }, {}, { 0.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, +depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, +depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, +depth / 2 }, {}, { 1.0f, 1.0f } });
+	// 左
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, +depth / 2 }, {}, { 0.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, -depth / 2 }, {}, { 1.0f, 1.0f } });
+	// 右
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, +depth / 2 }, {}, { 0.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, -depth / 2 }, {}, { 1.0f, 1.0f } });
+	// 上
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, -height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, -height / 2, +depth / 2 }, {}, { 1.0f, 1.0f } });
+	// 下
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, -depth / 2 }, {}, { 0.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, -depth / 2 }, {}, { 0.0f, 1.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { +width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 0.0f } });
+	vertices[vertices.size() - 1].vertices.push_back({ { -width / 2, +height / 2, +depth / 2 }, {}, { 1.0f, 1.0f } });
+
+	if (isFill == true)
+	{
+		for (unsigned short i = 0; i < 6; i++)
+		{
+			vertices[vertices.size() - 1].indices.push_back(0 + 3 * 2 * i);
+			vertices[vertices.size() - 1].indices.push_back(1 + 3 * 2 * i);
+			vertices[vertices.size() - 1].indices.push_back(2 + 3 * 2 * i);
+			vertices[vertices.size() - 1].indices.push_back(4 + 3 * 2 * i);
+			vertices[vertices.size() - 1].indices.push_back(3 + 3 * 2 * i);
+			vertices[vertices.size() - 1].indices.push_back(5 + 3 * 2 * i);
+		}
+	}
+	else
+	{
+		for (unsigned short i = 0; i < 6; i++)
+		{
+			vertices[vertices.size() - 1].indices.push_back(0 + 2 * 4 * i);
+			vertices[vertices.size() - 1].indices.push_back(1 + 2 * 4 * i);
+			vertices[vertices.size() - 1].indices.push_back(3 + 2 * 4 * i);
+			vertices[vertices.size() - 1].indices.push_back(5 + 2 * 4 * i);
+			vertices[vertices.size() - 1].indices.push_back(5 + 2 * 4 * i);
+			vertices[vertices.size() - 1].indices.push_back(2 + 2 * 4 * i);
+			vertices[vertices.size() - 1].indices.push_back(4 + 2 * 4 * i);
+			vertices[vertices.size() - 1].indices.push_back(0 + 2 * 4 * i);
+		}
+	}
 
 	return CreateVertexAndIndexBuffer();
 }
@@ -547,6 +622,7 @@ int DrawPolygon::Draw(
 	using namespace DirectX;
 
 	bool isInit = false;
+	XMMATRIX mat = XMMatrixIdentity();
 
 	if ((size_t)(polygonCount + 1) < objIndex.size())
 	{
@@ -617,6 +693,7 @@ int DrawPolygon::Draw(
 
 	BaseDrawGraphics();
 
+	ConstBufferData* constMap = nullptr;
 	obj[index.constant].constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
 
 	constMap->color = color;
@@ -693,7 +770,7 @@ void DrawPolygon::ChangeCamera(const int& cameraNo)
 	this->cameraNo = cameraNo;
 }
 
-DirectX::XMFLOAT3 DrawPolygon::InverseWorld(int x, int y, float z)
+DirectX::XMFLOAT3 DrawPolygon::ScreenToWorld(int x, int y, float z)
 {
 	using namespace DirectX;
 

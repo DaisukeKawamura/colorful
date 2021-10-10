@@ -33,7 +33,7 @@ void Player::Init(DrawPolygon* draw)
 	{
 		this->draw = draw;
 
-		this->playerObject = this->draw->CreateRect(10, 10);
+		this->playerObject = this->draw->Create3Dbox(10, 10, 10);
 		this->playerTex = 0;
 	}
 
@@ -93,9 +93,9 @@ void Player::Update()
 	totalSpeed.x = (speedVec.x * speed) + (-gravityAxis.x * jumpPower);
 	totalSpeed.y = (speedVec.y * speed) + (-gravityAxis.y * jumpPower);
 	totalSpeed.z = (speedVec.z * speed) + (-gravityAxis.z * jumpPower);
-	totalSpeed.x += gravityAxis.x * gravity;
-	totalSpeed.y += gravityAxis.y * gravity;
-	totalSpeed.z += gravityAxis.z * gravity;
+	//totalSpeed.x += gravityAxis.x * gravity;
+	//totalSpeed.y += gravityAxis.y * gravity;
+	//totalSpeed.z += gravityAxis.z * gravity;
 
 	// pos‚É‰ÁŽZ
 	pos.x += totalAccel.x + totalSpeed.x;

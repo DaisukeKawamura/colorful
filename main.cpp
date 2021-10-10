@@ -2,8 +2,8 @@
 #include "./Header/DrawPolygon.h"
 #include "./Header/Input.h"
 #include "./Header/SafeDelete.h"
-#include "Player.h"
-#include"OBBCollision.h"
+#include "./Header/Player.h"
+#include "./Header/OBBCollision.h"
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -56,12 +56,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int triangle = draw.CreateTriangle(
 		XMFLOAT3(-10.0f, -10.0f, 0.0f), XMFLOAT2(0.0f, 1.0f),
 		XMFLOAT3(  0.0f, +10.0f, 0.0f), XMFLOAT2(0.5f, 0.0f),
-		XMFLOAT3(+10.0f, -10.0f, 0.0f), XMFLOAT2(1.0f, 1.0f),
-		true);
-	int cylinder = draw.CreateCylinder(10.0f, 10.0f, 8, true);
+		XMFLOAT3(+10.0f, -10.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)
+	);
+	int box = draw.Create3Dbox(10.0f, 10.0f, 10.0f);
 
 	// ゲームループで使う変数の宣言
-	XMFLOAT3 cylinderPos = { 0, 0, 0 }; //位置
+	XMFLOAT3 boxPos = { 0, 0, 0 }; //位置
 	float angle = 0.0f;
 
 	while (true)
@@ -108,19 +108,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		if (Input::IsKey(DIK_LEFT))
 		{
-			cylinderPos.x -= 1.0f;
+			boxPos.x -= 1.0f;
 		}
 		if (Input::IsKey(DIK_RIGHT))
 		{
-			cylinderPos.x += 1.0f;
+			boxPos.x += 1.0f;
 		}
 		if (Input::IsKey(DIK_UP))
 		{
-			cylinderPos.y += 1.0f;
+			boxPos.y += 1.0f;
 		}
 		if (Input::IsKey(DIK_DOWN))
 		{
-			cylinderPos.y -= 1.0f;
+			boxPos.y -= 1.0f;
 		}
 
 		if (Input::IsKey(DIK_A))
@@ -151,12 +151,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			// メインカメラの更新
 			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
-		////OBBの当たり判定
-		//OBB obb1;
-		//obb1.Initilize(Pos1, Rot, 10, 10, 10);
-		//OBB obb2;
-		//obb2.Initilize(Pos2, Rot, 10, 10, 10);
-		//bool isHit = OBBCollision::ColOBBs(obb1, obb2);
+		//OBBの当たり判定
+		OBB obb1;
+		obb1.Initilize(player.pos, player.rotaMat, 5, 5, 5);
+		OBB obb2;
+		obb2.Initilize(boxPos, XMMatrixIdentity(), 5, 5, 5);
+		bool isHit = OBBCollision::ColOBBs(obb1, obb2);
+
 		w.ClearScreen();
 		draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 
@@ -195,8 +196,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			tex1
 		);
 		draw.Draw(
-			cylinder,
-			cylinderPos,
+			box,
+			boxPos,
 			XMMatrixIdentity(),
 			XMFLOAT3(1, 1, 1),
 			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
@@ -226,6 +227,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		draw.DrawString(0, 0, 2.5f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "cameraPos.x:%f", cameraPos.x);
 		draw.DrawString(0, 16 * 2.5f, 2.5f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "cameraPos.y:%f", cameraPos.y);
+
+		if (isHit)
+		{
+			draw.DrawString(0, 16 * 2.5f * 2, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "hit");
+		}
 
 		// ループの終了処理
 		draw.PolygonLoopEnd();

@@ -1,4 +1,4 @@
-#include"OBBCollision.h"
+#include "./Header/OBBCollision.h"
 
 
 void OBB::Initilize(XMFLOAT3 pos, XMMATRIX rotM, FLOAT xLength, FLOAT yLength, FLOAT zLength)
@@ -39,6 +39,9 @@ Vector3 OBB::GetDirect(int elem)
 	case 2:
 		return  m_NormaDirect[2];
 		break;
+	default:
+		return Vector3();
+		break;
 	}
 }
 
@@ -54,6 +57,9 @@ FLOAT OBB::GetLen_W(int elem)
 		break;
 	case 2:
 		return  m_fLength[2];
+		break;
+	default:
+		return 0;
 		break;
 	}
 }
@@ -80,42 +86,42 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	// •ª—£² : Ae1
 	FLOAT rA = Vector3::length(Ae1);
 	FLOAT rB = LenSegOnSeparateAxis(NAe1, Be1, Be2, Be3);
-	FLOAT L = fabs(Vector3::dot(Interval, NAe1));
+	FLOAT L = fabsf(Vector3::dot(Interval, NAe1));
 	if (L > rA + rB)
 		return false; // Õ“Ë‚µ‚Ä‚¢‚È‚¢
 
 	 // •ª—£² : Ae2
 	rA = Vector3::length(Ae2);
 	rB = LenSegOnSeparateAxis(NAe2, Be1, Be2, Be3);
-	L = fabs(Vector3::dot(Interval, NAe2));
+	L = fabsf(Vector3::dot(Interval, NAe2));
 	if (L > rA + rB)
 		return false;
 
 	// •ª—£² : Ae3
 	rA = Vector3::length(Ae3);
 	rB = LenSegOnSeparateAxis(NAe3, Be1, Be2, Be3);
-	L = fabs(Vector3::dot(Interval, NAe3));
+	L = fabsf(Vector3::dot(Interval, NAe3));
 	if (L > rA + rB)
 		return false;
 
 	// •ª—£² : Be1
 	rA = LenSegOnSeparateAxis(NBe1, Ae1, Ae2, Ae3);
 	rB = Vector3::length(Be1);
-	L = fabs(Vector3::dot(Interval, NBe1));
+	L = fabsf(Vector3::dot(Interval, NBe1));
 	if (L > rA + rB)
 		return false;
 
 	// •ª—£² : Be2
 	rA = LenSegOnSeparateAxis(NBe2, Ae1, Ae2, Ae3);
 	rB = Vector3::length(Be2);
-	L = fabs(Vector3::dot(Interval, NBe2));
+	L = fabsf(Vector3::dot(Interval, NBe2));
 	if (L > rA + rB)
 		return false;
 
 	// •ª—£² : Be3
 	rA = LenSegOnSeparateAxis(NBe3, Ae1, Ae2, Ae3);
 	rB = Vector3::length(Be3);
-	L = fabs(Vector3::dot(Interval, NBe3));
+	L = fabsf(Vector3::dot(Interval, NBe3));
 	if (L > rA + rB)
 		return false;
 
@@ -124,7 +130,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe1, NBe1);
 	rA = LenSegOnSeparateAxis(Cross, Ae2, Ae3);
 	rB = LenSegOnSeparateAxis(Cross, Be2, Be3);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -132,7 +138,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe1, NBe2);
 	rA = LenSegOnSeparateAxis(Cross, Ae2, Ae3);
 	rB = LenSegOnSeparateAxis(Cross, Be1, Be3);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -140,7 +146,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe1, NBe3);
 	rA = LenSegOnSeparateAxis(Cross, Ae2, Ae3);
 	rB = LenSegOnSeparateAxis(Cross, Be1, Be2);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -148,7 +154,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe2, NBe1);
 	rA = LenSegOnSeparateAxis(Cross, Ae1, Ae3);
 	rB = LenSegOnSeparateAxis(Cross, Be2, Be3);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -156,7 +162,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe2, NBe2);
 	rA = LenSegOnSeparateAxis(Cross, Ae1, Ae3);
 	rB = LenSegOnSeparateAxis(Cross, Be1, Be3);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -164,7 +170,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe2, NBe3);
 	rA = LenSegOnSeparateAxis(Cross, Ae1, Ae3);
 	rB = LenSegOnSeparateAxis(Cross, Be1, Be2);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -172,7 +178,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe3, NBe1);
 	rA = LenSegOnSeparateAxis(Cross, Ae1, Ae2);
 	rB = LenSegOnSeparateAxis(Cross, Be2, Be3);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -180,7 +186,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe3, NBe2);
 	rA = LenSegOnSeparateAxis(Cross, Ae1, Ae2);
 	rB = LenSegOnSeparateAxis(Cross, Be1, Be3);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -188,7 +194,7 @@ bool OBBCollision::ColOBBs(OBB &obb1, OBB &obb2)
 	Cross = Vector3::cross(NAe3, NBe3);
 	rA = LenSegOnSeparateAxis(Cross, Ae1, Ae2);
 	rB = LenSegOnSeparateAxis(Cross, Be1, Be2);
-	L = fabs(Vector3::dot(Interval, Cross));
+	L = fabsf(Vector3::dot(Interval, Cross));
 	if (L > rA + rB)
 		return false;
 
@@ -202,8 +208,8 @@ FLOAT OBBCollision::LenSegOnSeparateAxis(Vector3 &Sep, Vector3 &e1, Vector3 &e2,
 {
 	// 3‚Â‚Ì“àÏ‚Ìâ‘Î’l‚Ì˜a‚Å“Š‰eü•ª’·‚ğŒvZ
 	// •ª—£²Sep‚Í•W€‰»‚³‚ê‚Ä‚¢‚é‚±‚Æ
-	FLOAT r1 = fabs(Vector3::dot(Sep, e1));
-	FLOAT r2 = fabs(Vector3::dot(Sep, e2));
-	FLOAT r3 = &e3 ? (fabs(Vector3::dot(Sep, e3))) : 0;
+	FLOAT r1 = fabsf(Vector3::dot(Sep, e1));
+	FLOAT r2 = fabsf(Vector3::dot(Sep, e2));
+	FLOAT r3 = &e3 ? (fabsf(Vector3::dot(Sep, e3))) : 0;
 	return r1 + r2 + r3;
 }

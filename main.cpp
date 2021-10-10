@@ -3,7 +3,7 @@
 #include "./Header/Input.h"
 #include "./Header/SafeDelete.h"
 #include "Player.h"
-
+#include"OBBCollision.h"
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -151,7 +151,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			// メインカメラの更新
 			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
-
+		////OBBの当たり判定
+		//OBB obb1;
+		//obb1.Initilize(Pos1, Rot, 10, 10, 10);
+		//OBB obb2;
+		//obb2.Initilize(Pos2, Rot, 10, 10, 10);
+		//bool isHit = OBBCollision::ColOBBs(obb1, obb2);
 		w.ClearScreen();
 		draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 

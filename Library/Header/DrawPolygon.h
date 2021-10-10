@@ -6,22 +6,10 @@
 
 class DrawPolygon final : public DebugText
 {
-	/*メンバ変数*/
-private:
-	int polygonCount;
-	size_t loopCount;
-
-	ConstBufferData* constMap;
-	XMMATRIX mat;
-	XMFLOAT3 lightVec;
-	XMFLOAT3 light;
-
-	vector<XMMATRIX> matView;  //ビュー変換行列(カメラ)
-	int cameraNo;
-
-	/*メンバ関数*/
-public:
+public: // メンバ関数
+	// コンストラクタ
 	DrawPolygon(const DirectXInit* w);
+	// デストラクタ
 	~DrawPolygon() {};
 
 	// 三角形の作成
@@ -32,6 +20,8 @@ public:
 	int CreateRect(const float& width, const float& height, const bool& isFill = true);
 	// 正多角形の作成
 	int CreateCircle(const float& r, const size_t& divNum, const bool& isFill = true);
+	// 直方体の作成
+	int Create3Dbox(const float& width, const float& height, const float& depth, const bool& isFill = true);
 	// 正多角錐の作成
 	int CreateCorn(const float& r, const float& h, const size_t& divNum, const bool& isFill = true);
 	// 正多角柱の作成
@@ -57,16 +47,29 @@ public:
 	// カメラの切り替え
 	void ChangeCamera(const int& cameraNo);
 
-	DirectX::XMFLOAT3 InverseWorld(int x, int y, float z);
+	// スクリーン座標からワールド座標を求める
+	DirectX::XMFLOAT3 ScreenToWorld(int x, int y, float z);
+	// ビュー行列の逆行列を取得（移動量は0固定）
 	DirectX::XMMATRIX InverseView();
 
 	// 内部の初期化用関数
 	void PolygonLoopEnd();
 private:
+	// 描画関数の初期化
 	int DrawPolygonInit();
 
 	/*頂点座標とインデックスデータ計算用*/
 	void Circle(const XMFLOAT3& centerPos, const float& r, const size_t& divNum, const bool& flag,
 		Vertex* v, unsigned short* index);
+
+private: // メンバ変数
+	int polygonCount; //オブジェクトの数
+	size_t loopCount; //ループした回数
+
+	XMFLOAT3 lightVec; //光線
+	XMFLOAT3 light;    //光源
+
+	vector<XMMATRIX> matView; //ビュー変換行列(カメラ)
+	int cameraNo;             //カメラの番号（最初はMAIN_CAMERAを指している）
 
 };

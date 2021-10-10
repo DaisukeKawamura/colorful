@@ -36,8 +36,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	DrawPolygon draw(&w);
 
-	//DirectInput* input = DirectInput::GetInstance();
-	//input->InputInit(w.w.hInstance, w.hWnd);
 	Input::Init(w);
 
 	Player player;
@@ -64,19 +62,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	// ゲームループで使う変数の宣言
 	XMFLOAT3 cylinderPos = { 0, 0, 0 }; //位置
-
-	//char keys[256] = {};
-	//char oldkeys[256] = {};
+	float angle = 0.0f;
 
 	while (true)
 	{
 		if (w.WindowMessage() == -1) { break; }
-
-		//for (size_t i = 0; i < 256; i++)
-		//{
-		//	oldkeys[i] = keys[i];
-		//}
-		//input->GetHitKeyStateAll(keys);
 
 		Input::Update();
 
@@ -97,6 +87,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			player.Update();
 
+			angle += 1.0f;
+			player.rotaMat = XMMatrixIdentity();
+			player.rotaMat *= XMMatrixRotationZ(Player::gravity);
+			player.rotaMat *= XMMatrixRotationX(XMConvertToRadians(angle));
+
 			player.color.x += 0.01f;
 			if (player.color.x > 1.0f)
 			{
@@ -111,28 +106,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			break;
 		}
 
-		//if (keys[DIK_LEFT])
 		if (Input::IsKey(DIK_LEFT))
 		{
 			cylinderPos.x -= 1.0f;
 		}
-		//if (keys[DIK_RIGHT])
 		if (Input::IsKey(DIK_RIGHT))
 		{
 			cylinderPos.x += 1.0f;
 		}
-		//if (keys[DIK_UP])
 		if (Input::IsKey(DIK_UP))
 		{
 			cylinderPos.y += 1.0f;
 		}
-		//if (keys[DIK_DOWN])
 		if (Input::IsKey(DIK_DOWN))
 		{
 			cylinderPos.y -= 1.0f;
 		}
 
-		//if (keys[DIK_A])
 		if (Input::IsKey(DIK_A))
 		{
 			cameraPos.x -= 1.0f;
@@ -140,7 +130,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			// メインカメラの更新
 			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
-		//if (keys[DIK_D])
 		if (Input::IsKey(DIK_D))
 		{
 			cameraPos.x += 1.0f;
@@ -148,7 +137,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			// メインカメラの更新
 			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
-		//if (keys[DIK_W])
 		if (Input::IsKey(DIK_W))
 		{
 			cameraPos.y += 1.0f;
@@ -156,7 +144,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			// メインカメラの更新
 			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
-		//if (keys[DIK_S])
 		if (Input::IsKey(DIK_S))
 		{
 			cameraPos.y -= 1.0f;

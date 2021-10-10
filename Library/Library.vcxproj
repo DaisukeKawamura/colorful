@@ -180,6 +180,7 @@
     <ClInclude Include="Header\DirectInput.h" />
     <ClInclude Include="Header\DirectXInit.h" />
     <ClInclude Include="Header\DrawPolygon.h" />
+    <ClInclude Include="Header\Input.h" />
     <ClInclude Include="Header\LoadTex.h" />
     <ClInclude Include="Header\SafeDelete.h" />
     <ClInclude Include="Header\Win32API.h" />
@@ -191,6 +192,7 @@
     <ClCompile Include="Source\DirectInput.cpp" />
     <ClCompile Include="Source\DirectXInit.cpp" />
     <ClCompile Include="Source\DrawPolygon.cpp" />
+    <ClCompile Include="Source\Input.cpp" />
     <ClCompile Include="Source\LoadTex.cpp" />
     <ClCompile Include="Source\Win32API.cpp" />
   </ItemGroup>

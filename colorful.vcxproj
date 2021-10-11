@@ -143,7 +143,9 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClCompile Include="HP.cpp" />
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="OBBCollision.cpp" />
     <ClCompile Include="Player.cpp" />
   </ItemGroup>
   <ItemGroup>
@@ -155,6 +157,8 @@
     <Image Include="Resources\background.png" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="HP.h" />
+    <ClInclude Include="OBBCollision.h" />
     <ClInclude Include="Player.h" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

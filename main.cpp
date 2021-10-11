@@ -4,6 +4,7 @@
 #include "./Header/SafeDelete.h"
 #include "Player.h"
 #include"OBBCollision.h"
+#include"HP.h"
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -41,6 +42,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	Player player;
 	player.Init(&draw);
 
+	HP hp;
+	hp.Init(10, 1, 20);
+
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");
 	int tex1 = draw.LoadTextrue(L"./Resources/tex1.png");
@@ -55,7 +59,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	// オブジェクトの生成
 	int triangle = draw.CreateTriangle(
 		XMFLOAT3(-10.0f, -10.0f, 0.0f), XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT3(  0.0f, +10.0f, 0.0f), XMFLOAT2(0.5f, 0.0f),
+		XMFLOAT3(0.0f, +10.0f, 0.0f), XMFLOAT2(0.5f, 0.0f),
 		XMFLOAT3(+10.0f, -10.0f, 0.0f), XMFLOAT2(1.0f, 1.0f),
 		true);
 	int cylinder = draw.CreateCylinder(10.0f, 10.0f, 8, true);

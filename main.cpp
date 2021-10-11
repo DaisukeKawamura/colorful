@@ -4,6 +4,7 @@
 #include "./Header/SafeDelete.h"
 #include "./Header/Player.h"
 #include "./Header/OBBCollision.h"
+#include "./Header/HP.h"
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -40,6 +41,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	Player player;
 	player.Init(&draw);
+
+	HP hp;
+	hp.Init(10, 1, 20);
 
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");

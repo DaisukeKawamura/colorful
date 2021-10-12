@@ -44,6 +44,7 @@ public: // メンバ変数
 	DrawPolygon* draw;  //描画用
 
 	XMFLOAT3 pos;     //座標
+	XMFLOAT3 oldPos;  //1つ前の座標
 	XMMATRIX rotaMat; //回転行列
 	XMFLOAT3 scale;   //スケール
 	XMFLOAT4 color;   //色

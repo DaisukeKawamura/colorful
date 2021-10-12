@@ -24,7 +24,7 @@ Player::Player() :
 {
 }
 
-void Player::Init(DrawPolygon* draw)
+void Player::Init(DrawPolygon *draw)
 {
 	using namespace DirectX;
 
@@ -55,6 +55,8 @@ void Player::Init(DrawPolygon* draw)
 
 void Player::Update()
 {
+	oldPos = pos;
+
 	jumpPower -= jumpPowerDecay;
 	if (jumpPower < 0.0f)
 	{

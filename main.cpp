@@ -141,6 +141,26 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				isGameover = true;
 			}
+
+			//OBB‚Ì“–‚½‚è”»’è
+			for (int y = 0; y < MAP_HEIGHT; y++)
+			{
+				for (int x = 0; x < sizeof(map[0]) / sizeof(map[0][0]); x++)
+				{
+					if (map[y][x] == ObjectStatus::BLOCK)
+					{
+						OBB obb;
+						obb.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x,y * (-blockSize) + mapOffset.y,mapOffset.z
+						), XMMatrixIdentity(), 10, 3, 10);
+						bool isHit = OBBCollision::ColOBBs(player.collision, obb);
+						if (isHit)
+						{//‰Ÿ‚µ–ß‚µˆ—
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, obb);
+						}
+					}
+				}
+			}
 			break;
 		case GameStatus::Config:
 			gameStatus = GameStatus::Title;
@@ -175,10 +195,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		if (Input::IsKey(DIK_S))
 		{
 		}
-		//OBB‚Ì“–‚½‚è”»’è
-		OBB obb;
-		obb.Initilize(boxPos, XMMatrixIdentity(), 110, 10, 10);
-		bool isHit = OBBCollision::ColOBBs(player.collision, obb);
 
 		w.ClearScreen();
 		draw.SetDrawBlendMode(BLENDMODE_ALPHA);
@@ -236,156 +252,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 				}
 			}
-			/*ˆê‘w–Ú*/
-			//draw.Draw(
-			//	box,
-			//	boxPos,
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 20.0f, boxPos.y, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 40.0f, boxPos.y, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 60.0f, boxPos.y, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 80.0f, boxPos.y, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 100.0f, boxPos.y, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x - 120.0f, boxPos.y, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x - 120.0f, boxPos.y, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			/*“ñ‘w–Ú*/
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 60.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 80.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 100.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 120.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 140.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 160.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 180.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 200.0f, boxPos.y + 40.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			/*ŽO‘w–Ú*/
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 120.0f, boxPos.y + 70.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 140.0f, boxPos.y + 70.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 160.0f, boxPos.y + 70.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 180.0f, boxPos.y + 70.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
-			//draw.Draw(
-			//	box,
-			//	XMFLOAT3(boxPos.x + 200.0f, boxPos.y + 70.0f, boxPos.z),
-			//	XMMatrixIdentity(),
-			//	XMFLOAT3(1.0f, 1.0f, 1.0f),
-			//	XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			//);
 
 			player.Draw();
 
@@ -402,10 +268,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			break;
 		}
 
-		if (isHit)
+		/*if (isHit)
 		{
 			draw.DrawString(0, 16 * 2.5f * 2, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "hit");
-		}
+		}*/
 
 		// ƒ‹[ƒv‚ÌI—¹ˆ—
 		draw.PolygonLoopEnd();

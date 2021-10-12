@@ -14,6 +14,7 @@ Player::Player() :
 	speedVec{},
 	accel{},
 	accelVec{},
+	collision{},
 	playerObject{},
 	playerTex{},
 	jumpPower{},
@@ -23,7 +24,7 @@ Player::Player() :
 {
 }
 
-void Player::Init(DrawPolygon* draw)
+void Player::Init(DrawPolygon *draw)
 {
 	using namespace DirectX;
 
@@ -42,7 +43,7 @@ void Player::Init(DrawPolygon* draw)
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	this->speed = 0.0f;
+	this->speed = 1.0f;
 	this->speedVec = XMFLOAT3(1, 0, 0);
 	this->accel = 0.0f;
 	this->accelVec = XMFLOAT3(1, 0, 0);
@@ -54,6 +55,8 @@ void Player::Init(DrawPolygon* draw)
 
 void Player::Update()
 {
+	oldPos = pos;
+
 	jumpPower -= jumpPowerDecay;
 	if (jumpPower < 0.0f)
 	{
@@ -62,7 +65,7 @@ void Player::Update()
 
 	if (Input::IsKeyTrigger(DIK_SPACE))
 	{
-		JumpStart(5.0f, 1.0f);
+		JumpStart(6.5f, gravity);
 	}
 
 	// accelVec‚ð³‹K‰»
@@ -93,14 +96,16 @@ void Player::Update()
 	totalSpeed.x = (speedVec.x * speed) + (-gravityAxis.x * jumpPower);
 	totalSpeed.y = (speedVec.y * speed) + (-gravityAxis.y * jumpPower);
 	totalSpeed.z = (speedVec.z * speed) + (-gravityAxis.z * jumpPower);
-	//totalSpeed.x += gravityAxis.x * gravity;
-	//totalSpeed.y += gravityAxis.y * gravity;
-	//totalSpeed.z += gravityAxis.z * gravity;
+	totalSpeed.x += gravityAxis.x * gravity;
+	totalSpeed.y += gravityAxis.y * gravity;
+	totalSpeed.z += gravityAxis.z * gravity;
 
 	// pos‚É‰ÁŽZ
 	pos.x += totalAccel.x + totalSpeed.x;
 	pos.y += totalAccel.y + totalSpeed.y;
 	pos.z += totalAccel.z + totalSpeed.z;
+
+	collision.Initilize(pos, rotaMat, 5, 5, 5);
 }
 
 void Player::Draw()

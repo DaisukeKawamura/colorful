@@ -5,6 +5,8 @@
 #include "./Header/Player.h"
 #include "./Header/OBBCollision.h"
 #include "./Header/HP.h"
+#include "./Header/LoadCSV.h"
+
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -48,25 +50,36 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");
 	int tex1 = draw.LoadTextrue(L"./Resources/tex1.png");
+	int ringGraph = draw.LoadTextrue(L"./Resources/ring.png");
 
 	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
 	XMFLOAT3 cameraTarget = { 0, 0, 0 }; //カメラの注視点
-	XMFLOAT3 upVec = { 0, 1, 0 }; //上ベクトル
+	XMFLOAT3 upVec = { 0, 1, 0 };        //上ベクトル
 
 	// メインカメラの初期化
 	draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 
 	// オブジェクトの生成
-	int triangle = draw.CreateTriangle(
-		XMFLOAT3(-10.0f, -10.0f, 0.0f), XMFLOAT2(0.0f, 1.0f),
-		XMFLOAT3(  0.0f, +10.0f, 0.0f), XMFLOAT2(0.5f, 0.0f),
-		XMFLOAT3(+10.0f, -10.0f, 0.0f), XMFLOAT2(1.0f, 1.0f)
-	);
-	int box = draw.Create3Dbox(10.0f, 10.0f, 10.0f);
+	int box = draw.Create3Dbox(20.0f, 5.0f, 20.0f);
+	int startBox = draw.Create3Dbox(240.0f, 5.0f, 20.0f);
+	int ringPolygon = draw.CreateCircle(10.0f, 32);
 
 	// ゲームループで使う変数の宣言
-	XMFLOAT3 boxPos = { 0, 0, 0 }; //位置
+	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
+	const float blockSize = 20.0f;                      //ステージをマップチップとして扱うための定数
+	const XMFLOAT3 mapOffset = { 130.0f, 50.0f, 0.0f }; //ステージの描画開始位置（左上、オブジェクト）
+
+	int ringCount = 0; //色変えリングの数
+	// 色変えリング等で使う色
+	const XMFLOAT4 changeColor[] = {
+		{ 1.0f, 0.0f, 0.0f, 1.0f },
+		{ 1.0f, 1.0f, 0.0f, 1.0f }
+	};
+
 	float angle = 0.0f;
+
+	bool isGameover = false; //ゲームオーバーかどうか
+	bool isLoopEnd = false;  //無限ループを抜けるかどうか
 
 	while (true)
 	{
@@ -84,22 +97,98 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		case GameStatus::GameInit:
 			gameStatus = GameStatus::Main;
 
-			player.color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
+			player.Init(&draw);
+
+			{
+				int temp = LoadCSV(map, "./Resources/stage/stage1.csv");
+
+				if (temp != 0)
+				{
+					isLoopEnd = true;
+					break;
+				}
+			}
+
+			// メインカメラの初期化
+			//draw.SetCamera(XMFLOAT3(15.0f, 0.0f, -110.0f), XMFLOAT3(), upVec, MAIN_CAMERA);
+
+			isGameover = false;
 			break;
 		case GameStatus::Main:
-			//gameStatus = GameStatus::Title;
+			if (isGameover == true)
+			{
+				if (Input::IsKeyTrigger(DIK_SPACE))
+				{
+					gameStatus = GameStatus::Title;
+				}
+			}
 
 			player.Update();
 
-			angle += 1.0f;
-			player.rotaMat = XMMatrixIdentity();
-			player.rotaMat *= XMMatrixRotationZ(Player::gravity);
-			player.rotaMat *= XMMatrixRotationX(XMConvertToRadians(angle));
+			// メインカメラの更新
+			draw.SetCamera(
+				XMFLOAT3(player.pos.x, 0.0f, player.pos.z - 100.0f),
+				XMFLOAT3(player.pos.x, 0.0f, player.pos.z),
+				upVec, MAIN_CAMERA);
 
-			player.color.x += 0.01f;
-			if (player.color.x > 1.0f)
+			angle += 1.0f;
+
+			ringCount = 0;
+			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
-				player.color.x = 0.0f;
+				for (int x = 0; x < sizeof(map[0]) / sizeof(map[0][0]); x++)
+				{
+					switch (map[y][x])
+					{
+					case ObjectStatus::BLOCK:
+					{
+						OBB startOBB, blockOBB;
+
+						startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, 2.5f, 10.0f);
+						blockOBB.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
+						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+
+						bool isHit = OBBCollision::ColOBBs(player.collision, startOBB);
+						if (isHit)
+						{//押し戻し処理
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, startOBB);
+						}
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{//押し戻し処理
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB);
+						}
+					}
+						break;
+					case ObjectStatus::ITEM:
+						break;
+					case ObjectStatus::RING:
+					{
+						OBB blockOBB;
+
+						blockOBB.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
+						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{
+							player.color = changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))];
+						}
+						ringCount++;
+					}
+						break;
+					case ObjectStatus::COLOR_WALL:
+						break;
+					default:
+						break;
+					}
+				}
+			}
+			if (player.pos.y <= -50.0f)
+			{
+				isGameover = true;
 			}
 			break;
 		case GameStatus::Config:
@@ -112,55 +201,29 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		if (Input::IsKey(DIK_LEFT))
 		{
-			boxPos.x -= 1.0f;
 		}
 		if (Input::IsKey(DIK_RIGHT))
 		{
-			boxPos.x += 1.0f;
 		}
 		if (Input::IsKey(DIK_UP))
 		{
-			boxPos.y += 1.0f;
 		}
 		if (Input::IsKey(DIK_DOWN))
 		{
-			boxPos.y -= 1.0f;
 		}
 
 		if (Input::IsKey(DIK_A))
 		{
-			cameraPos.x -= 1.0f;
-
-			// メインカメラの更新
-			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
 		if (Input::IsKey(DIK_D))
 		{
-			cameraPos.x += 1.0f;
-
-			// メインカメラの更新
-			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
 		if (Input::IsKey(DIK_W))
 		{
-			cameraPos.y += 1.0f;
-
-			// メインカメラの更新
-			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
 		if (Input::IsKey(DIK_S))
 		{
-			cameraPos.y -= 1.0f;
-
-			// メインカメラの更新
-			draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 		}
-		//OBBの当たり判定
-		OBB obb1;
-		obb1.Initilize(player.pos, player.rotaMat, 5, 5, 5);
-		OBB obb2;
-		obb2.Initilize(boxPos, XMMatrixIdentity(), 5, 5, 5);
-		bool isHit = OBBCollision::ColOBBs(obb1, obb2);
 
 		w.ClearScreen();
 		draw.SetDrawBlendMode(BLENDMODE_ALPHA);
@@ -173,74 +236,96 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		switch (gameStatus)
 		{
 		case GameStatus::Title:
-			gameStatus = GameStatus::GameInit;
 			break;
 		case GameStatus::GameInit:
-			gameStatus = GameStatus::Main;
-			break;
 		case GameStatus::Main:
-			//gameStatus = GameStatus::Title;
+			draw.Draw(
+				startBox,
+				XMFLOAT3(0, -50.0f, 0),
+				XMMatrixIdentity(),
+				XMFLOAT3(1.0f, 1.0f, 1.0f),
+				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+			);
+			ringCount = 0;
+			for (int y = 0; y < MAP_HEIGHT; y++)
+			{
+				for (int x = 0; x < sizeof(map[0]) / sizeof(map[0][0]); x++)
+				{
+					switch (map[y][x])
+					{
+					case ObjectStatus::BLOCK:
+						draw.Draw(
+							box,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y,
+								mapOffset.z
+							),
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							0
+						);
+						break;
+					case ObjectStatus::ITEM:
+						//draw->Draw(x * mapSize + offsetX, y * mapSize + offsetY, graphHandleArray[map[y][x]], transFlag);
+						break;
+					case ObjectStatus::RING:
+						draw.Draw(
+							ringPolygon,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y,
+								mapOffset.z
+							),
+							XMMatrixRotationY(XMConvertToRadians(90)),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
+							ringGraph
+						);
+						draw.Draw(
+							ringPolygon,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y,
+								mapOffset.z
+							),
+							XMMatrixRotationY(XMConvertToRadians(-90)),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
+							ringGraph
+						);
+						ringCount++;
+						break;
+					case ObjectStatus::COLOR_WALL:
+						//draw->Draw(x * mapSize + offsetX, y * mapSize + offsetY, graphHandleArray[map[y][x]], transFlag);
+						break;
+					default:
+						break;
+					}
+				}
+			}
+
 			player.Draw();
+
+			if (isGameover == true)
+			{
+#if _DEBUG
+				draw.DrawString(0, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
+#endif // _DEBUG
+			}
 			break;
 		case GameStatus::Config:
-			gameStatus = GameStatus::Title;
 			break;
 		default:
-			gameStatus = GameStatus::Title;
 			break;
-		}
-
-		// 3dオブジェクト
-		draw.Draw(
-			triangle,
-			XMFLOAT3(10.0f, 10.0f, 10.0f),
-			XMMatrixRotationY(XMConvertToRadians(75)),
-			XMFLOAT3(1, 1, 1),
-			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-			tex1
-		);
-		draw.Draw(
-			box,
-			boxPos,
-			XMMatrixIdentity(),
-			XMFLOAT3(1, 1, 1),
-			XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-		);
-
-		// 前景
-		draw.DrawTextrue(
-			window_width,
-			window_height,
-			100,
-			100,
-			0,
-			tex1,
-			XMFLOAT2(1.0f, 1.0f)
-		);
-		draw.DrawCutTextrue(
-			0,
-			window_height,
-			100,
-			100,
-			XMFLOAT2(0, 320),
-			XMFLOAT2(320, 480),
-			0,
-			background,
-			XMFLOAT2(0.0f, 1.0f)
-		);
-
-		draw.DrawString(0, 0, 2.5f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "cameraPos.x:%f", cameraPos.x);
-		draw.DrawString(0, 16 * 2.5f, 2.5f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "cameraPos.y:%f", cameraPos.y);
-
-		if (isHit)
-		{
-			draw.DrawString(0, 16 * 2.5f * 2, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "hit");
 		}
 
 		// ループの終了処理
 		draw.PolygonLoopEnd();
 		w.ScreenFlip();
 
+		if (isLoopEnd == true) { break; }
 		if (Input::IsKey(DIK_ESCAPE)) { break; }
 	}
 

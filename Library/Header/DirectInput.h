@@ -17,7 +17,7 @@ private:
 	// コンストラクタをprivateにする
 	DirectInput() {};
 	// デストラクタをprivateにする
-	~DirectInput() {};
+	~DirectInput() {}
 public:
 	// コピーコンストラクタを無効にする
 	DirectInput(const DirectInput& obj) = delete;

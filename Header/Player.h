@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include "./Header/DrawPolygon.h"
+#include "./Header/OBBCollision.h"
 
 class Player
 {
@@ -51,6 +52,8 @@ public: // メンバ変数
 	XMFLOAT3 speedVec; //速度を加える方向
 	float accel;       //加速度
 	XMFLOAT3 accelVec; //加速度を加える方向
+
+	OBB collision; //当たり判定
 private:
 	int playerObject; //プレイヤーの頂点データ
 	int playerTex;    //プレイヤーのテクスチャ

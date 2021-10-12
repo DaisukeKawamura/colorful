@@ -1,4 +1,4 @@
-#include "HP.h"
+#include "./Header/HP.h"
 
 HP::HP() :
 	P_CurrentHP{},

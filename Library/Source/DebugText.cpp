@@ -1,6 +1,7 @@
 #include "./Header/DebugText.h"
 
 /*static変数の初期化*/
+int DebugText::fontTex = -1;
 UINT64 DebugText::fontTexWidth = {};
 UINT DebugText::fontTexHeight = {};
 
@@ -8,10 +9,6 @@ DebugText::DebugText(const DirectXInit* w) :
 	LoadTex(w),
 	fontIndex{},
 	charCount(-1)
-{
-}
-
-DebugText::~DebugText()
 {
 }
 
@@ -24,6 +21,7 @@ HRESULT DebugText::DrawStringInit()
 	HRESULT hr = S_FALSE;
 	static bool isInit = false;
 
+	// 初期化されていたらreturnする
 	if (isInit == true)
 	{
 		return S_OK;
@@ -33,20 +31,21 @@ HRESULT DebugText::DrawStringInit()
 		isInit = true;
 		fontIndex.push_back({});
 
-		fontIndex[0].constant = CreateSprite();
-		if (fontIndex[0].constant == -1)
+		fontIndex[0] = CreateSprite();
+		if (fontIndex[0] == -1)
 		{
 			return S_FALSE;
 		}
 
-		fontIndex[0].textrue = LoadTextrue(L"./lib/DebugTextFont.png");
-		if (fontIndex[0].textrue == -1)
+		// デバッグテキスト用のテキスト画像の読み込み
+		fontTex = LoadTextrue(L"./lib/DebugTextFont.png");
+		if (fontTex == -1)
 		{
 			return HRESULT_FROM_WIN32(ERROR_INVALID_DATA);
 		}
 
 		// テクスチャデータ取得
-		D3D12_RESOURCE_DESC resDesc = textrueData[fontIndex[0].textrue].texbuff->GetDesc();
+		D3D12_RESOURCE_DESC resDesc = textrueData[fontTex].texbuff->GetDesc();
 
 		fontTexWidth = resDesc.Width;
 		fontTexHeight = resDesc.Height;
@@ -95,7 +94,7 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 	w->cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
 	// シェーダーリソースビューをセット
-	w->cmdList->SetGraphicsRootDescriptorTable(1, textrueData[fontIndex[0].textrue].gpuDescHandle);
+	w->cmdList->SetGraphicsRootDescriptorTable(1, textrueData[fontTex].gpuDescHandle);
 
 	for (size_t i = 0, j = 0, k = 0; text[j] != '\0'; i++)
 	{
@@ -130,7 +129,7 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 				{
 					k = 0;
 					int tempI;
-					float tempF;
+					double tempF;
 
 					switch (text[j + 1])
 					{
@@ -140,7 +139,7 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 						sprintf_s((char*)string, 21, "%d", tempI);
 						break;
 					case 'f':
-						tempF = va_arg(args, float);
+						tempF = va_arg(args, double);
 						string = numberString;
 						sprintf_s((char*)string, 21, "%f", tempF);
 						break;
@@ -177,8 +176,8 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 
 		if (isInit == false)
 		{
-			fontIndex.push_back({ CreateSprite(), fontIndex[0].textrue });
-			if (fontIndex[fontIndex.size() - 1].constant == -1)
+			fontIndex.push_back(CreateSprite());
+			if (fontIndex[fontIndex.size() - 1] == -1)
 			{
 				return S_FALSE;
 			}
@@ -186,19 +185,19 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 
 		charCount++;
 
-		sprite[fontIndex[charCount].constant].size = { fontWidth * fontScale, fontHeight * fontScale };
-		sprite[fontIndex[charCount].constant].texLeftTop.x = (character % fontLineCount) * (float)fontWidth;
-		sprite[fontIndex[charCount].constant].texLeftTop.y = (character / fontLineCount) * (float)fontHeight;
-		sprite[fontIndex[charCount].constant].texSize = { fontWidth, fontHeight };
+		sprite[fontIndex[charCount]].size = { fontWidth * fontScale, fontHeight * fontScale };
+		sprite[fontIndex[charCount]].texLeftTop.x = (character % fontLineCount) * (float)fontWidth;
+		sprite[fontIndex[charCount]].texLeftTop.y = (character / fontLineCount) * (float)fontHeight;
+		sprite[fontIndex[charCount]].texSize = { fontWidth, fontHeight };
 
 		enum Corner { LB, LT, RB, RT };
 
 		SpriteVertex vert[4];
 
 		float left = 0.0f;
-		float right = sprite[fontIndex[charCount].constant].size.x;
+		float right = sprite[fontIndex[charCount]].size.x;
 		float top = 0.0f;
-		float bottom = sprite[fontIndex[charCount].constant].size.y;
+		float bottom = sprite[fontIndex[charCount]].size.y;
 
 		vert[LB].pos = { left,  bottom, 0.0f };
 		vert[LT].pos = { left,     top, 0.0f };
@@ -206,13 +205,13 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 		vert[RT].pos = { right,    top, 0.0f };
 
 		float texLeft =
-			sprite[fontIndex[charCount].constant].texLeftTop.x / fontTexWidth;
+			sprite[fontIndex[charCount]].texLeftTop.x / fontTexWidth;
 		float texRight =
-			(sprite[fontIndex[charCount].constant].texLeftTop.x + sprite[fontIndex[charCount].constant].texSize.x - 1) / fontTexWidth;
+			(sprite[fontIndex[charCount]].texLeftTop.x + sprite[fontIndex[charCount]].texSize.x - 1) / fontTexWidth;
 		float texTop =
-			sprite[fontIndex[charCount].constant].texLeftTop.y / fontTexHeight;
+			sprite[fontIndex[charCount]].texLeftTop.y / fontTexHeight;
 		float texBottom =
-			(sprite[fontIndex[charCount].constant].texLeftTop.y + sprite[fontIndex[charCount].constant].texSize.y - 1) / fontTexHeight;
+			(sprite[fontIndex[charCount]].texLeftTop.y + sprite[fontIndex[charCount]].texSize.y - 1) / fontTexHeight;
 
 		vert[LB].uv = { texLeft,  texBottom };
 		vert[LT].uv = { texLeft,     texTop };
@@ -221,34 +220,34 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 
 		// 頂点バッファへのデータ転送
 		SpriteVertex* vertexMap = nullptr;
-		hr = sprite[fontIndex[charCount].constant].vertBuff->Map(0, nullptr, (void**)&vertexMap);
+		hr = sprite[fontIndex[charCount]].vertBuff->Map(0, nullptr, (void**)&vertexMap);
 		memcpy(vertexMap, vert, sizeof(vert));
-		sprite[fontIndex[charCount].constant].vertBuff->Unmap(0, nullptr);
+		sprite[fontIndex[charCount]].vertBuff->Unmap(0, nullptr);
 
-		sprite[fontIndex[charCount].constant].color = color;
-		sprite[fontIndex[charCount].constant].pos = { posX + fontWidth * fontScale * i + pixel.x, posY + pixel.y, 0 };
-		sprite[fontIndex[charCount].constant].rotation = 0;
+		sprite[fontIndex[charCount]].color = color;
+		sprite[fontIndex[charCount]].pos = { posX + fontWidth * fontScale * i + pixel.x, posY + pixel.y, 0 };
+		sprite[fontIndex[charCount]].rotation = 0;
 
-		sprite[fontIndex[charCount].constant].matWorld = XMMatrixIdentity();
-		sprite[fontIndex[charCount].constant].matWorld *=
-			XMMatrixRotationZ(XMConvertToRadians(sprite[fontIndex[charCount].constant].rotation));
-		sprite[fontIndex[charCount].constant].matWorld *= XMMatrixTranslation(
-			sprite[fontIndex[charCount].constant].pos.x,
-			sprite[fontIndex[charCount].constant].pos.y,
-			sprite[fontIndex[charCount].constant].pos.z);
+		sprite[fontIndex[charCount]].matWorld = XMMatrixIdentity();
+		sprite[fontIndex[charCount]].matWorld *=
+			XMMatrixRotationZ(XMConvertToRadians(sprite[fontIndex[charCount]].rotation));
+		sprite[fontIndex[charCount]].matWorld *= XMMatrixTranslation(
+			sprite[fontIndex[charCount]].pos.x,
+			sprite[fontIndex[charCount]].pos.y,
+			sprite[fontIndex[charCount]].pos.z);
 
 		SpriteConstBufferData* constMap = nullptr;
-		hr = sprite[fontIndex[charCount].constant].constBuff->Map(0, nullptr, (void**)&constMap);
-		constMap->color = sprite[fontIndex[charCount].constant].color;
-		constMap->mat = sprite[fontIndex[charCount].constant].matWorld *
+		hr = sprite[fontIndex[charCount]].constBuff->Map(0, nullptr, (void**)&constMap);
+		constMap->color = sprite[fontIndex[charCount]].color;
+		constMap->mat = sprite[fontIndex[charCount]].matWorld *
 			spriteData.matProjection[CommonData::Projection::ORTHOGRAPHIC];
-		sprite[fontIndex[charCount].constant].constBuff->Unmap(0, nullptr);
+		sprite[fontIndex[charCount]].constBuff->Unmap(0, nullptr);
 
 		// 定数バッファビューをセット
-		w->cmdList->SetGraphicsRootConstantBufferView(0, sprite[fontIndex[charCount].constant].constBuff->GetGPUVirtualAddress());
+		w->cmdList->SetGraphicsRootConstantBufferView(0, sprite[fontIndex[charCount]].constBuff->GetGPUVirtualAddress());
 
 		// 頂点バッファの設定
-		w->cmdList->IASetVertexBuffers(0, 1, &sprite[fontIndex[charCount].constant].vbView);
+		w->cmdList->IASetVertexBuffers(0, 1, &sprite[fontIndex[charCount]].vbView);
 		// 描画コマンド
 		w->cmdList->DrawInstanced(4, 1, 0, 0);
 
@@ -265,7 +264,7 @@ HRESULT DebugText::DrawString(const float& posX, const float& posY,
 #pragma endregion
 
 	va_end(args);
-	return hr;
+	return S_OK;
 }
 
 void DebugText::TextLoopEnd()

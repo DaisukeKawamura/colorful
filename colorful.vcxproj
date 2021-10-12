@@ -144,6 +144,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source\LoadCSV.cpp" />
     <ClCompile Include="Source\HP.cpp" />
     <ClCompile Include="Source\OBBCollision.cpp" />
     <ClCompile Include="Source\Player.cpp" />
@@ -158,6 +159,7 @@
     <Image Include="Resources\background.png" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header\LoadCSV.h" />
     <ClInclude Include="Header\HP.h" />
     <ClInclude Include="Header\OBBCollision.h" />
     <ClInclude Include="Header\Player.h" />

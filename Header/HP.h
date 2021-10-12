@@ -4,9 +4,9 @@ class HP
 public://メンバ関数
 
 	// コンストラクタ
-	HP() ;
+	HP();
 	// デストラクタ
-	~HP() {};
+	~HP() {}
 
 	//初期化  //最初のHP、最小HP,最大HP
 	void Init(float CurrenHP, float minHP, float maxHP);

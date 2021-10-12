@@ -6,9 +6,9 @@ class Input final
 {
 private:
 	// コンストラクタをprivateにする
-	Input() {};
+	Input() {}
 	// デストラクタをprivateにする
-	~Input() {};
+	~Input() {}
 public:
 	// コピーコンストラクタの削除
 	Input(const Input& obj) = delete;

@@ -17,7 +17,7 @@ public: // メンバ関数
 	// コンストラクタ
 	DebugText(const DirectXInit* w);
 	// デストラクタ
-	~DebugText() {};
+	~DebugText() {}
 
 	/// <summary>
 	/// デバッグテキスト

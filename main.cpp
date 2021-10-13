@@ -45,7 +45,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	player.Init(&draw);
 
 	HP hp;
-	hp.Init(10, 1, 20);
+	hp.Init(50, 1, 60);
 
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");
@@ -100,6 +100,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			gameStatus = GameStatus::Main;
 
 			player.Init(&draw);
+			hp.Init(50, 1, 60);
 
 			{
 				int temp = LoadCSV(map, "./Resources/stage/stage1.csv");
@@ -157,19 +158,37 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, startOBB);
+						bool isHitDown = false;
 						if (isHit)
 						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, startOBB);
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, startOBB, isHitDown);
 						}
 						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
 						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB);
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
+						}
+						//地面についた時の処理
+						if (isHitDown)
+						{
+							hp.AddDamage(0.01);
 						}
 					}
-						break;
+					break;
 					case ObjectStatus::ITEM:
-						break;
+					{
+						OBB itemOBB;
+						itemOBB.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
+						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+						bool isHit = OBBCollision::ColOBBs(player.collision, itemOBB);
+						if (isHit)
+						{
+							hp.RecoverDamage(5);
+							map[y][x] = ObjectStatus::BREAK_ITEM;
+						}
+					}
+					break;
 					case ObjectStatus::RING:
 					{
 						OBB blockOBB;
@@ -183,10 +202,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						{
 							player.color = changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))];
 							map[y][x] = ObjectStatus::BREAK_RING;
+							hp.RecoverDamage(5);
 						}
 						ringCount++;
 					}
-						break;
+					break;
 					case ObjectStatus::BREAK_RING:
 						ringCount++;
 						break;
@@ -202,10 +222,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (isHit)
 						{
 							map[y][x] = ObjectStatus::BREAK_COLOR_WALL;
+							XMFLOAT4 colorBlock = changeColor[colorWallCount % (sizeof(changeColor) / sizeof(changeColor[0]))];
+							//色が違ったらダメージ
+							if (!(player.color.x == colorBlock.x && player.color.y == colorBlock.y && player.color.z == colorBlock.z))
+							{
+								hp.AddDamage(5);
+							}
 						}
 						colorWallCount++;
 					}
-						break;
+					break;
 					case ObjectStatus::BREAK_COLOR_WALL:
 						colorWallCount++;
 						break;
@@ -218,6 +244,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				isGameover = true;
 			}
+			isGameover = hp.isEmpty();
 			break;
 		case GameStatus::Config:
 			gameStatus = GameStatus::Title;
@@ -361,6 +388,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				draw.DrawString(0, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 #endif // _DEBUG
 			}
+			draw.DrawString(0, 20, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "HP%f", hp.GetCurrentHP());
 			break;
 		case GameStatus::Config:
 			break;

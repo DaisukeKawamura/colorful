@@ -157,6 +157,7 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\background.png" />
+    <Image Include="Resources\ring.png" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\LoadCSV.h" />

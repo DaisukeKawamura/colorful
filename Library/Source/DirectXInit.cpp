@@ -99,10 +99,6 @@ DirectXInit::DirectXInit(RECT windowSize, LPCSTR title, LPCSTR className) :
 }
 #endif // UNICODE
 
-DirectXInit::~DirectXInit()
-{
-}
-
 void DirectXInit::DebugLayer()
 {
 	ID3D12Debug* debugController;

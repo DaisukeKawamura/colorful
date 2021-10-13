@@ -19,7 +19,7 @@ public: // メンバ関数
 	// コンストラクタ
 	Player();
 	// デストラクタ
-	~Player() {};
+	~Player() {}
 
 	// 初期化
 	void Init(DrawPolygon* draw);

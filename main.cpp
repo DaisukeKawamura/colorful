@@ -63,6 +63,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int box = draw.Create3Dbox(20.0f, 5.0f, 20.0f);
 	int startBox = draw.Create3Dbox(240.0f, 5.0f, 20.0f);
 	int ringPolygon = draw.CreateCircle(10.0f, 32);
+	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);
 
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
@@ -70,6 +71,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	const XMFLOAT3 mapOffset = { 130.0f, 50.0f, 0.0f }; //ステージの描画開始位置（左上、オブジェクト）
 
 	int ringCount = 0; //色変えリングの数
+	int colorWallCount = 0; //色付き壁の数
 	// 色変えリング等で使う色
 	const XMFLOAT4 changeColor[] = {
 		{ 1.0f, 0.0f, 0.0f, 1.0f },
@@ -134,6 +136,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			angle += 1.0f;
 
 			ringCount = 0;
+			colorWallCount = 0;
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
 				for (int x = 0; x < sizeof(map[0]) / sizeof(map[0][0]); x++)
@@ -180,6 +183,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 						break;
 					case ObjectStatus::COLOR_WALL:
+					{
+						OBB blockOBB;
+
+						blockOBB.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
+						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{
+							map[y][x] = ObjectStatus::BREAK_COLOR_WALL;
+						}
+						colorWallCount++;
+					}
+						break;
+					case ObjectStatus::BREAK_COLOR_WALL:
+						colorWallCount++;
 						break;
 					default:
 						break;
@@ -247,6 +267,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
 			);
 			ringCount = 0;
+			colorWallCount = 0;
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
 				for (int x = 0; x < sizeof(map[0]) / sizeof(map[0][0]); x++)
@@ -298,7 +319,22 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						ringCount++;
 						break;
 					case ObjectStatus::COLOR_WALL:
-						//draw->Draw(x * mapSize + offsetX, y * mapSize + offsetY, graphHandleArray[map[y][x]], transFlag);
+						draw.Draw(
+							colorBox,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y,
+								mapOffset.z
+							),
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							changeColor[colorWallCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
+							0
+						);
+						colorWallCount++;
+						break;
+					case ObjectStatus::BREAK_COLOR_WALL:
+						colorWallCount++;
 						break;
 					default:
 						break;

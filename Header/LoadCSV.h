@@ -12,7 +12,8 @@ enum ObjectStatus
 	RING,            //色変えリング
 	COLOR_WALL,      //色が有ってればダメージを受けない壁
 	BREAK_RING,      //元RING
-	BREAK_COLOR_WALL //元COLOR_WALL
+	BREAK_COLOR_WALL,//元COLOR_WALL
+	BREAK_ITEM
 };
 
 /// <summary>

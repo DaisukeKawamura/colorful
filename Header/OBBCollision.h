@@ -30,6 +30,6 @@ public:
 	static FLOAT LenSegOnSeparateAxis(Vector3 &Sep, Vector3 &e1, Vector3 &e2, Vector3 e3 = { 0,0,0 });
 
 	//押し戻し処理/ プレイヤーの位置,前のプレイヤーの位置,OBBプレイヤー、OBBブロック
-	static void PushbackPolygon(XMFLOAT3 &position, const  XMFLOAT3 oldPosition, OBB &player, OBB &block);
+	static void PushbackPolygon(XMFLOAT3 &position, const  XMFLOAT3 oldPosition, OBB &player, OBB &block,bool &HitDown);
 };
 

@@ -133,8 +133,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			// メインカメラの更新
 			draw.SetCamera(
-				XMFLOAT3(player.pos.x, 0.0f, player.pos.z - 100.0f),
-				XMFLOAT3(player.pos.x, 0.0f, player.pos.z),
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z - 170.0f),
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z),
 				upVec, MAIN_CAMERA);
 
 			angle += 1.0f;

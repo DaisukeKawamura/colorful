@@ -62,11 +62,12 @@ void Player::Update()
 	jumpPower -= jumpPowerDecay;
 	if (jumpPower < 0.0f)
 	{
-		jumpFlag = false;
+		jumpPowerDecay = 0.0f;
 	}
 
 	if (jumpFlag == true)
 	{
+		jumpFlag = false;
 		JumpStart(6.5f, gravity);
 	}
 

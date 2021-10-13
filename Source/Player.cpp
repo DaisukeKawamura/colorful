@@ -1,5 +1,4 @@
 #include "./Header/Player.h"
-#include "./Header/Input.h"
 
 const float Player::gravity = 0.49f;
 const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
@@ -7,6 +6,7 @@ const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
 Player::Player() :
 	draw(nullptr),
 	pos{},
+	oldPos{},
 	rotaMat{},
 	scale{},
 	color{},
@@ -19,6 +19,7 @@ Player::Player() :
 	playerTex{},
 	jumpPower{},
 	jumpPowerDecay{},
+	jumpFlag{},
 	totalSpeed{},
 	totalAccel{}
 {
@@ -43,12 +44,13 @@ void Player::Init(DrawPolygon *draw)
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	this->speed = 1.0f;
+	this->speed = 2.0f;
 	this->speedVec = XMFLOAT3(1, 0, 0);
 	this->accel = 0.0f;
 	this->accelVec = XMFLOAT3(1, 0, 0);
 	this->jumpPower = 0.0f;
 	this->jumpPowerDecay = 0.0f;
+	this->jumpFlag = false;
 	this->totalSpeed = XMFLOAT3(0, 0, 0);
 	this->totalAccel = XMFLOAT3(0, 0, 0);
 }
@@ -60,10 +62,10 @@ void Player::Update()
 	jumpPower -= jumpPowerDecay;
 	if (jumpPower < 0.0f)
 	{
-		jumpPower = 0.0f;
+		jumpFlag = false;
 	}
 
-	if (Input::IsKeyTrigger(DIK_SPACE))
+	if (jumpFlag == true)
 	{
 		JumpStart(6.5f, gravity);
 	}

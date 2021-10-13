@@ -117,11 +117,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			isGameover = false;
 			break;
 		case GameStatus::Main:
-			if (isGameover == true)
+			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
-				if (Input::IsKeyTrigger(DIK_SPACE))
+				if (isGameover == true)
 				{
 					gameStatus = GameStatus::Title;
+				}
+				else
+				{
+					player.jumpFlag = true;
 				}
 			}
 
@@ -178,9 +182,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (isHit)
 						{
 							player.color = changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))];
+							map[y][x] = ObjectStatus::BREAK_RING;
 						}
 						ringCount++;
 					}
+						break;
+					case ObjectStatus::BREAK_RING:
+						ringCount++;
 						break;
 					case ObjectStatus::COLOR_WALL:
 					{
@@ -316,6 +324,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
 							ringGraph
 						);
+						ringCount++;
+						break;
+					case ObjectStatus::BREAK_RING:
 						ringCount++;
 						break;
 					case ObjectStatus::COLOR_WALL:

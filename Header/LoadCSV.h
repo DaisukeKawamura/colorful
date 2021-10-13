@@ -6,11 +6,13 @@
 
 enum ObjectStatus
 {
-	NONE,      //空
-	BLOCK,     //床、壁
-	ITEM,      //アイテム
-	RING,      //色変えリング
-	COLOR_WALL //色が有ってればダメージを受けない壁
+	NONE,            //空
+	BLOCK,           //床、壁
+	ITEM,            //アイテム
+	RING,            //色変えリング
+	COLOR_WALL,      //色が有ってればダメージを受けない壁
+	BREAK_RING,      //元RING
+	BREAK_COLOR_WALL //元COLOR_WALL
 };
 
 /// <summary>

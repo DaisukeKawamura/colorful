@@ -274,7 +274,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				isGameover = hp.isEmpty();
 			}
-			isGameover = hp.isEmpty();
 			break;
 		case GameStatus::Config:
 			gameStatus = GameStatus::Title;

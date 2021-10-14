@@ -214,7 +214,7 @@ FLOAT OBBCollision::LenSegOnSeparateAxis(Vector3 &Sep, Vector3 &e1, Vector3 &e2,
 	return r1 + r2 + r3;
 }
 
-void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPosition, const OBB& player, const OBB& block, bool& HitDown)
+void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPosition, OBB& player, OBB& block, bool& HitDown)
 {
 	//プレイヤー座標
 	float PRight = position.x + player.GetLen_W(0), PLeft = position.x - player.GetLen_W(0);

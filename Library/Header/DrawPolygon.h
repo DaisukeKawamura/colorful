@@ -47,7 +47,7 @@ public: // メンバ関数
 	// コンストラクタ
 	DrawPolygon(const DirectXInit* w);
 	// デストラクタ
-	~DrawPolygon() {};
+	~DrawPolygon() {}
 
 	// 三角形の作成
 	int CreateTriangle(const XMFLOAT3& vertex1, const DirectX::XMFLOAT2& uv1,

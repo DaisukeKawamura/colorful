@@ -24,7 +24,7 @@ public: // メンバ関数
 	Win32API(RECT windowSize, LPCSTR title, LPCSTR className = "Windows");
 #endif // UNICODE
 	// デストラクタ
-	~Win32API() {};
+	~Win32API() {}
 
 	// 初期化
 	BOOL WINAPI WindowInit();

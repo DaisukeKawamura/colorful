@@ -162,7 +162,7 @@ public: // メンバ関数
 	// コンストラクタ
 	DirectDrawing(const DirectXInit* w);
 	// デストラクタ
-	~DirectDrawing() {};
+	~DirectDrawing() {}
 
 	/// <summary>
 	/// 空の定数バッファの生成

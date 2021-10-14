@@ -38,7 +38,7 @@ public: // メンバ関数
 	DirectXInit(RECT windowSize, LPCSTR title, LPCSTR className = "DirectX");
 #endif // UNICODE
 	// デストラクタ
-	~DirectXInit();
+	~DirectXInit() {}
 
 	// 初期化
 	HRESULT Init();

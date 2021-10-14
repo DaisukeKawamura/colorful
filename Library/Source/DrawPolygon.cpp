@@ -269,7 +269,7 @@ int DrawPolygon::CreateCylinder(const float& r, const float& h, const size_t& di
 	size_t indexSize = divNum * (2 + (size_t)isFill);
 	unsigned short* index = (unsigned short*)malloc(sizeof(unsigned short) * indexSize);
 
-	Circle({ 0, 0, 0 }, r, divNum, isFill, v, index);
+	Circle({ 0, 0, -h / 2.0f }, r, divNum, isFill, v, index);
 
 	for (size_t i = 0; i < divNum + 1; i++)
 	{
@@ -282,7 +282,7 @@ int DrawPolygon::CreateCylinder(const float& r, const float& h, const size_t& di
 
 	size_t size1 = vertices[vertices.size() - 1].vertices.size();
 
-	Circle({ 0, 0, h }, r, divNum, isFill, v, index);
+	Circle({ 0, 0, h / 2.0f }, r, divNum, isFill, v, index);
 
 	for (size_t i = 0; i < divNum + 1; i++)
 	{
@@ -290,7 +290,7 @@ int DrawPolygon::CreateCylinder(const float& r, const float& h, const size_t& di
 	}
 	for (size_t i = 0; i < indexSize; i++)
 	{
-		vertices[vertices.size() - 1].indices.push_back(index[i]);
+		vertices[vertices.size() - 1].indices.push_back(index[i] + (unsigned short)size1);
 	}
 
 	free(v);
@@ -330,7 +330,6 @@ int DrawPolygon::CreateCylinder(const float& r, const float& h, const size_t& di
 	for (size_t i = 0; i < size1 - 1; i++)
 	{
 		vertices[vertices.size() - 1].vertices[i].pos.x *= -1;
-		vertices[vertices.size() - 1].vertices[i].pos.z *= -1;
 	}
 
 	return CreateVertexAndIndexBuffer();

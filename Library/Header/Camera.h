@@ -10,8 +10,8 @@ private:
 
 	/*メンバ関数*/
 public:
-	Camera() {};
-	~Camera() {};
+	Camera() {}
+	~Camera() {}
 
 	// キャラクタ姿勢行列の生成
 	static DirectX::XMMATRIX CreateCamera(const XMVECTOR& pos, const XMVECTOR& target, const XMVECTOR& upVector);

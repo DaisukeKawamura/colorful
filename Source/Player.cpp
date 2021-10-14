@@ -1,5 +1,4 @@
 #include "./Header/Player.h"
-#include "./Header/Input.h"
 
 const float Player::gravity = 0.49f;
 const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
@@ -26,7 +25,7 @@ Player::Player() :
 {
 }
 
-void Player::Init(DrawPolygon* draw)
+void Player::Init(DrawPolygon *draw)
 {
 	using namespace DirectX;
 
@@ -59,6 +58,8 @@ void Player::Init(DrawPolygon* draw)
 
 void Player::Update()
 {
+	oldPos = pos;
+
 	jumpPower -= jumpPowerDecay;
 	if (jumpPower < 0.0f)
 	{

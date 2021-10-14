@@ -7,6 +7,7 @@ const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
 Player::Player() :
 	draw(nullptr),
 	pos{},
+	oldPos{},
 	rotaMat{},
 	scale{},
 	color{},
@@ -14,10 +15,12 @@ Player::Player() :
 	speedVec{},
 	accel{},
 	accelVec{},
+	collision{},
 	playerObject{},
 	playerTex{},
 	jumpPower{},
 	jumpPowerDecay{},
+	jumpFlag{},
 	totalSpeed{},
 	totalAccel{}
 {
@@ -38,16 +41,18 @@ void Player::Init(DrawPolygon* draw)
 	}
 
 	this->pos = XMFLOAT3(0, 0, 0);
+	this->oldPos = XMFLOAT3(0, 0, 0);
 	this->rotaMat = XMMatrixIdentity();
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	this->speed = 0.0f;
+	this->speed = 2.0f;
 	this->speedVec = XMFLOAT3(1, 0, 0);
 	this->accel = 0.0f;
 	this->accelVec = XMFLOAT3(1, 0, 0);
 	this->jumpPower = 0.0f;
 	this->jumpPowerDecay = 0.0f;
+	this->jumpFlag = false;
 	this->totalSpeed = XMFLOAT3(0, 0, 0);
 	this->totalAccel = XMFLOAT3(0, 0, 0);
 }
@@ -57,13 +62,16 @@ void Player::Update()
 	jumpPower -= jumpPowerDecay;
 	if (jumpPower < 0.0f)
 	{
-		jumpPower = 0.0f;
+		jumpPowerDecay = 0.0f;
 	}
 
-	if (Input::IsKeyTrigger(DIK_SPACE))
+	if (jumpFlag == true)
 	{
-		JumpStart(5.0f, 1.0f);
+		jumpFlag = false;
+		JumpStart(6.5f, gravity);
 	}
+
+	oldPos = pos;
 
 	// accelVec‚ð³‹K‰»
 	float accelVecLen = sqrtf(
@@ -93,14 +101,16 @@ void Player::Update()
 	totalSpeed.x = (speedVec.x * speed) + (-gravityAxis.x * jumpPower);
 	totalSpeed.y = (speedVec.y * speed) + (-gravityAxis.y * jumpPower);
 	totalSpeed.z = (speedVec.z * speed) + (-gravityAxis.z * jumpPower);
-	//totalSpeed.x += gravityAxis.x * gravity;
-	//totalSpeed.y += gravityAxis.y * gravity;
-	//totalSpeed.z += gravityAxis.z * gravity;
+	totalSpeed.x += gravityAxis.x * gravity;
+	totalSpeed.y += gravityAxis.y * gravity;
+	totalSpeed.z += gravityAxis.z * gravity;
 
 	// pos‚É‰ÁŽZ
 	pos.x += totalAccel.x + totalSpeed.x;
 	pos.y += totalAccel.y + totalSpeed.y;
 	pos.z += totalAccel.z + totalSpeed.z;
+
+	collision.Initilize(pos, rotaMat, 5, 5, 5);
 }
 
 void Player::Draw()

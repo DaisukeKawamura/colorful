@@ -213,3 +213,78 @@ FLOAT OBBCollision::LenSegOnSeparateAxis(Vector3 &Sep, Vector3 &e1, Vector3 &e2,
 	FLOAT r3 = &e3 ? (fabsf(Vector3::dot(Sep, e3))) : 0;
 	return r1 + r2 + r3;
 }
+
+void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3 oldPosition, OBB& player, OBB& block, bool& HitDown)
+{
+	//プレイヤー座標
+	float PRight = position.x + player.GetLen_W(0), PLeft = position.x - player.GetLen_W(0);
+	float PUp = position.y + player.GetLen_W(1), PDown = position.y - player.GetLen_W(1);
+	//プレイヤーの前の座標
+	float oldRight = oldPosition.x + player.GetLen_W(0), oldLeft = oldPosition.x - player.GetLen_W(0);
+	float oldUp = oldPosition.y + player.GetLen_W(1), oldDown = oldPosition.y - player.GetLen_W(1);
+	//ブロック座標
+	Vector3 BPos = block.GetPos_W();
+	float BRight = BPos.x + block.GetLen_W(0), BLeft = BPos.x - block.GetLen_W(0);
+	float BUp = BPos.y + block.GetLen_W(1), BDown = BPos.y - block.GetLen_W(1);
+
+	//左上
+	if (oldLeft >= BRight && oldUp <= BDown)
+	{
+		//上にブロックがなかったら上優先
+		if (oldUp <= BDown)
+		{
+			position.y = BDown - player.GetLen_W(1);
+		}
+	}
+	//左下
+	else if (oldLeft >= BRight && oldDown >= BUp)
+	{
+		//下にブロックがなかったら下優先
+		if (oldDown >= BUp)
+		{
+			position.y = BUp + player.GetLen_W(1);
+		}
+	}
+	//右上
+	else if (oldRight <= BLeft && oldUp <= BDown)
+	{
+		//上にブロックがなかったら上優先
+		if (oldUp <= BDown)
+		{
+			position.y = BDown - player.GetLen_W(1);
+		}
+	}
+	//右下
+	else if (oldRight <= BLeft && oldDown >= BUp)
+	{
+		//下にブロックがなかったら下優先
+		if (oldDown >= BUp)
+		{
+			position.y = BUp + player.GetLen_W(1);
+		}
+	}
+	else
+	{
+		//右
+		if (oldRight <= BLeft)
+		{
+			position.x = BLeft - player.GetLen_W(0);
+		}
+		//左
+		if (oldLeft >= BRight)
+		{
+			position.x = BRight + player.GetLen_W(0);
+		}
+		//上
+		if (oldUp <= BDown)
+		{
+			position.y = BDown - player.GetLen_W(1);
+		}
+		//下
+		if (oldDown >= BUp)
+		{
+			position.y = BUp + player.GetLen_W(1);
+			HitDown = true;
+		}
+	}
+}

@@ -1,6 +1,7 @@
 #pragma once
 #include <DirectXMath.h>
 #include "./Header/DrawPolygon.h"
+#include "./OBBCollision.h"
 
 class Player
 {
@@ -43,6 +44,7 @@ public: // メンバ変数
 	DrawPolygon* draw;  //描画用
 
 	XMFLOAT3 pos;     //座標
+	XMFLOAT3 oldPos;  //一つ前の座標
 	XMMATRIX rotaMat; //回転行列
 	XMFLOAT3 scale;   //スケール
 	XMFLOAT4 color;   //色
@@ -51,6 +53,9 @@ public: // メンバ変数
 	XMFLOAT3 speedVec; //速度を加える方向
 	float accel;       //加速度
 	XMFLOAT3 accelVec; //加速度を加える方向
+
+	bool jumpFlag; //ジャンプフラグ
+	OBB collision;
 private:
 	int playerObject; //プレイヤーの頂点データ
 	int playerTex;    //プレイヤーのテクスチャ

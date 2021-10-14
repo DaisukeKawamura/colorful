@@ -1,8 +1,7 @@
 #pragma once
-#include "./Header/DrawPolygon.h"
 
 #define MAP_WIDTH (100) //横の最大枚数
-#define MAP_HEIGHT (6) //縦の最大枚数
+#define MAP_HEIGHT (6)  //縦の最大枚数
 
 enum ObjectStatus
 {
@@ -12,8 +11,8 @@ enum ObjectStatus
 	RING,            //色変えリング
 	COLOR_WALL,      //色が有ってればダメージを受けない壁
 	BREAK_RING,      //元RING
-	BREAK_COLOR_WALL,//元COLOR_WALL
-	BREAK_ITEM
+	BREAK_ITEM,      //元ITEM
+	BREAK_COLOR_WALL //元COLOR_WALL
 };
 
 /// <summary>

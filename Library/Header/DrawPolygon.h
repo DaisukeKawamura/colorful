@@ -4,6 +4,43 @@
 
 #define MAIN_CAMERA (0)
 
+// マテリアル
+struct Material
+{
+	std::string name;            //マテリアル名
+	DirectX::XMFLOAT3 ambient;   //アンビエント影響度
+	DirectX::XMFLOAT3 diffuse;   //ディフューズ影響度
+	DirectX::XMFLOAT3 specular;  //スペキュラー影響度
+	float alpha;                 //アルファ
+	std::string textureFilename; //テクスチャファイル名
+
+	// コンストラクタ
+	Material()
+	{
+		ambient = { 0.3f,0.3f,0.3f };
+		diffuse = { 0.0f,0.0f,0.0f };
+		specular = { 0.0f,0.0f,0.0f };
+		alpha = 1.0f;
+	}
+};
+
+// objファイルのデータ
+struct OBJDate : public Object
+{
+	/*配列にして使うことが前提*/
+	/*先にモデル不要のオブジェクトを生成する*/
+
+	Material material;
+	size_t textrueIndex;
+
+	// コンストラクタ
+	OBJDate() : Object()
+	{
+		material = {};
+		textrueIndex = -1;
+	}
+};
+
 class DrawPolygon final : public DebugText
 {
 public: // メンバ関数
@@ -26,8 +63,11 @@ public: // メンバ関数
 	int CreateCorn(const float& r, const float& h, const size_t& divNum, const bool& isFill = true);
 	// 正多角柱の作成
 	int CreateCylinder(const float& r, const float& h, const size_t& divNum, const bool& isFill = true);
-	// 球体の描画処理
+	// 球体の作成
 	int CreateSphere(const float& r, const size_t& divNum, const bool& isFill = true);
+
+	// objファイルによるモデルの作成（filePath：objファイルの名前、directoryPath：モデルのファイルがあるフォルダ）
+	int CreateOBJModel(const char* filePath, const char* directoryPath);
 
 	// テクスチャのタイリング
 	void NormalizeUV(const int& polygonData, const int& graphHandle);
@@ -58,6 +98,9 @@ private:
 	// 描画関数の初期化
 	int DrawPolygonInit();
 
+	// マテリアル読み込み
+	void LoadMaterial(const std::string& directoryPath, const std::string& filename);
+
 	/*頂点座標とインデックスデータ計算用*/
 	void Circle(const XMFLOAT3& centerPos, const float& r, const size_t& divNum, const bool& flag,
 		Vertex* v, unsigned short* index);
@@ -72,4 +115,5 @@ private: // メンバ変数
 	vector<XMMATRIX> matView; //ビュー変換行列(カメラ)
 	int cameraNo;             //カメラの番号（最初はMAIN_CAMERAを指している）
 
+	vector<OBJDate> objDate; //OBJファイルのデータ
 };

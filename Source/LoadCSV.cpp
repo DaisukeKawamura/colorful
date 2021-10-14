@@ -19,7 +19,7 @@ int LoadCSV(int map[MAP_HEIGHT][MAP_WIDTH], const char* FilePath, int LoadStopNu
 
 	FILE* fileHandle;
 	errno_t err;
-	char string[256];
+	char string[256] = { 0 };
 
 	err = fopen_s(&fileHandle, FilePath, "r");
 	if (err != 0)

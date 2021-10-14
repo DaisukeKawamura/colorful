@@ -40,6 +40,7 @@ void Player::Init(DrawPolygon *draw)
 	}
 
 	this->pos = XMFLOAT3(0, 0, 0);
+	this->oldPos = XMFLOAT3(0, 0, 0);
 	this->rotaMat = XMMatrixIdentity();
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
@@ -70,6 +71,8 @@ void Player::Update()
 		jumpFlag = false;
 		JumpStart(6.5f, gravity);
 	}
+
+	oldPos = pos;
 
 	// accelVecÇê≥ãKâª
 	float accelVecLen = sqrtf(

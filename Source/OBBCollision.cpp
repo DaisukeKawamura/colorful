@@ -214,11 +214,11 @@ FLOAT OBBCollision::LenSegOnSeparateAxis(Vector3 &Sep, Vector3 &e1, Vector3 &e2,
 	return r1 + r2 + r3;
 }
 
-void OBBCollision::PushbackPolygon(XMFLOAT3 &position1, const XMFLOAT3 oldPosition, OBB &player, OBB &block, bool &HitDown)
+void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPosition, const OBB& player, const OBB& block, bool& HitDown)
 {
 	//プレイヤー座標
-	float PRight = position1.x + player.GetLen_W(0), PLeft = position1.x - player.GetLen_W(0);
-	float PUp = position1.y + player.GetLen_W(1), PDown = position1.y - player.GetLen_W(1);
+	float PRight = position.x + player.GetLen_W(0), PLeft = position.x - player.GetLen_W(0);
+	float PUp = position.y + player.GetLen_W(1), PDown = position.y - player.GetLen_W(1);
 	//プレイヤーの前の座標
 	float oldRight = oldPosition.x + player.GetLen_W(0), oldLeft = oldPosition.x - player.GetLen_W(0);
 	float oldUp = oldPosition.y + player.GetLen_W(1), oldDown = oldPosition.y - player.GetLen_W(1);
@@ -233,7 +233,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3 &position1, const XMFLOAT3 oldPositi
 		//上にブロックがなかったら上優先
 		if (oldUp <= BDown)
 		{
-			position1.y = BDown - player.GetLen_W(1);
+			position.y = BDown - player.GetLen_W(1);
 		}
 	}
 	//左下
@@ -242,7 +242,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3 &position1, const XMFLOAT3 oldPositi
 		//下にブロックがなかったら下優先
 		if (oldDown >= BUp)
 		{
-			position1.y = BUp + player.GetLen_W(1);
+			position.y = BUp + player.GetLen_W(1);
 		}
 	}
 	//右上
@@ -251,7 +251,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3 &position1, const XMFLOAT3 oldPositi
 		//上にブロックがなかったら上優先
 		if (oldUp <= BDown)
 		{
-			position1.y = BDown - player.GetLen_W(1);
+			position.y = BDown - player.GetLen_W(1);
 		}
 	}
 	//右下
@@ -260,7 +260,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3 &position1, const XMFLOAT3 oldPositi
 		//下にブロックがなかったら下優先
 		if (oldDown >= BUp)
 		{
-			position1.y = BUp + player.GetLen_W(1);
+			position.y = BUp + player.GetLen_W(1);
 		}
 	}
 	else
@@ -268,22 +268,22 @@ void OBBCollision::PushbackPolygon(XMFLOAT3 &position1, const XMFLOAT3 oldPositi
 		//右
 		if (oldRight <= BLeft)
 		{
-			position1.x = BLeft - player.GetLen_W(0);
+			position.x = BLeft - player.GetLen_W(0);
 		}
 		//左
 		if (oldLeft >= BRight)
 		{
-			position1.x = BRight + player.GetLen_W(0);
+			position.x = BRight + player.GetLen_W(0);
 		}
 		//上
 		if (oldUp <= BDown)
 		{
-			position1.y = BDown - player.GetLen_W(1);
+			position.y = BDown - player.GetLen_W(1);
 		}
 		//下
 		if (oldDown >= BUp)
 		{
-			position1.y = BUp + player.GetLen_W(1);
+			position.y = BUp + player.GetLen_W(1);
 			HitDown = true;
 		}
 	}

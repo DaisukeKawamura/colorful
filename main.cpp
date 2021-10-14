@@ -192,7 +192,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						//ínñ Ç…Ç¬Ç¢ÇΩéûÇÃèàóù
 						if (isHitDown)
 						{
-							hp.AddDamage(0.01);
+							hp.AddDamage(0.01f);
 						}
 					}
 						break;
@@ -269,6 +269,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			if (player.pos.y <= -50.0f)
 			{
 				isGameover = true;
+			}
+			if (isClear == false)
+			{
+				isGameover = hp.isEmpty();
 			}
 			isGameover = hp.isEmpty();
 			break;
@@ -441,7 +445,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				draw.DrawString(0, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 			}
-			draw.DrawString(0, 20, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "HP%f", hp.GetCurrentHP());
+			draw.DrawString(0, 32, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "HP%f", hp.GetCurrentHP());
 #endif // _DEBUG
 			break;
 		case GameStatus::Config:

@@ -143,6 +143,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					player.jumpFlag = true;
 				}
 			}
+			else
+			{
+				player.jumpFlag = false;
+			}
 
 			if (player.pos.x > goalMapWidth * blockSize + mapOffset.x * 2.0f)
 			{
@@ -152,11 +156,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			player.Update();
 
 			// メインカメラの更新
-			if (player.pos.x < goalMapWidth * blockSize + mapOffset.x)
+			if (player.cameraPosX < goalMapWidth * blockSize + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z - 170.0f),
-					XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z),
+					XMFLOAT3(player.cameraPosX + 100.0f, 0.0f, player.pos.z - 170.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f, 0.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
 
@@ -177,7 +181,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						blockOBB.Initilize(XMFLOAT3(
 							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
 						), XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
-						goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
+						goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
@@ -196,7 +200,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (isHitDown)
 						{
 							hp.AddDamage(0.01f);
-
+							player.groundFlag = true;
 							//変わる色の情報を保持
 							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
 						}
@@ -230,24 +234,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						//地面についた時の処理
 						if (isHitDown)
 						{
+							player.ChangeGroundColor(map[y][x]);
 							hp.AddDamage(0.01f);
+							player.groundFlag = true;
 							//変わる色の情報を保持
 							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
-							switch (map[y][x])
-							{
-							case ObjectStatus::RedBLOCK://色ごとの効果
-
-								break;
-							case ObjectStatus::BlueBLOCK:
-
-								break;
-							case ObjectStatus::GreenBLOCK:
-
-								break;
-							case ObjectStatus::YellowBLOCK:
-
-								break;
-							}
 						}
 						else
 						{
@@ -259,6 +250,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							}
 						}
 					}
+					break;
 					case ObjectStatus::Floor:
 					case ObjectStatus::RedFloor:
 					case ObjectStatus::BlueFloor:
@@ -279,21 +271,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						//地面に触れたらの処理
 						if (HitDown)
 						{
-							switch (map[y][x])//色ごとの効果
-							{
-							case ObjectStatus::RedFloor:
-
-								break;
-							case ObjectStatus::BlueFloor:
-
-								break;
-							case ObjectStatus::GreenFloor:
-
-								break;
-							case ObjectStatus::YellowFloor:
-
-								break;
-							}
+							player.groundFlag = true;
+							player.ChangeGroundColor(map[y][x]);
 							//変わる色を保持
 							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
 
@@ -355,11 +334,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				isClear = true;
 			}
-			if (player.pos.y <= -50.0f)
+			if (player.pos.y <= -50.0f || player.cameraPosX - player.pos.x > 90)
 			{
 				isGameover = true;
 			}
-			if (isClear == false)
+			if (isClear == false && isGameover == false)
 			{
 				isGameover = hp.isEmpty();
 			}
@@ -577,7 +556,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			player.Draw();
 
-			draw.DrawOBJ(donut, XMFLOAT3(10, 10, 0), XMMatrixIdentity(), XMFLOAT3(20, 20, 20));
+			//draw.DrawOBJ(donut, XMFLOAT3(10, 10, 0), XMMatrixIdentity(), XMFLOAT3(20, 20, 20));
 
 #if _DEBUG
 			if (isClear == true)

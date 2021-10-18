@@ -68,6 +68,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);
 	int goalPolygon = draw.CreateRect(100.0f, 20.0f);
 
+	// モデルの読み込み
+	int donut = draw.CreateOBJModel("./Resources/playerobj/playerobj.obj", "./Resources/playerobj/");
+
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
 	const float blockSize = 20.0f;                      //ステージをマップチップとして扱うための定数
@@ -573,6 +576,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			);
 
 			player.Draw();
+
+			draw.DrawOBJ(donut, XMFLOAT3(10, 10, 0), XMMatrixIdentity(), XMFLOAT3(20, 20, 20));
 
 #if _DEBUG
 			if (isClear == true)

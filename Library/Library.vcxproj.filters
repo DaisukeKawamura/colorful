@@ -105,5 +105,11 @@
     <FxCompile Include="..\lib\Shaders\SpriteVS.hlsl">
       <Filter>シェーダファイル</Filter>
     </FxCompile>
+    <FxCompile Include="..\lib\Shaders\MaterialPS.hlsl">
+      <Filter>シェーダファイル</Filter>
+    </FxCompile>
+    <FxCompile Include="..\lib\Shaders\MaterialVS.hlsl">
+      <Filter>シェーダファイル</Filter>
+    </FxCompile>
   </ItemGroup>
 </Project>

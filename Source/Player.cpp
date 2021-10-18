@@ -39,7 +39,7 @@ void Player::Init(DrawPolygon *draw)
 		this->playerTex = 0;
 	}
 
-	this->pos = XMFLOAT3(0, 0, 0);
+	this->pos = XMFLOAT3(130, -25, 0);
 	this->oldPos = XMFLOAT3(0, 0, 0);
 	this->rotaMat = XMMatrixIdentity();
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);

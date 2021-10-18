@@ -31,5 +31,7 @@ public:
 
 	//押し戻し処理/ プレイヤーの位置,前のプレイヤーの位置,OBBプレイヤー、OBBブロック
 	static void PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPosition, OBB& player, OBB& block, bool& HitDown);
+	//床下からすり抜け用/ プレイヤーの位置,前のプレイヤーの位置,OBBプレイヤー、OBBブロック
+	static void PushbackFloor(XMFLOAT3 &position, const  XMFLOAT3 oldPosition, OBB &player, OBB &block, bool &HitDown);
 };
 

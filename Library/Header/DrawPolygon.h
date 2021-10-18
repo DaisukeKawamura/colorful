@@ -4,43 +4,6 @@
 
 #define MAIN_CAMERA (0)
 
-// マテリアル
-struct Material
-{
-	std::string name;            //マテリアル名
-	DirectX::XMFLOAT3 ambient;   //アンビエント影響度
-	DirectX::XMFLOAT3 diffuse;   //ディフューズ影響度
-	DirectX::XMFLOAT3 specular;  //スペキュラー影響度
-	float alpha;                 //アルファ
-	std::string textureFilename; //テクスチャファイル名
-
-	// コンストラクタ
-	Material()
-	{
-		ambient = { 0.3f,0.3f,0.3f };
-		diffuse = { 0.0f,0.0f,0.0f };
-		specular = { 0.0f,0.0f,0.0f };
-		alpha = 1.0f;
-	}
-};
-
-// objファイルのデータ
-struct OBJDate : public Object
-{
-	/*配列にして使うことが前提*/
-	/*先にモデル不要のオブジェクトを生成する*/
-
-	Material material;
-	size_t textrueIndex;
-
-	// コンストラクタ
-	OBJDate() : Object()
-	{
-		material = {};
-		textrueIndex = -1;
-	}
-};
-
 class DrawPolygon final : public DebugText
 {
 public: // メンバ関数
@@ -79,6 +42,10 @@ public: // メンバ関数
 		const XMFLOAT4& color, const int& graphHandle = 0, const bool& isFill = true,
 		const bool& isOrthoGraphic = false, const bool& viewMultiFlag = true, const int& parent = -1);
 
+	// モデルの描画処理
+	int DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
+		const bool& isOrthoGraphic = false, const bool& viewMultiFlag = true, const int& parent = -1);
+
 	// カメラの作成
 	int CreateCamera(const XMFLOAT3& cameraPos, const XMFLOAT3& cameraTarget, const XMFLOAT3& upVector);
 	// カメラの設定
@@ -97,6 +64,9 @@ public: // メンバ関数
 private:
 	// 描画関数の初期化
 	int DrawPolygonInit();
+	
+	// 描画関数の初期化
+	int DrawOBJInit(const int& index);
 
 	// マテリアル読み込み
 	void LoadMaterial(const std::string& directoryPath, const std::string& filename);
@@ -114,6 +84,4 @@ private: // メンバ変数
 
 	vector<XMMATRIX> matView; //ビュー変換行列(カメラ)
 	int cameraNo;             //カメラの番号（最初はMAIN_CAMERAを指している）
-
-	vector<OBJDate> objDate; //OBJファイルのデータ
 };

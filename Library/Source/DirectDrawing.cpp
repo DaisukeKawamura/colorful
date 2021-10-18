@@ -32,6 +32,7 @@ DirectDrawing::DirectDrawing(const DirectXInit* w) :
 	errorBlob{},
 	rootSigBlob{},
 	gpipeline{},
+	materialPipeline{},
 	spritePipeline{},
 	blendDesc(gpipeline.BlendState.RenderTarget[0]),
 	spriteBlendDesc(spritePipeline.BlendState.RenderTarget[0]),
@@ -48,6 +49,8 @@ DirectDrawing::DirectDrawing(const DirectXInit* w) :
 		XMMatrixOrthographicOffCenterLH(0.0f, winW, winH, 0.0f, 0.0f, 1.0f);
 	objectData.matProjection[CommonData::Projection::PERSPECTIVE] =
 		XMMatrixPerspectiveFovLH(XMConvertToRadians(60.0f), winW / winH, 0.1f, 1000.0f);
+
+	materialData = objectData;
 
 	spriteData = {};
 	spriteData.matProjection[CommonData::Projection::ORTHOGRAPHIC] = 
@@ -74,11 +77,19 @@ HRESULT DirectDrawing::Init()
 			return hr;
 		}
 		
+		hr = MaterialInit();
+		if (FAILED(hr))
+		{
+			return hr;
+		}
+		
 		hr = SpriteDrawingInit();
 		if (FAILED(hr))
 		{
 			return hr;
 		}
+
+		CreateNullConstant(XMFLOAT3(), XMMATRIX(), XMFLOAT3(1, 1, 1));
 
 		return hr;
 	}
@@ -95,7 +106,6 @@ HRESULT DirectDrawing::DrawingInit()
 	}
 
 	isInit = true;
-
 
 	// 頂点シェーダの読み込みとコンパイル
 	hr = D3DCompileFromFile(
@@ -150,7 +160,7 @@ HRESULT DirectDrawing::DrawingInit()
 	}
 
 	// 頂点レイアウト
-	 D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
+	D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
 		// xyz座標
 		{
 			"POSITION",                                 //セマンティック名
@@ -231,49 +241,9 @@ HRESULT DirectDrawing::DrawingInit()
 	gpipeline.SampleMask = D3D12_DEFAULT_SAMPLE_MASK; //標準設定
 	gpipeline.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
 	//gpipeline.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; //背面カリングしない
-#pragma region SetBlendState
+	// ブレンドデスクの設定
 	blendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL; //標準設定
-
-	switch (blendState)
-	{
-	case BLENDMODE_NOBLEND:
-		/*ノーブレンド用の設定*/
-		blendDesc.BlendEnable = false; //ブレンドを無効にする
-		break;
-	case BLENDMODE_ALPHA:
-		/*αブレンド用の設定*/
-		blendDesc.BlendOp = D3D12_BLEND_OP_ADD;          //加算
-		blendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;      //ソースのアルファ値
-		blendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA; //1.0f - ソースのアルファ値
-		goto BaseBlendState;
-	case BLENDMODE_ADD:
-		/*加算合成用の設定*/
-		blendDesc.BlendOp = D3D12_BLEND_OP_ADD; //加算
-		blendDesc.SrcBlend = D3D12_BLEND_ONE;   //ソースの値を 100% 使う
-		blendDesc.DestBlend = D3D12_BLEND_ONE;  //デストの値を 100% 使う
-		goto BaseBlendState;
-	case BLENDMODE_SUB:
-		/*減算合成用の設定*/
-		blendDesc.BlendOp = D3D12_BLEND_OP_REV_SUBTRACT; //デストからソースを減算
-		blendDesc.SrcBlend = D3D12_BLEND_ONE;            //ソースの値を 100% 使う
-		blendDesc.DestBlend = D3D12_BLEND_ONE;           //デストの値を 100% 使う
-		goto BaseBlendState;
-	case BLENDMODE_INV:
-		/*色反転用の設定*/
-		blendDesc.BlendOp = D3D12_BLEND_OP_ADD;          //加算
-		blendDesc.SrcBlend = D3D12_BLEND_INV_DEST_COLOR; //1.0f - デストカラーの値
-		blendDesc.DestBlend = D3D12_BLEND_ZERO;          //使わない
-		goto BaseBlendState;
-	default:
-	BaseBlendState:
-		/*共通設定*/
-		blendDesc.BlendEnable = true;                //ブレンドを有効にする
-		blendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD; //加算
-		blendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;   //ソースの値を 100% 使う
-		blendDesc.DestBlendAlpha = D3D12_BLEND_ZERO; //デストの値を   0% 使う
-		break;
-	}
-#pragma endregion
+	SetDrawBlendMode(blendState);
 	// デプスステンシルステートの設定
 	gpipeline.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
 	gpipeline.DSVFormat = DXGI_FORMAT_D32_FLOAT; //深度値フォーマット
@@ -291,6 +261,219 @@ HRESULT DirectDrawing::DrawingInit()
 	gpipeline.pRootSignature = objectData.rootsignature.Get();
 
 	hr = w->dev->CreateGraphicsPipelineState(&gpipeline, IID_PPV_ARGS(&objectData.pipelinestate));
+
+	return hr;
+}
+
+HRESULT DirectDrawing::MaterialInit()
+{
+	HRESULT hr;
+	static bool isInit = false;
+
+	if (isInit == true)
+	{
+		return S_OK;
+	}
+
+	isInit = true;
+
+	// 頂点シェーダの読み込みとコンパイル
+	hr = D3DCompileFromFile(
+		L"./lib/Shaders/MaterialVS.hlsl", //シェーダファイル名
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,               //インクルード可能にする
+		"main",                                          //エントリーポイント名
+		"vs_5_0",                                        //シェーダーモデル指定
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION, //デバッグ用設定
+		0,
+		&vsBlob,
+		&errorBlob);
+
+	if (FAILED(hr)) {
+		// errorBlobからエラー内容をstring型にコピー
+		std::string errstr;
+		errstr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n((char*)errorBlob->GetBufferPointer(),
+			errorBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += "\n";
+		// エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		exit(1);
+	}
+
+	// ピクセルシェーダの読み込みとコンパイル
+	hr = D3DCompileFromFile(
+		L"./lib/Shaders/MaterialPS.hlsl",
+		nullptr,
+		D3D_COMPILE_STANDARD_FILE_INCLUDE,
+		"main",
+		"ps_5_0",
+		D3DCOMPILE_DEBUG | D3DCOMPILE_SKIP_OPTIMIZATION,
+		0,
+		&psBlob,
+		&errorBlob);
+
+	if (FAILED(hr)) {
+		// errorBlobからエラー内容をstring型にコピー
+		std::string errstr;
+		errstr.resize(errorBlob->GetBufferSize());
+
+		std::copy_n((char*)errorBlob->GetBufferPointer(),
+			errorBlob->GetBufferSize(),
+			errstr.begin());
+		errstr += "\n";
+		// エラー内容を出力ウィンドウに表示
+		OutputDebugStringA(errstr.c_str());
+		exit(1);
+	}
+
+	// 頂点レイアウト
+	 D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
+		// xyz座標
+		{
+			"POSITION",                                 //セマンティック名
+			0,                                          //同じセマンティック名が複数あるときに使うインデックス
+			DXGI_FORMAT_R32G32B32_FLOAT,                //要素数とビット数を表す
+			0,                                          //入力スロットインデックス
+			D3D12_APPEND_ALIGNED_ELEMENT,               //データのオフセット値
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, //入力データ種別
+			0                                           //一度に描画するインスタンス数
+		},
+		// 法線ベクトル
+		{
+			"NORMAL",
+			0,
+			DXGI_FORMAT_R32G32B32_FLOAT,
+			0,
+			D3D12_APPEND_ALIGNED_ELEMENT,
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+			0
+		},
+		// uv座標
+		{
+			"TEXCOORD",
+			0,
+			DXGI_FORMAT_R32G32_FLOAT,
+			0,
+			D3D12_APPEND_ALIGNED_ELEMENT,
+			D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA,
+			0
+		},
+	};
+
+	// デスクリプタテーブルの設定
+	CD3DX12_DESCRIPTOR_RANGE descRangeSRV; //デスクリプタテーブルの設定(シェーダリソース)
+	descRangeSRV.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);
+
+	// ルートパラメータの設定
+	CD3DX12_ROOT_PARAMETER rootparams[3]{}; //ルートパラメータの設定
+	rootparams[0].InitAsConstantBufferView(0);
+	rootparams[1].InitAsConstantBufferView(1);
+	rootparams[2].InitAsDescriptorTable(1, &descRangeSRV);
+
+	CD3DX12_STATIC_SAMPLER_DESC samplerDesc = CD3DX12_STATIC_SAMPLER_DESC(0);
+
+	CD3DX12_VERSIONED_ROOT_SIGNATURE_DESC rootSignatureDesc;
+	rootSignatureDesc.Init_1_0(
+		_countof(rootparams),
+		rootparams,
+		1,
+		&samplerDesc,
+		D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT
+	);
+
+	// バージョン自動判定のシリアライズ
+	hr = D3DX12SerializeVersionedRootSignature(
+		&rootSignatureDesc,
+		D3D_ROOT_SIGNATURE_VERSION_1_0,
+		&rootSigBlob,
+		&errorBlob
+	);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	hr = w->dev->CreateRootSignature(
+		0,
+		rootSigBlob->GetBufferPointer(),
+		rootSigBlob->GetBufferSize(),
+		IID_PPV_ARGS(&materialData.rootsignature)
+	);
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	// 頂点シェーダ、ピクセルシェーダをパイプラインに設定
+	materialPipeline.VS = CD3DX12_SHADER_BYTECODE(vsBlob.Get());
+	materialPipeline.PS = CD3DX12_SHADER_BYTECODE(psBlob.Get());
+	// サンプルマスクとラスタライザステートの設定
+	materialPipeline.SampleMask = D3D12_DEFAULT_SAMPLE_MASK; //標準設定
+	materialPipeline.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+	//materialPipeline.RasterizerState.CullMode = D3D12_CULL_MODE_NONE; //背面カリングしない
+#pragma region SetBlendState
+	D3D12_RENDER_TARGET_BLEND_DESC& materialBlendDesc(materialPipeline.BlendState.RenderTarget[0]);
+	materialBlendDesc.RenderTargetWriteMask = D3D12_COLOR_WRITE_ENABLE_ALL; //標準設定
+
+	switch (blendState)
+	{
+	case BLENDMODE_NOBLEND:
+		/*ノーブレンド用の設定*/
+		materialBlendDesc.BlendEnable = false; //ブレンドを無効にする
+		break;
+	case BLENDMODE_ALPHA:
+		/*αブレンド用の設定*/
+		materialBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;          //加算
+		materialBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;      //ソースのアルファ値
+		materialBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA; //1.0f - ソースのアルファ値
+		goto MaterialBaseBlend;
+	case BLENDMODE_ADD:
+		/*加算合成用の設定*/
+		materialBlendDesc.BlendOp = D3D12_BLEND_OP_ADD; //加算
+		materialBlendDesc.SrcBlend = D3D12_BLEND_ONE;   //ソースの値を 100% 使う
+		materialBlendDesc.DestBlend = D3D12_BLEND_ONE;  //デストの値を 100% 使う
+		goto MaterialBaseBlend;
+	case BLENDMODE_SUB:
+		/*減算合成用の設定*/
+		materialBlendDesc.BlendOp = D3D12_BLEND_OP_REV_SUBTRACT; //デストからソースを減算
+		materialBlendDesc.SrcBlend = D3D12_BLEND_ONE;            //ソースの値を 100% 使う
+		materialBlendDesc.DestBlend = D3D12_BLEND_ONE;           //デストの値を 100% 使う
+		goto MaterialBaseBlend;
+	case BLENDMODE_INV:
+		/*色反転用の設定*/
+		materialBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;          //加算
+		materialBlendDesc.SrcBlend = D3D12_BLEND_INV_DEST_COLOR; //1.0f - デストカラーの値
+		materialBlendDesc.DestBlend = D3D12_BLEND_ZERO;          //使わない
+		goto MaterialBaseBlend;
+	default:
+	MaterialBaseBlend:
+		/*共通設定*/
+		materialBlendDesc.BlendEnable = true;                //ブレンドを有効にする
+		materialBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD; //加算
+		materialBlendDesc.SrcBlendAlpha = D3D12_BLEND_ONE;   //ソースの値を 100% 使う
+		materialBlendDesc.DestBlendAlpha = D3D12_BLEND_ZERO; //デストの値を   0% 使う
+		break;
+	}
+#pragma endregion
+	// デプスステンシルステートの設定
+	materialPipeline.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+	materialPipeline.DSVFormat = DXGI_FORMAT_D32_FLOAT; //深度値フォーマット
+	// 頂点レイアウトの設定
+	materialPipeline.InputLayout.pInputElementDescs = inputLayout;
+	materialPipeline.InputLayout.NumElements = _countof(inputLayout);
+	// 図形の形状を三角形に設定
+	materialPipeline.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
+	// その他の設定
+	materialPipeline.NumRenderTargets = 1; //描画対象は1つ
+	materialPipeline.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM; //0~255指定のRGBA
+	materialPipeline.SampleDesc.Count = 1; //1ピクセルにつき1回サンプリング
+
+	// パイプラインにルートシグネチャをセット
+	materialPipeline.pRootSignature = materialData.rootsignature.Get();
+
+	hr = w->dev->CreateGraphicsPipelineState(&materialPipeline, IID_PPV_ARGS(&materialData.pipelinestate));
 
 	return hr;
 }
@@ -445,27 +628,27 @@ HRESULT DirectDrawing::SpriteDrawingInit()
 		spriteBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;          //加算
 		spriteBlendDesc.SrcBlend = D3D12_BLEND_SRC_ALPHA;      //ソースのアルファ値
 		spriteBlendDesc.DestBlend = D3D12_BLEND_INV_SRC_ALPHA; //1.0f - ソースのアルファ値
-		goto BaseBlendState;
+		goto SpriteBaseBlend;
 	case BLENDMODE_ADD:
 		/*加算合成用の設定*/
 		spriteBlendDesc.BlendOp = D3D12_BLEND_OP_ADD; //加算
 		spriteBlendDesc.SrcBlend = D3D12_BLEND_ONE;   //ソースの値を 100% 使う
 		spriteBlendDesc.DestBlend = D3D12_BLEND_ONE;  //デストの値を 100% 使う
-		goto BaseBlendState;
+		goto SpriteBaseBlend;
 	case BLENDMODE_SUB:
 		/*減算合成用の設定*/
 		spriteBlendDesc.BlendOp = D3D12_BLEND_OP_REV_SUBTRACT; //デストからソースを減算
 		spriteBlendDesc.SrcBlend = D3D12_BLEND_ONE;            //ソースの値を 100% 使う
 		spriteBlendDesc.DestBlend = D3D12_BLEND_ONE;           //デストの値を 100% 使う
-		goto BaseBlendState;
+		goto SpriteBaseBlend;
 	case BLENDMODE_INV:
 		/*色反転用の設定*/
 		spriteBlendDesc.BlendOp = D3D12_BLEND_OP_ADD;          //加算
 		spriteBlendDesc.SrcBlend = D3D12_BLEND_INV_DEST_COLOR; //1.0f - デストカラーの値
 		spriteBlendDesc.DestBlend = D3D12_BLEND_ZERO;          //使わない
-		goto BaseBlendState;
+		goto SpriteBaseBlend;
 	default:
-	BaseBlendState:
+	SpriteBaseBlend:
 		/*共通設定*/
 		spriteBlendDesc.BlendEnable = true;                //ブレンドを有効にする
 		spriteBlendDesc.BlendOpAlpha = D3D12_BLEND_OP_ADD; //加算
@@ -622,13 +805,6 @@ int DirectDrawing::CreateVertexAndIndexBuffer()
 HRESULT DirectDrawing::CreateConstBuffer(int* objIndex)
 {
 	HRESULT hr = S_FALSE;
-	static bool isCreateConstBufferInit = false;
-
-	if (isCreateConstBufferInit == false && obj.size() <= 0)
-	{
-		CreateNullConstant(XMFLOAT3(), XMMATRIX(), XMFLOAT3(1, 1, 1));
-		isCreateConstBufferInit = true;
-	}
 
 	obj.push_back({});
 
@@ -639,6 +815,17 @@ HRESULT DirectDrawing::CreateConstBuffer(int* objIndex)
 		D3D12_RESOURCE_STATE_GENERIC_READ,
 		nullptr,
 		IID_PPV_ARGS(&obj[obj.size() - 1].constBuff));
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	hr = w->dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(MaterialConstBufferData) + 0xFF) & ~0xFF), //リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&obj[obj.size() - 1].materialConstBuff));
 	if (FAILED(hr))
 	{
 		return hr;
@@ -899,9 +1086,6 @@ void DirectDrawing::BaseDrawGraphics()
 			w->GetWindowHeight()
 		)
 	);
-
-	w->cmdList->SetPipelineState(objectData.pipelinestate.Get());
-	w->cmdList->SetGraphicsRootSignature(objectData.rootsignature.Get());
 }
 
 void DirectDrawing::BaseDrawSpriteGraphics()

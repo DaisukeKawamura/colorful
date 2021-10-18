@@ -60,6 +60,16 @@ struct ConstBufferData
 	DirectX::XMMATRIX mat;      //3D変換行列
 	DirectX::XMFLOAT3 lightVec; //光源へのベクトル
 };
+// 定数バッファ用データ構造体(マテリアル)
+struct MaterialConstBufferData
+{
+	DirectX::XMFLOAT3 ambient;  //アンビエント係数
+	float pad1;                 //パディング
+	DirectX::XMFLOAT3 diffuse;  //ディフューズ係数
+	float pad2;                 //パディング
+	DirectX::XMFLOAT3 specular; //スペキュラー係数
+	float alpha;                //アルファ
+};
 // 定数バッファ用データ構造体(スプライト用)
 struct SpriteConstBufferData
 {
@@ -108,6 +118,45 @@ struct Object
 	DirectX::XMMATRIX matWorld = DirectX::XMMatrixIdentity(); //ワールド行列
 
 	int parent = -1; //親の要素番号
+};
+
+// objファイルのデータ
+struct OBJDate : public Object
+{
+	/*配列にして使うことが前提*/
+	/*先にモデル不要のオブジェクトを生成する*/
+
+// マテリアル
+	struct Material
+	{
+		std::string name;            //マテリアル名
+		DirectX::XMFLOAT3 ambient;   //アンビエント影響度
+		DirectX::XMFLOAT3 diffuse;   //ディフューズ影響度
+		DirectX::XMFLOAT3 specular;  //スペキュラー影響度
+		float alpha;                 //アルファ
+		std::string textureFilename; //テクスチャファイル名
+
+		// コンストラクタ
+		Material()
+		{
+			ambient = { 0.3f,0.3f,0.3f };
+			diffuse = { 0.0f,0.0f,0.0f };
+			specular = { 0.0f,0.0f,0.0f };
+			alpha = 1.0f;
+		}
+	};
+
+	Microsoft::WRL::ComPtr<ID3D12Resource> materialConstBuff; //定数バッファ
+	Material material;
+	size_t constantIndex;
+	size_t textrueIndex;
+
+	// コンストラクタ
+	OBJDate() : Object()
+	{
+		material = {};
+		textrueIndex = 0;
+	}
 };
 
 // スプライト一枚分のデータをまとめた構造体
@@ -192,6 +241,8 @@ protected:
 	HRESULT Init();
 	// オブジェクトの描画関係の初期化
 	HRESULT DrawingInit();
+	// オブジェクトの描画関係の初期化
+	HRESULT MaterialInit();
 	// スプライトの描画関係の初期化
 	HRESULT SpriteDrawingInit();
 	// 頂点バッファとインデックスバッファの生成
@@ -214,7 +265,7 @@ protected: // メンバ変数
 	vector<VertexData> vertices; //頂点データ
 	Vertex* vertMap;
 
-	vector<Object> obj; //オブジェクトデータ
+	vector<OBJDate> obj; //オブジェクトデータ
 	vector<IndexData> objIndex; //オブジェクトデータのインデックス
 	ComPtr<ID3D12DescriptorHeap> basicDescHeap; //定数バッファ用のデスクリプタヒープ
 	vector<DescHandle> srvHandle;
@@ -225,10 +276,12 @@ protected: // メンバ変数
 	ComPtr<ID3DBlob> errorBlob; //エラーオブジェクト
 	ComPtr<ID3DBlob> rootSigBlob;
 
-	CommonData objectData; //オブジェクトデータで共通のデータ
+	CommonData objectData;   //オブジェクトデータで共通のデータ
+	CommonData materialData; //マテリアルデータで共通のデータ
 private:
 	// グラフィックスパイプライン設定
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline;
+	D3D12_GRAPHICS_PIPELINE_STATE_DESC materialPipeline;
 	D3D12_GRAPHICS_PIPELINE_STATE_DESC spritePipeline;
 	D3D12_RENDER_TARGET_BLEND_DESC& blendDesc;
 	D3D12_RENDER_TARGET_BLEND_DESC& spriteBlendDesc;

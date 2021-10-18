@@ -6,7 +6,7 @@
 #include "./Header/OBBCollision.h"
 #include "./Header/HP.h"
 #include "./Header/LoadCSV.h"
-
+#include "./Header/BlockChange.h"
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -61,9 +61,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 
 	// オブジェクトの生成
-	int box = draw.Create3Dbox(20.0f, 5.0f, 20.0f);
-	int startBox = draw.Create3Dbox(240.0f, 5.0f, 20.0f);
-	int goalBox = draw.Create3Dbox(280.0f, 5.0f, 20.0f);
+	int box = draw.Create3Dbox(20.0f, 20.0f, 20.0f);		//ブロック
+	int boxFloor = draw.Create3Dbox(20.0f, 5.0f, 20.0f);	//床
+	int goalBox = draw.Create3Dbox(280.0f, 20.0f, 20.0f);
 	int ringPolygon = draw.CreateCircle(10.0f, 32);
 	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);
 	int goalPolygon = draw.CreateRect(100.0f, 20.0f);
@@ -75,6 +75,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
 	const float blockSize = 20.0f;                      //ステージをマップチップとして扱うための定数
 	const XMFLOAT3 mapOffset = { 130.0f, 50.0f, 0.0f }; //ステージの描画開始位置（左上、オブジェクト）
+
+	const float floorOffsetY = 10.0f;					//床のY軸の位置
+
+	int mapColor[MAP_HEIGHT][MAP_WIDTH] = {};			//変わる色の情報を保持
 
 	int ringCount = 0; //色変えリングの数
 	int colorWallCount = 0; //色付き壁の数
@@ -168,21 +172,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 					case ObjectStatus::BLOCK:
 					{
-						OBB startOBB, blockOBB, goalOBB;
+						OBB  blockOBB, goalOBB;
 
-						startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, 2.5f, 10.0f);
 						blockOBB.Initilize(XMFLOAT3(
 							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
-						goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 2.5f, 10.0f);
+						), XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
+						goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
 
-						bool isHit = OBBCollision::ColOBBs(player.collision, startOBB);
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, startOBB, isHitDown);
-						}
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+
 						if (isHit)
 						{//押し戻し処理
 							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
@@ -191,14 +190,126 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (isHit)
 						{//押し戻し処理
 							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, goalOBB, isHitDown);
+							isHitDown = false;
 						}
 						//地面についた時の処理
 						if (isHitDown)
 						{
 							hp.AddDamage(0.01f);
+
+							//変わる色の情報を保持
+							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
+						}
+						else
+						{
+							//地面から離れたら保持していた色に変える
+							if (mapColor[y][x] > 0)
+							{
+								map[y][x] = mapColor[y][x];
+
+								mapColor[y][x] = 0;
+							}
 						}
 					}
-						break;
+					break;
+					case ObjectStatus::RedBLOCK:
+					case ObjectStatus::BlueBLOCK:
+					case ObjectStatus::GreenBLOCK:
+					case ObjectStatus::YellowBLOCK:
+					{
+						OBB  blockOBB;
+						blockOBB.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
+						), XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						bool isHitDown = false;
+						if (isHit)
+						{//押し戻し処理
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
+						}
+						//地面についた時の処理
+						if (isHitDown)
+						{
+							hp.AddDamage(0.01f);
+							//変わる色の情報を保持
+							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
+							switch (map[y][x])
+							{
+							case ObjectStatus::RedBLOCK://色ごとの効果
+
+								break;
+							case ObjectStatus::BlueBLOCK:
+
+								break;
+							case ObjectStatus::GreenBLOCK:
+
+								break;
+							case ObjectStatus::YellowBLOCK:
+
+								break;
+							}
+						}
+						else
+						{
+							//地面から離れたら保持していた色に変える
+							if (mapColor[y][x] > 0)
+							{
+								map[y][x] = mapColor[y][x];
+								mapColor[y][x] = 0;
+							}
+						}
+					}
+					case ObjectStatus::Floor:
+					case ObjectStatus::RedFloor:
+					case ObjectStatus::BlueFloor:
+					case ObjectStatus::GreenFloor:
+					case ObjectStatus::YellowFloor:
+					{
+						OBB  blockOBB;
+
+						blockOBB.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y + floorOffsetY, mapOffset.z
+						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+						bool HitDown = false;
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{//押し戻し処理
+							OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
+						}
+						//地面に触れたらの処理
+						if (HitDown)
+						{
+							switch (map[y][x])//色ごとの効果
+							{
+							case ObjectStatus::RedFloor:
+
+								break;
+							case ObjectStatus::BlueFloor:
+
+								break;
+							case ObjectStatus::GreenFloor:
+
+								break;
+							case ObjectStatus::YellowFloor:
+
+								break;
+							}
+							//変わる色を保持
+							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
+
+							hp.AddDamage(0.005);
+						}
+						else
+						{
+							//プレイヤーの色に合わせてブロックを変える
+							if (mapColor[y][x] > 0)
+							{
+								map[y][x] = mapColor[y][x];
+								mapColor[y][x] = 0;
+							}
+						}
+					}
+					break;
 					case ObjectStatus::ITEM:
 					{
 						OBB itemOBB;
@@ -233,31 +344,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					break;
 					case ObjectStatus::BREAK_RING:
 						ringCount++;
-						break;
-					case ObjectStatus::COLOR_WALL:
-					{
-						OBB blockOBB;
-
-						blockOBB.Initilize(XMFLOAT3(
-							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
-
-						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						if (isHit)
-						{
-							map[y][x] = ObjectStatus::BREAK_COLOR_WALL;
-							XMFLOAT4 colorBlock = changeColor[colorWallCount % (sizeof(changeColor) / sizeof(changeColor[0]))];
-							//色が違ったらダメージ
-							if (!(player.color.x == colorBlock.x && player.color.y == colorBlock.y && player.color.z == colorBlock.z))
-							{
-								hp.AddDamage(5);
-							}
-						}
-						colorWallCount++;
-					}
-					break;
-					case ObjectStatus::BREAK_COLOR_WALL:
-						colorWallCount++;
 						break;
 					default:
 						break;
@@ -326,13 +412,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			break;
 		case GameStatus::GameInit:
 		case GameStatus::Main:
-			draw.Draw(
-				startBox,
-				XMFLOAT3(0, -50.0f, 0),
-				XMMatrixIdentity(),
-				XMFLOAT3(1.0f, 1.0f, 1.0f),
-				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
-			);
 			ringCount = 0;
 			colorWallCount = 0;
 			for (int y = 0; y < MAP_HEIGHT; y++)
@@ -347,6 +426,20 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMFLOAT3(
 								x * blockSize + mapOffset.x,
 								y * (-blockSize) + mapOffset.y,
+								mapOffset.z
+							),
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							0
+						);
+						break;
+					case ObjectStatus::Floor:
+						draw.Draw(
+							boxFloor,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y + floorOffsetY,
 								mapOffset.z
 							),
 							XMMatrixIdentity(),
@@ -388,9 +481,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::BREAK_RING:
 						ringCount++;
 						break;
-					case ObjectStatus::COLOR_WALL:
+					case ObjectStatus::RedBLOCK:
 						draw.Draw(
-							colorBox,
+							box,
 							XMFLOAT3(
 								x * blockSize + mapOffset.x,
 								y * (-blockSize) + mapOffset.y,
@@ -398,13 +491,59 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							),
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[colorWallCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
+							XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
 							0
 						);
-						colorWallCount++;
 						break;
-					case ObjectStatus::BREAK_COLOR_WALL:
-						colorWallCount++;
+					case ObjectStatus::BlueBLOCK:
+						break;
+					case ObjectStatus::GreenBLOCK:
+						break;
+					case ObjectStatus::YellowBLOCK:
+						draw.Draw(
+							box,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y,
+								mapOffset.z
+							),
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f),
+							0
+						);
+						break;
+					case ObjectStatus::RedFloor:
+						draw.Draw(
+							boxFloor,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y + floorOffsetY,
+								mapOffset.z
+							),
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+							0
+						);
+						break;
+					case ObjectStatus::BlueFloor:
+						break;
+					case ObjectStatus::GreenFloor:
+						break;
+					case ObjectStatus::YellowFloor:
+						draw.Draw(
+							boxFloor,
+							XMFLOAT3(
+								x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y + floorOffsetY,
+								mapOffset.z
+							),
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f),
+							0
+						);
 						break;
 					default:
 						break;

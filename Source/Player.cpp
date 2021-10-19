@@ -1,5 +1,7 @@
 #include "./Header/Player.h"
 
+#define scale_xyz(_scale) DirectX::XMFLOAT3(_scale, _scale, _scale)
+
 const float Player::gravity = 0.49f;
 const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
 
@@ -7,6 +9,7 @@ Player::Player() :
 	draw(nullptr),
 	pos{},
 	oldPos{},
+	cameraPosX(0),
 	rotaMat{},
 	scale{},
 	color{},
@@ -19,7 +22,9 @@ Player::Player() :
 	playerTex{},
 	jumpPower{},
 	jumpPowerDecay{},
-	jumpFlag{},
+	jumpFlag(false),
+	groundFlag(false),
+	groundColor(0),
 	totalSpeed{},
 	totalAccel{}
 {
@@ -42,7 +47,7 @@ void Player::Init(DrawPolygon *draw)
 	this->pos = XMFLOAT3(0, 0, 0);
 	this->oldPos = XMFLOAT3(0, 0, 0);
 	this->rotaMat = XMMatrixIdentity();
-	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
+	this->scale = scale_xyz(2.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	this->speed = 2.0f;
@@ -153,16 +158,21 @@ void Player::ChangeGroundColor(const int map)
 {
 	switch (map)
 	{
-	case ObjectStatus::RedBLOCK://êFÇ≤Ç∆ÇÃå¯â 
+		//êFÇ≤Ç∆ÇÃå¯â 
+	case ObjectStatus::RedBLOCK:
+	case ObjectStatus::RedFloor:
 		groundColor = red;
 		break;
 	case ObjectStatus::BlueBLOCK:
+	case ObjectStatus::BlueFloor:
 		groundColor = blue;
 		break;
 	case ObjectStatus::GreenBLOCK:
+	case ObjectStatus::GreenFloor:
 		groundColor = green;
 		break;
 	case ObjectStatus::YellowBLOCK:
+	case ObjectStatus::YellowFloor:
 		groundColor = yellow;
 		break;
 	};

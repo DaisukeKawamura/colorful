@@ -35,11 +35,11 @@ void Player::Init(DrawPolygon *draw)
 	{
 		this->draw = draw;
 
-		this->playerObject = this->draw->Create3Dbox(10, 10, 10);
+		this->playerObject = this->draw->CreateOBJModel("./Resources/playerobj/playerobj.obj", "./Resources/playerobj/");
 		this->playerTex = 0;
 	}
 
-	this->pos = XMFLOAT3(130, -25, 0);
+	this->pos = XMFLOAT3(0, 0, 0);
 	this->oldPos = XMFLOAT3(0, 0, 0);
 	this->rotaMat = XMMatrixIdentity();
 	this->scale = XMFLOAT3(1.0f, 1.0f, 1.0f);
@@ -116,7 +116,7 @@ void Player::Update()
 
 void Player::Draw()
 {
-	draw->Draw(playerObject, pos, rotaMat, scale, color, playerTex);
+	draw->DrawOBJ(playerObject, pos, rotaMat, scale);
 }
 
 void Player::JumpStart(float jumpPower, float jumpPowerDecay)

@@ -61,15 +61,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 
 	// オブジェクトの生成
-	int box = draw.Create3Dbox(20.0f, 20.0f, 20.0f);		//ブロック
-	int boxFloor = draw.Create3Dbox(20.0f, 5.0f, 20.0f);	//床
-	int goalBox = draw.Create3Dbox(280.0f, 20.0f, 20.0f);
-	int ringPolygon = draw.CreateCircle(10.0f, 32);
-	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);
-	int goalPolygon = draw.CreateRect(100.0f, 20.0f);
-
-	// モデルの読み込み
-	int donut = draw.CreateOBJModel("./Resources/playerobj/playerobj.obj", "./Resources/playerobj/");
+	int box = draw.Create3Dbox(20.0f, 20.0f, 20.0f);       //ブロック
+	int boxFloor = draw.Create3Dbox(20.0f, 5.0f, 20.0f);   //床
+	int startBox = draw.Create3Dbox(240.0f, 20.0f, 20.0f); //スタート部分の床
+	int goalBox = draw.Create3Dbox(280.0f, 20.0f, 20.0f);  //ゴール部分の床
+	int ringPolygon = draw.CreateCircle(10.0f, 32);        //リング
+	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);   //色が一致していれば破壊出来るブロック
+	int goalFlag = draw.CreateRect(100.0f, 20.0f);         //ゴールの旗
 
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
@@ -90,10 +88,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	size_t goalMapWidth = 60;
 
-	float angle = 0.0f;
+	const XMFLOAT3 startPlayerPos = { 130, -25, 0 }; //プレイヤーのスタート位置
+
+	int laps = 1; //周回数
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
+
+	bool isHit = false;
 	bool isLoopEnd = false;  //無限ループを抜けるかどうか
 
 	while (true)
@@ -115,6 +117,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			player.Init(&draw);
 			hp.Init(50, 1, 60);
 
+			player.pos = startPlayerPos;
+
 			{
 				int temp = LoadCSV(map, "./Resources/stage/stage1.csv");
 
@@ -126,7 +130,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 
 			// メインカメラの初期化
-			//draw.SetCamera(XMFLOAT3(15.0f, 0.0f, -110.0f), XMFLOAT3(), upVec, MAIN_CAMERA);
+			draw.SetCamera(
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z - 170.0f),
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z),
+				upVec, MAIN_CAMERA
+			);
+
+			laps = 1;
 
 			isClear = false;
 			isGameover = false;
@@ -148,11 +158,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.jumpFlag = false;
 			}
 
-			if (player.pos.x > goalMapWidth * blockSize + mapOffset.x * 2.0f)
-			{
-				player.speed = 0.0f;
-			}
-
 			player.Update();
 
 			// メインカメラの更新
@@ -164,10 +169,29 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					upVec, MAIN_CAMERA);
 			}
 
-			angle += 1.0f;
+			{
+				OBB startOBB, goalOBB;
+
+				startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, 10.0f, 10.0f);
+				goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
+
+				isHit = OBBCollision::ColOBBs(player.collision, startOBB);
+				if (isHit)
+				{//押し戻し処理
+					OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, startOBB, isHit);
+					player.groundFlag = true;
+				}
+				isHit = OBBCollision::ColOBBs(player.collision, goalOBB);
+				if (isHit)
+				{//押し戻し処理
+					OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, goalOBB, isHit);
+					player.groundFlag = true;
+				}
+			}
 
 			ringCount = 0;
 			colorWallCount = 0;
+
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
 				for (size_t x = 0; x < goalMapWidth + 1; x++)
@@ -176,12 +200,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 					case ObjectStatus::BLOCK:
 					{
-						OBB  blockOBB, goalOBB;
+						OBB blockOBB;
 
 						blockOBB.Initilize(XMFLOAT3(
 							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
 						), XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
-						goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
@@ -189,12 +212,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (isHit)
 						{//押し戻し処理
 							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
-						}
-						isHit = OBBCollision::ColOBBs(player.collision, goalOBB);
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, goalOBB, isHitDown);
-							isHitDown = false;
 						}
 						//地面についた時の処理
 						if (isHitDown)
@@ -332,9 +349,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			if (player.pos.x > goalMapWidth * blockSize + mapOffset.x)
 			{
-				isClear = true;
+				if (laps >= 2)
+				{
+					isClear = true;
+				}
+				else
+				{
+					player.pos.x = mapOffset.x;
+				}
+
+				laps++;
 			}
-			if (player.pos.y <= -50.0f || player.cameraPosX - player.pos.x > 90)
+			if (player.pos.y <= -50.0f)
 			{
 				isGameover = true;
 			}
@@ -529,9 +555,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 				}
 			}
-			/*ゴール*/
+			/*スタート地点*/
 			draw.Draw(
-				goalPolygon,
+				startBox,
+				XMFLOAT3(0.0f, -50.0f, 0.0f),
+				XMMatrixIdentity(),
+				XMFLOAT3(1.0f, 1.0f, 1.0f),
+				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+			);
+			/*ゴール地点*/
+			draw.Draw(
+				goalFlag,
 				XMFLOAT3(goalMapWidth * blockSize + mapOffset.x, 50.0f, 0.0f),
 				XMMatrixRotationY(XMConvertToRadians(90)),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
@@ -539,7 +573,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				goalGraph
 			);
 			draw.Draw(
-				goalPolygon,
+				goalFlag,
 				XMFLOAT3(goalMapWidth * blockSize + mapOffset.x, 50.0f, 0.0f),
 				XMMatrixRotationY(XMConvertToRadians(-90)),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
@@ -556,8 +590,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			player.Draw();
 
-			//draw.DrawOBJ(donut, XMFLOAT3(10, 10, 0), XMMatrixIdentity(), XMFLOAT3(20, 20, 20));
-
 #if _DEBUG
 			if (isClear == true)
 			{
@@ -568,6 +600,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				draw.DrawString(0, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 			}
 			draw.DrawString(0, 32, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "HP%f", hp.GetCurrentHP());
+			draw.DrawString(window_width - 100, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
 #endif // _DEBUG
 			break;
 		case GameStatus::Config:

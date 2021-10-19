@@ -2,7 +2,7 @@
 #include <DirectXMath.h>
 #include "./Header/DrawPolygon.h"
 #include "./Header/OBBCollision.h"
-
+#include <Header/LoadCSV.h>
 class Player
 {
 private: // エイリアス
@@ -32,7 +32,8 @@ public: // メンバ関数
 	const int& GetPlayerObject() { return playerObject; }
 	// プレイヤーのテクスチャを取得
 	const int& GetPlayerTex() { return playerTex; }
-
+	//色のブロックを踏んだ時の処理
+	void ChangeGroundColor(const int map);
 	/// <summary>
 	/// ジャンプ開始時のパワーの設定
 	/// </summary>
@@ -55,7 +56,11 @@ public: // メンバ変数
 	XMFLOAT3 accelVec; //加速度を加える方向
 
 	bool jumpFlag; //ジャンプフラグ
+	bool groundFlag;//地面に接したか
+	int  groundColor;//どの色に接したか
 	OBB collision; //当たり判定
+
+	float cameraPosX;//カメラの位置
 private:
 	int playerObject; //プレイヤーの頂点データ
 	int playerTex;    //プレイヤーのテクスチャ
@@ -66,4 +71,12 @@ private:
 	XMFLOAT3 totalSpeed; //速度を全て足し合わせたもの
 	XMFLOAT3 totalAccel; //加速度を全て足し合わせたもの
 
+};
+//色情報
+enum GroundColor
+{
+	red = 1,
+	blue,
+	green,
+	yellow
 };

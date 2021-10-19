@@ -54,6 +54,8 @@ void Player::Init(DrawPolygon *draw)
 	this->jumpFlag = false;
 	this->totalSpeed = XMFLOAT3(0, 0, 0);
 	this->totalAccel = XMFLOAT3(0, 0, 0);
+
+	this->cameraPosX = pos.x;
 }
 
 void Player::Update()
@@ -66,11 +68,18 @@ void Player::Update()
 		jumpPowerDecay = 0.0f;
 	}
 
-	if (jumpFlag == true)
+	//ノーマルジャンプ
+	if (jumpFlag == true && groundFlag == true && groundColor == false)
 	{
-		jumpFlag = false;
 		JumpStart(6.5f, gravity);
 	}
+	//赤ブロック踏んだ時
+	if (jumpFlag == true && groundFlag == true && groundColor == red)
+	{
+		JumpStart(10.5f, gravity);
+	}
+	groundFlag = false;
+	groundColor = false;
 
 	oldPos = pos;
 
@@ -111,6 +120,17 @@ void Player::Update()
 	pos.y += totalAccel.y + totalSpeed.y;
 	pos.z += totalAccel.z + totalSpeed.z;
 
+	//プレイヤーの移動速度に合わせる
+	cameraPosX += totalAccel.x + totalSpeed.x;
+	//カメラから見た定位置まで戻る/////////
+	if (pos.x < cameraPosX)
+	{
+		if (oldPos.x < pos.x)
+		{
+			pos.x += 0.1f;
+		}
+	}
+
 	collision.Initilize(pos, rotaMat, 5, 5, 5);
 }
 
@@ -124,4 +144,23 @@ void Player::JumpStart(float jumpPower, float jumpPowerDecay)
 	this->jumpPower = jumpPower;
 	this->jumpPower += gravity;
 	this->jumpPowerDecay = jumpPowerDecay;
+}
+
+void Player::ChangeGroundColor(const int map)
+{
+	switch (map)
+	{
+	case ObjectStatus::RedBLOCK://色ごとの効果
+		groundColor = red;
+		break;
+	case ObjectStatus::BlueBLOCK:
+		groundColor = blue;
+		break;
+	case ObjectStatus::GreenBLOCK:
+		groundColor = green;
+		break;
+	case ObjectStatus::YellowBLOCK:
+		groundColor = yellow;
+		break;
+	};
 }

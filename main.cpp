@@ -88,13 +88,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	size_t goalMapWidth = 60;
 
-	float angle = 0.0f;
+	const XMFLOAT3 startPlayerPos = { 130, -25, 0 }; //プレイヤーのスタート位置
 
-	const XMFLOAT3 startPlayerPos = { 130, -25, 0 };
-	int laps = 1;
+	int laps = 1; //周回数
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
+
+	bool isHit = false;
 	bool isLoopEnd = false;  //無限ループを抜けるかどうか
 
 	while (true)
@@ -152,27 +153,45 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					player.jumpFlag = true;
 				}
 			}
-
-			if (player.pos.x > goalMapWidth * blockSize + mapOffset.x * 2.0f)
+			else
 			{
-				player.speed = 0.0f;
+				player.jumpFlag = false;
 			}
 
 			player.Update();
 
 			// メインカメラの更新
-			if (player.pos.x < goalMapWidth * blockSize + mapOffset.x)
+			if (player.cameraPosX < goalMapWidth * blockSize + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z - 170.0f),
-					XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z),
+					XMFLOAT3(player.cameraPosX + 100.0f, 0.0f, player.pos.z - 170.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f, 0.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
 
-			angle += 1.0f;
+			{
+				OBB startOBB, goalOBB;
+
+				startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, 10.0f, 10.0f);
+				goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
+
+				isHit = OBBCollision::ColOBBs(player.collision, startOBB);
+				if (isHit)
+				{//押し戻し処理
+					OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, startOBB, isHit);
+					player.groundFlag = true;
+				}
+				isHit = OBBCollision::ColOBBs(player.collision, goalOBB);
+				if (isHit)
+				{//押し戻し処理
+					OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, goalOBB, isHit);
+					player.groundFlag = true;
+				}
+			}
 
 			ringCount = 0;
 			colorWallCount = 0;
+
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
 				for (size_t x = 0; x < goalMapWidth + 1; x++)
@@ -181,13 +200,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 					case ObjectStatus::BLOCK:
 					{
-						OBB  blockOBB, startOBB, goalOBB;
+						OBB blockOBB;
 
 						blockOBB.Initilize(XMFLOAT3(
 							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
 						), XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
-						startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, 10.0f, 10.0f);
-						goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
@@ -196,23 +213,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						{//押し戻し処理
 							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
 						}
-						isHit = OBBCollision::ColOBBs(player.collision, startOBB);
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, startOBB, isHitDown);
-							isHitDown = false;
-						}
-						isHit = OBBCollision::ColOBBs(player.collision, goalOBB);
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, goalOBB, isHitDown);
-							isHitDown = false;
-						}
 						//地面についた時の処理
 						if (isHitDown)
 						{
 							hp.AddDamage(0.01f);
-
+							player.groundFlag = true;
 							//変わる色の情報を保持
 							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
 						}
@@ -246,24 +251,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						//地面についた時の処理
 						if (isHitDown)
 						{
+							player.ChangeGroundColor(map[y][x]);
 							hp.AddDamage(0.01f);
+							player.groundFlag = true;
 							//変わる色の情報を保持
 							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
-							switch (map[y][x])
-							{
-							case ObjectStatus::RedBLOCK://色ごとの効果
-
-								break;
-							case ObjectStatus::BlueBLOCK:
-
-								break;
-							case ObjectStatus::GreenBLOCK:
-
-								break;
-							case ObjectStatus::YellowBLOCK:
-
-								break;
-							}
 						}
 						else
 						{
@@ -296,21 +288,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						//地面に触れたらの処理
 						if (HitDown)
 						{
-							switch (map[y][x])//色ごとの効果
-							{
-							case ObjectStatus::RedFloor:
-
-								break;
-							case ObjectStatus::BlueFloor:
-
-								break;
-							case ObjectStatus::GreenFloor:
-
-								break;
-							case ObjectStatus::YellowFloor:
-
-								break;
-							}
+							player.groundFlag = true;
+							player.ChangeGroundColor(map[y][x]);
 							//変わる色を保持
 							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
 
@@ -385,7 +364,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				isGameover = true;
 			}
-			if (isClear == false)
+			if (isClear == false && isGameover == false)
 			{
 				isGameover = hp.isEmpty();
 			}

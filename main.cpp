@@ -165,8 +165,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			if (player.cameraPosX < goalMapWidth * blockSize + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.cameraPosX + 100.0f, 0.0f, player.pos.z - 170.0f),
-					XMFLOAT3(player.cameraPosX + 100.0f, 0.0f, player.pos.z),
+					XMFLOAT3(player.cameraPosX + 100.0f, 30.0f, player.pos.z - 170.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
 
@@ -365,7 +365,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					laps++;
 				}
 			}
-			if (player.pos.y <= -50.0f)
+			if (player.pos.y <= -70.0f || player.cameraPosX - player.pos.x > 90)
 			{
 				if (isClear == false)
 				{

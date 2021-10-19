@@ -118,6 +118,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			hp.Init(50, 1, 60);
 
 			player.pos = startPlayerPos;
+			player.cameraPosX = player.pos.x;
 
 			{
 				int temp = LoadCSV(map, "./Resources/stage/stage1.csv");
@@ -351,18 +352,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (laps >= 2)
 				{
-					isClear = true;
+					if (isGameover == false)
+					{
+						isClear = true;
+					}
 				}
 				else
 				{
 					player.pos.x = mapOffset.x;
-				}
+					player.cameraPosX = player.pos.x;
 
-				laps++;
+					laps++;
+				}
 			}
 			if (player.pos.y <= -50.0f)
 			{
-				isGameover = true;
+				if (isClear == false)
+				{
+					isGameover = true;
+				}
 			}
 			if (isClear == false && isGameover == false)
 			{

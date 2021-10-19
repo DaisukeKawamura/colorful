@@ -68,15 +68,18 @@ void Player::Update()
 		jumpPowerDecay = 0.0f;
 	}
 
-	//ノーマルジャンプ
-	if (jumpFlag == true && groundFlag == true && groundColor == false)
+	if (jumpFlag == true && groundFlag == true)
 	{
-		JumpStart(6.5f, gravity);
-	}
-	//赤ブロック踏んだ時
-	if (jumpFlag == true && groundFlag == true && groundColor == red)
-	{
-		JumpStart(10.5f, gravity);
+		//赤ブロック踏んだ時
+		if (groundColor == red)
+		{
+			JumpStart(10.5f, gravity);
+		}
+		//ノーマルジャンプ
+		else
+		{
+			JumpStart(6.5f, gravity);
+		}
 	}
 	groundFlag = false;
 	groundColor = false;

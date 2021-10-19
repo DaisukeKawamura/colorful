@@ -1,18 +1,25 @@
 #pragma once
-#include "./Header/DrawPolygon.h"
 
 #define MAP_WIDTH (100) //横の最大枚数
-#define MAP_HEIGHT (6) //縦の最大枚数
+#define MAP_HEIGHT (6)  //縦の最大枚数
 
 enum ObjectStatus
 {
 	NONE,            //空
 	BLOCK,           //床、壁
+	Floor,			 //下からすり抜け可能床
 	ITEM,            //アイテム
 	RING,            //色変えリング
-	COLOR_WALL,      //色が有ってればダメージを受けない壁
+	BREAK_ITEM,		 //元アイテム
 	BREAK_RING,      //元RING
-	BREAK_COLOR_WALL //元COLOR_WALL
+	RedBLOCK,		 //赤色ブロック
+	BlueBLOCK,		 //青色ブロック
+	GreenBLOCK,		 //緑色ブロック
+	YellowBLOCK,	 //黄色ブロック
+	RedFloor,		 //赤色の床
+	BlueFloor,		 //青色の床
+	GreenFloor,		 //緑色の床
+	YellowFloor,	 //黄色の床
 };
 
 /// <summary>

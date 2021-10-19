@@ -104,6 +104,7 @@
       <PreprocessorDefinitions>WIN32;NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)DirectXTex;$(SolutionDir)Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -134,6 +135,7 @@
       <PreprocessorDefinitions>NDEBUG;_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(SolutionDir);$(SolutionDir)DirectXTex;$(SolutionDir)Library;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -144,6 +146,7 @@
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp" />
+    <ClCompile Include="Source\BlockChange.cpp" />
     <ClCompile Include="Source\LoadCSV.cpp" />
     <ClCompile Include="Source\HP.cpp" />
     <ClCompile Include="Source\OBBCollision.cpp" />
@@ -160,6 +163,7 @@
     <Image Include="Resources\ring.png" />
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header\BlockChange.h" />
     <ClInclude Include="Header\LoadCSV.h" />
     <ClInclude Include="Header\HP.h" />
     <ClInclude Include="Header\OBBCollision.h" />

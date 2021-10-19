@@ -26,8 +26,11 @@ public: // メンバ関数
 	int CreateCorn(const float& r, const float& h, const size_t& divNum, const bool& isFill = true);
 	// 正多角柱の作成
 	int CreateCylinder(const float& r, const float& h, const size_t& divNum, const bool& isFill = true);
-	// 球体の描画処理
+	// 球体の作成
 	int CreateSphere(const float& r, const size_t& divNum, const bool& isFill = true);
+
+	// objファイルによるモデルの作成（filePath：objファイルの名前、directoryPath：モデルのファイルがあるフォルダ）
+	int CreateOBJModel(const char* filePath, const char* directoryPath);
 
 	// テクスチャのタイリング
 	void NormalizeUV(const int& polygonData, const int& graphHandle);
@@ -37,6 +40,10 @@ public: // メンバ関数
 	// オブジェクトの描画処理
 	int Draw(const int& polygonData, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
 		const XMFLOAT4& color, const int& graphHandle = 0, const bool& isFill = true,
+		const bool& isOrthoGraphic = false, const bool& viewMultiFlag = true, const int& parent = -1);
+
+	// モデルの描画処理
+	int DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
 		const bool& isOrthoGraphic = false, const bool& viewMultiFlag = true, const int& parent = -1);
 
 	// カメラの作成
@@ -57,6 +64,12 @@ public: // メンバ関数
 private:
 	// 描画関数の初期化
 	int DrawPolygonInit();
+	
+	// 描画関数の初期化
+	int DrawOBJInit(const int& index);
+
+	// マテリアル読み込み
+	void LoadMaterial(const std::string& directoryPath, const std::string& filename);
 
 	/*頂点座標とインデックスデータ計算用*/
 	void Circle(const XMFLOAT3& centerPos, const float& r, const size_t& divNum, const bool& flag,
@@ -71,5 +84,4 @@ private: // メンバ変数
 
 	vector<XMMATRIX> matView; //ビュー変換行列(カメラ)
 	int cameraNo;             //カメラの番号（最初はMAIN_CAMERAを指している）
-
 };

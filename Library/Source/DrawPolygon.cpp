@@ -1,5 +1,8 @@
 #include "./Header/DrawPolygon.h"
 #include "./Header/Camera.h"
+#include <fstream>
+#include <sstream>
+#include <string>
 
 #define EoF -1 // End of Function
 
@@ -498,6 +501,307 @@ int DrawPolygon::CreateSphere(const float& r, const size_t& divNum, const bool& 
 	return CreateVertexAndIndexBuffer();
 }
 
+int DrawPolygon::CreateOBJModel(const char* filePath, const char* directoryPath)
+{
+	if (filePath == nullptr) { return EoF; }
+
+	using namespace std;
+	using XMFLOAT2 = DirectX::XMFLOAT2;
+	HRESULT hr;
+
+	ifstream file;
+	const string modelPath = filePath;
+	file.open(modelPath);
+
+	vector<XMFLOAT3> positions; //頂点座標
+	vector<XMFLOAT3> normals; //法線ベクトル
+	vector<XMFLOAT2> texcoords; //テクスチャUV
+
+	vertices.push_back({});
+	obj.push_back({});
+	obj[obj.size() - 1].polygonData = (int)(vertices.size() - 1);
+
+	// 一行ずつ読み込む
+	string line;
+
+	while (getline(file, line))
+	{
+		// 1行分の文字列をストリームに変換して解析しやすくする
+		std::istringstream line_stream(line);
+
+		// 半角スペース区切りで行の先頭文字列を取得する
+		std::string key;
+		std::getline(line_stream, key, ' ');
+
+		// 先頭文字列がvなら頂点座標
+		if (key == "v")
+		{
+			// X,Y,Z座標読み込み
+			XMFLOAT3 pos{};
+			line_stream >> pos.x;
+			line_stream >> pos.y;
+			line_stream >> pos.z;
+			// 座標データの追加
+			positions.emplace_back(pos);
+		}
+
+		// 先頭文字列がvtならテクスチャ
+		if (key == "vt")
+		{
+			// U,V成分読み込み
+			XMFLOAT2 tex{};
+			line_stream >> tex.x;
+			line_stream >> tex.y;
+			// V方向反転
+			tex.y = 1.0f - tex.y;
+			// テクスチャデータの追加
+			texcoords.emplace_back(tex);
+		}
+
+		// 先頭文字列がvnなら法線ベクトル
+		if (key == "vn")
+		{
+			// X,Y,Z成分読み込み
+			XMFLOAT3 normal{};
+			line_stream >> normal.x;
+			line_stream >> normal.y;
+			line_stream >> normal.z;
+			// 法線ベクトルデータの追加
+			normals.emplace_back(normal);
+		}
+
+		// 先頭文字列がfならポリゴン（三角形）
+		if (key == "f")
+		{
+			size_t index_count = 0;
+			// 半角スペース区切りで行の続きを読み込む
+			std::string index_string;
+			while (std::getline(line_stream, index_string, ' '))
+			{
+				// 頂点インデックス1個分の文字列をストリームに変換して解析しやすくする
+				std::istringstream index_stream(index_string);
+				unsigned short indexPos, indexUv, indexNormal;
+				// インデックスの情報が頂点座標のみかどうか
+				auto resultIter = std::find(index_string.begin(), index_string.end(), '/');
+				auto temp = std::distance(index_string.begin(), ++resultIter);
+				// 変数省略
+				auto& vert = vertices[vertices.size() - 1];
+
+				if (index_string[temp] == '/')
+				{
+					index_stream >> indexPos;
+
+					// 頂点データの追加
+					Vertex vertex{};
+					vertex.pos = positions[indexPos - 1];
+					vertex.normal = XMFLOAT3();
+					vertex.uv = XMFLOAT2();
+					vert.vertices.emplace_back(vertex);
+				}
+				else
+				{
+					index_stream >> indexPos;
+					index_stream.seekg(1, std::ios_base::cur); //スラッシュを飛ばす
+					index_stream >> indexUv;
+					index_stream.seekg(1, std::ios_base::cur); //スラッシュを飛ばす
+					index_stream >> indexNormal;
+
+					// 頂点データの追加
+					Vertex vertex{};
+					vertex.pos = positions[indexPos - 1];
+					vertex.normal = normals[indexNormal - 1];
+					vertex.uv = texcoords[indexUv - 1];
+					vert.vertices.emplace_back(vertex);
+				}
+
+				// インデックスデータの追加
+				vert.indices.emplace_back((unsigned short)vert.indices.size());
+
+				if (index_count >= 3)
+				{
+					vert.vertices.emplace_back(vert.vertices[vert.vertices.size() - 4]);
+					vert.vertices.emplace_back(vert.vertices[vert.vertices.size() - 3]);
+
+					vert.indices.emplace_back((unsigned short)vert.indices.size() - 4);
+					vert.indices.emplace_back((unsigned short)vert.indices.size() - 3);
+				}
+				index_count++;
+			}
+		}
+
+		// 先頭文字列がmtllibならマテリアルファイルの読み込み
+		if (key == "mtllib")
+		{
+			// マテリアルのファイル名読み込み
+			std::string fileName;
+			line_stream >> fileName;
+			// マテリアル読み込み
+			LoadMaterial(directoryPath, fileName);
+		}
+
+		// 先頭文字列がusemtlなら使用するマテリアル
+		if (key == "usemtl")
+		{
+			// マテリアル名読み込み
+			std::string materialName;
+			line_stream >> materialName;
+		}
+	}
+	// ファイルを閉じる
+	file.close();
+
+#pragma region VertexBuffer
+
+	// 頂点データ一つ分のサイズ * 頂点データの要素数
+	UINT sizeVB;
+	sizeVB = static_cast<UINT>(sizeof(Vertex) * vertices[vertices.size() - 1].vertices.size());
+
+	hr = w->dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeVB),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&vertices[vertices.size() - 1].vertBuff));
+	if (FAILED(hr))
+	{
+		return EoF;
+	}
+
+	hr = vertices[vertices.size() - 1].vertBuff->Map(0, nullptr, (void**)&vertMap);
+
+	// 全頂点に対して
+	for (UINT i = 0; i < vertices[vertices.size() - 1].vertices.size(); i++)
+	{
+		vertMap[i] = vertices[vertices.size() - 1].vertices[i]; //座標をコピー
+	}
+
+	// マップを解除
+	vertices[vertices.size() - 1].vertBuff->Unmap(0, nullptr);
+
+	vertices[vertices.size() - 1].vbView.BufferLocation = vertices[vertices.size() - 1].vertBuff->GetGPUVirtualAddress();
+	vertices[vertices.size() - 1].vbView.SizeInBytes = sizeVB;
+	vertices[vertices.size() - 1].vbView.StrideInBytes = sizeof(Vertex);
+
+#pragma endregion //VertexBuffer
+
+#pragma region IndexBuffer
+
+	//インデックスデータ全体のサイズ
+	UINT sizeIB;
+	sizeIB = static_cast<UINT>(sizeof(unsigned short) * vertices[vertices.size() - 1].indices.size());
+
+	hr = w->dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer(sizeIB),
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&vertices[vertices.size() - 1].indexBuff));
+	if (FAILED(hr))
+	{
+		return EoF;
+	}
+
+	// GPU上のバッファに対応した仮想メモリを取得
+	static unsigned short* indexMap = nullptr;
+	hr = vertices[vertices.size() - 1].indexBuff->Map(0, nullptr, (void**)&indexMap);
+
+	// 全インデックスに対して
+	for (size_t i = 0; i < vertices[vertices.size() - 1].indices.size(); i++)
+	{
+		indexMap[i] = vertices[vertices.size() - 1].indices[i]; //インデックスをコピー
+	}
+
+	// 繋がりを解除
+	vertices[vertices.size() - 1].indexBuff->Unmap(0, nullptr);
+
+	vertices[vertices.size() - 1].ibView.BufferLocation = vertices[vertices.size() - 1].indexBuff->GetGPUVirtualAddress();
+	vertices[vertices.size() - 1].ibView.Format = DXGI_FORMAT_R16_UINT;
+	vertices[vertices.size() - 1].ibView.SizeInBytes = sizeIB;
+
+#pragma endregion //IndexBuffer
+
+	return (int)(obj.size() - 1);
+}
+
+void DrawPolygon::LoadMaterial(const std::string& directoryPath, const std::string& filename)
+{
+	// ファイルストリーム
+	std::ifstream file;
+	// マテリアルファイルを開く
+	file.open(directoryPath + filename);
+	// ファイルオープン失敗をチェック
+	if (file.fail())
+	{
+		assert(0);
+	}
+
+	// 1行ずつ読み込む
+	std::string line;
+	while (std::getline(file, line))
+	{
+		// 1行分の文字列をストリームに変換
+		std::istringstream line_stream(line);
+
+		// 半角スペース区切りで行の先頭文字列を取得
+		std::string key;
+		std::getline(line_stream, key, ' ');
+
+		// 先頭のタブは無視する
+		if (key[0] == '\t')
+		{
+			key.erase(key.begin()); //先頭の文字を削除
+		}
+
+		// 先頭文字列がnewmtlならマテリアル名
+		if (key == "newmtl")
+		{
+			// マテリアル名読み込み
+			line_stream >> obj[obj.size() - 1].material.name;
+		}
+
+		// 先頭文字列がKaならアンビエント色
+		if (key == "Ka")
+		{
+			line_stream >> obj[obj.size() - 1].material.ambient.x;
+			line_stream >> obj[obj.size() - 1].material.ambient.y;
+			line_stream >> obj[obj.size() - 1].material.ambient.z;
+		}
+
+		// 先頭文字列がKdならディフューズ色
+		if (key == "Kd")
+		{
+			line_stream >> obj[obj.size() - 1].material.diffuse.x;
+			line_stream >> obj[obj.size() - 1].material.diffuse.y;
+			line_stream >> obj[obj.size() - 1].material.diffuse.z;
+		}
+
+		// 先頭文字列がKsならスペキュラー色
+		if (key == "Ks")
+		{
+			line_stream >> obj[obj.size() - 1].material.specular.x;
+			line_stream >> obj[obj.size() - 1].material.specular.y;
+			line_stream >> obj[obj.size() - 1].material.specular.z;
+		}
+
+		// 先頭文字列がmap_Kdならテクスチャファイル名
+		if (key == "map_Kd")
+		{
+			// テクスチャのファイル名読み込み
+			line_stream >> obj[obj.size() - 1].material.textureFilename;
+			std::string texFilePath = directoryPath + obj[obj.size() - 1].material.textureFilename;
+			// ユニコード文字列に変換する
+			wchar_t filepath[128];
+			int iBufferSize = MultiByteToWideChar(CP_ACP, 0, texFilePath.c_str(), -1, filepath, _countof(filepath));
+			// テクスチャ読み込み
+			obj[obj.size() - 1].textrueIndex = LoadTextrue(filepath);
+		}
+	}
+	// ファイルを閉じる
+	file.close();
+}
+
 void DrawPolygon::NormalizeUV(const int& polygonData, const int& graphHandle)
 {
 	if ((polygonData < 0 || (size_t)polygonData >= vertices.size()) ||
@@ -611,6 +915,65 @@ int DrawPolygon::DrawPolygonInit()
 	return index;
 }
 
+int DrawPolygon::DrawOBJInit(const int& index)
+{
+	HRESULT hr = S_FALSE;
+	static bool isDrawOBJPolygonInit = false;
+
+	hr = w->dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferData) + 0xFF) & ~0xFF), //リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&obj[index].constBuff));
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	hr = w->dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(MaterialConstBufferData) + 0xFF) & ~0xFF), //リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&obj[index].materialConstBuff));
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	hr = BasicDescHeapInit();
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
+	// 定数バッファビュー生成
+	//D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
+	//cbvDesc.BufferLocation = obj[index].constBuff->GetGPUVirtualAddress();
+	//cbvDesc.SizeInBytes = (UINT)obj[index].constBuff->GetDesc().Width;
+	//w->dev->CreateConstantBufferView(
+	//	&cbvDesc,
+	//	CD3DX12_CPU_DESCRIPTOR_HANDLE(
+	//		basicDescHeap->GetCPUDescriptorHandleForHeapStart(),
+	//		index,
+	//		w->dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
+	//	)
+	//);
+
+	if (isDrawOBJPolygonInit == false)
+	{
+		isDrawOBJPolygonInit = true;
+
+		hr = Init();
+		if (FAILED(hr))
+		{
+			return EoF;
+		}
+	}
+}
+
 int DrawPolygon::Draw(
 	const int& polygonData, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
 	const XMFLOAT4& color, const int& graphHandle, const bool& isFill,
@@ -697,6 +1060,9 @@ int DrawPolygon::Draw(
 
 	BaseDrawGraphics();
 
+	w->cmdList->SetPipelineState(objectData.pipelinestate.Get());
+	w->cmdList->SetGraphicsRootSignature(objectData.rootsignature.Get());
+
 	ConstBufferData* constMap = nullptr;
 	obj[index.constant].constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
 
@@ -732,6 +1098,114 @@ int DrawPolygon::Draw(
 	w->cmdList->DrawIndexedInstanced((UINT)vertices[polygonData].indices.size(), 1, 0, 0, 0);
 
 	return index.constant;
+}
+
+int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale, const bool& isOrthoGraphic, const bool& viewMultiFlag, const int& parent)
+{
+	auto& OBJ = obj[object];
+
+	if ((OBJ.polygonData < 0 || (size_t)OBJ.polygonData >= vertices.size()) ||
+		(OBJ.textrueIndex < 0 || (UINT)OBJ.textrueIndex > texCommonData.textrueCount) ||
+		(parent < -1 && (parent != -1 && (size_t)parent >= obj.size())))
+	{
+		return EoF;
+	}
+
+	using namespace DirectX;
+
+	bool isInit = false;
+	XMMATRIX mat = XMMatrixIdentity();
+	HRESULT hr = S_FALSE;
+
+	if ((size_t)(polygonCount + 1) < objIndex.size())
+	{
+		isInit = true;
+	}
+
+	if (isInit == false)
+	{
+		hr = DrawOBJInit(object);
+		if (FAILED(hr))
+		{
+			return EoF;
+		}
+	}
+
+	if (objIndex.size() <= 0)
+	{
+		return EoF;
+	}
+
+	UpdataConstant(position, rotation, scale, object, OBJ.polygonData, parent);
+
+	if (viewMultiFlag == true)
+	{
+		mat = matView[cameraNo];
+	}
+	else
+	{
+		mat = XMMatrixIdentity();
+	}
+
+	if (isOrthoGraphic == true)
+	{
+		mat *= objectData.matProjection[CommonData::Projection::ORTHOGRAPHIC];
+		lightVec = {
+			-vertices[OBJ.polygonData].vertices[0].normal.x,
+			-vertices[OBJ.polygonData].vertices[0].normal.y,
+			-vertices[OBJ.polygonData].vertices[0].normal.z
+		};
+	}
+	else
+	{
+		mat *= objectData.matProjection[CommonData::Projection::PERSPECTIVE];
+		lightVec = light;
+	}
+
+#pragma region GraphicsCommand
+
+	BaseDrawGraphics();
+
+	w->cmdList->SetPipelineState(materialData.pipelinestate.Get());
+	w->cmdList->SetGraphicsRootSignature(materialData.rootsignature.Get());
+
+	ConstBufferData* constMap = nullptr;
+	OBJ.constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
+
+	constMap->color = XMFLOAT4(1, 1, 1, 1);
+	constMap->mat = OBJ.matWorld * mat;
+	constMap->lightVec = lightVec;
+	OBJ.constBuff->Unmap(0, nullptr); //マッピング解除
+
+	MaterialConstBufferData* materialConstMap = nullptr;
+	OBJ.materialConstBuff->Map(0, nullptr, (void**)&materialConstMap); //マッピング
+
+	materialConstMap->ambient = OBJ.material.ambient;
+	materialConstMap->diffuse = OBJ.material.diffuse;
+	materialConstMap->specular = OBJ.material.specular;
+	materialConstMap->alpha = OBJ.material.alpha;
+	OBJ.materialConstBuff->Unmap(0, nullptr); //マッピング解除
+
+	// デスクリプタヒープをセット
+	ID3D12DescriptorHeap* ppHeaps[] = { texCommonData.descHeap.Get() };
+	w->cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
+
+	// 定数バッファビューをセット
+	w->cmdList->SetGraphicsRootConstantBufferView(0, OBJ.constBuff->GetGPUVirtualAddress());
+	w->cmdList->SetGraphicsRootConstantBufferView(1, OBJ.materialConstBuff->GetGPUVirtualAddress());
+	w->cmdList->SetGraphicsRootDescriptorTable(2, textrueData[OBJ.textrueIndex].gpuDescHandle);
+
+	// プリミティブ形状の設定
+	w->cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
+
+	// 頂点バッファの設定
+	w->cmdList->IASetVertexBuffers(0, 1, &vertices[OBJ.polygonData].vbView);
+	// インデックスバッファビューの設定
+	w->cmdList->IASetIndexBuffer(&vertices[OBJ.polygonData].ibView);
+	// 描画コマンド
+	w->cmdList->DrawIndexedInstanced((UINT)vertices[OBJ.polygonData].indices.size(), 1, 0, 0, 0);
+
+	return object;
 }
 
 int DrawPolygon::CreateCamera(const XMFLOAT3& cameraPos, const XMFLOAT3& cameraTarget, const XMFLOAT3& upVector)

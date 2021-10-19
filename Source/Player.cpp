@@ -2,7 +2,7 @@
 
 #define scale_xyz(_scale) DirectX::XMFLOAT3(_scale, _scale, _scale)
 
-const float Player::gravity = 0.49f;
+const float Player::gravity = 0.70f;
 const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
 
 Player::Player() :
@@ -67,23 +67,35 @@ void Player::Update()
 {
 	oldPos = pos;
 
-	jumpPower -= jumpPowerDecay;
-	if (jumpPower < 0.0f)
+
+	if (jumpPower < -5.0f)
 	{
-		jumpPowerDecay = 0.0f;
+		jumpPowerDecay = 0;
 	}
+	if (groundFlag == true)
+	{
+		jumpPower = 0;
+	}
+
+	if (jumpPower == 0 && jumpPowerDecay == 0)
+	{//ふわふわ落ちないように
+		jumpPowerDecay = 0.5f;
+	}
+
+	jumpPower -= jumpPowerDecay;
+	
 
 	if (jumpFlag == true && groundFlag == true)
 	{
 		//赤ブロック踏んだ時
 		if (groundColor == red)
 		{
-			JumpStart(10.5f, gravity);
+			JumpStart(9.0f, 0.5);
 		}
 		//ノーマルジャンプ
 		else
 		{
-			JumpStart(6.5f, gravity);
+			JumpStart(6.8f, 0.5);
 		}
 	}
 	groundFlag = false;

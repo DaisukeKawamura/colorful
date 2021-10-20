@@ -156,7 +156,7 @@ void Player::Update()
 
 void Player::Draw()
 {
-	draw->DrawOBJ(playerObject, pos, rotaMat, scale);
+	draw->DrawOBJ(playerObject, pos, rotaMat, scale, color);
 }
 
 void Player::JumpStart(float jumpPower, float jumpPowerDecay)

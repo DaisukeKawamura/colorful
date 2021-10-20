@@ -1100,7 +1100,8 @@ int DrawPolygon::Draw(
 	return index.constant;
 }
 
-int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale, const bool& isOrthoGraphic, const bool& viewMultiFlag, const int& parent)
+int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
+	const XMFLOAT4& color, const bool& isOrthoGraphic, const bool& viewMultiFlag, const int& parent)
 {
 	auto& OBJ = obj[object];
 
@@ -1172,7 +1173,7 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 	ConstBufferData* constMap = nullptr;
 	OBJ.constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
 
-	constMap->color = XMFLOAT4(1, 1, 1, 1);
+	constMap->color = color;
 	constMap->mat = OBJ.matWorld * mat;
 	constMap->lightVec = lightVec;
 	OBJ.constBuff->Unmap(0, nullptr); //マッピング解除

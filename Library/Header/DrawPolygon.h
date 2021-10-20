@@ -44,6 +44,7 @@ public: // ƒƒ“ƒoŠÖ”
 
 	// ƒ‚ƒfƒ‹‚Ì•`‰æˆ—
 	int DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
+		const XMFLOAT4& color = { 1.0f, 1.0f, 1.0f, 1.0f },
 		const bool& isOrthoGraphic = false, const bool& viewMultiFlag = true, const int& parent = -1);
 
 	// ƒJƒƒ‰‚Ìì¬

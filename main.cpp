@@ -68,6 +68,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int ringPolygon = draw.CreateCircle(10.0f, 32);        //リング
 	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);   //色が一致していれば破壊出来るブロック
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);         //ゴールの旗
+	int itemModel = draw.CreateCylinder(5.0f, 10.0f, 16);  //アイテム
 
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
@@ -312,7 +313,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						OBB itemOBB;
 						itemOBB.Initilize(XMFLOAT3(
 							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+						), XMMatrixIdentity(), 5.0f, 5.0f, 5.0f);
 						bool isHit = OBBCollision::ColOBBs(player.collision, itemOBB);
 						if (isHit)
 						{
@@ -462,7 +463,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						break;
 					case ObjectStatus::ITEM:
-						//draw->Draw(x * mapSize + offsetX, y * mapSize + offsetY, graphHandleArray[map[y][x]], transFlag);
+						draw.Draw(
+							itemModel,
+							XMFLOAT3(x * blockSize + mapOffset.x,
+								y * (-blockSize) + mapOffset.y,
+								mapOffset.z),
+							XMMatrixRotationX(XMConvertToRadians(90)),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
+						);
 						break;
 					case ObjectStatus::RING:
 						draw.Draw(

@@ -2,9 +2,9 @@
 
 int BlockChange::changeBlockPColor(XMFLOAT4 pColor)
 {
-	XMFLOAT4 red = { 1,0,0,1 };
-	XMFLOAT4 yellow = { 1,1,0,1 };
-
+	XMFLOAT4 red = { 0.964f, 0.176f, 0.352f, 1.0f };
+	XMFLOAT4 yellow = { 0.9f, 0.9f, 0.0f, 1.0f };
+	
 	//プレイヤーの色と同じだったらその色に変える
 	if (pColor.x == red.x && pColor.y == red.y && pColor.z == red.z && pColor.w == red.w)
 	{//赤
@@ -19,8 +19,8 @@ int BlockChange::changeBlockPColor(XMFLOAT4 pColor)
 
 int BlockChange::changeFloorPColor(XMFLOAT4 pColor)
 {
-	XMFLOAT4 red = { 1,0,0,1 };
-	XMFLOAT4 yellow = { 1,1,0,1 };
+	XMFLOAT4 red = { 0.964f, 0.176f, 0.352f, 1.0f };
+	XMFLOAT4 yellow = { 0.9f, 0.9f, 0.0f, 1.0f };
 
 	//プレイヤーの色と同じだったらその色に変える
 	if (pColor.x == red.x && pColor.y == red.y && pColor.z == red.z && pColor.w == red.w)

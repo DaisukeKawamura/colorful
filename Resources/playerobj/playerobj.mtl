@@ -1,7 +1,7 @@
-# Blender MTL File: 'fude02.blend'
+# Blender MTL File: '2.blend'
 # Material Count: 2
 
-newmtl Material
+newmtl Material.001
 Ns 323.999994
 Ka 1.000000 1.000000 1.000000
 Kd 0.800000 0.800000 0.800000

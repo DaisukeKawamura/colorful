@@ -13,7 +13,7 @@ const int window_height = 720; //縦幅
 
 const WCHAR title[] = L"title"; //タイトル
 
-const float clearColor[] = { 0.1f,0.1f,0.1f,0.0f }; //背景色
+const float clearColor[] = { 0.1f,0.1f,0.3f,0.0f }; //背景色
 
 int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 {
@@ -45,13 +45,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	player.Init(&draw);
 
 	HP hp;
-	hp.Init(50, 1, 60);
+	hp.Init(25, 1, 60);
 
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");
 	int tex1 = draw.LoadTextrue(L"./Resources/tex1.png");
 	int ringGraph = draw.LoadTextrue(L"./Resources/ring.png");
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
+	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
 
 	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
 	XMFLOAT3 cameraTarget = { 0, 0, 0 }; //カメラの注視点
@@ -83,11 +84,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int colorWallCount = 0; //色付き壁の数
 	// 色変えリング等で使う色
 	const XMFLOAT4 changeColor[] = {
-		{ 1.0f, 0.0f, 0.0f, 1.0f },
-		{ 1.0f, 1.0f, 0.0f, 1.0f }
+		{ 0.964f, 0.176f, 0.352f, 1.0f },
+		{ 0.9f, 0.9f, 0.0f, 1.0f }
 	};
 
-	size_t goalMapWidth = 60;
+	size_t goalMapWidth = 90;
 
 	const XMFLOAT3 startPlayerPos = { 130, -25, 0 }; //プレイヤーのスタート位置
 
@@ -98,6 +99,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	bool isHit = false;
 	bool isLoopEnd = false;  //無限ループを抜けるかどうか
+
+	//int score = 0;
 
 	while (true)
 	{
@@ -116,7 +119,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			gameStatus = GameStatus::Main;
 
 			player.Init(&draw);
-			hp.Init(50, 1, 60);
+			hp.Init(25, 1, 60);
 
 			player.pos = startPlayerPos;
 			player.cameraPosX = player.pos.x;
@@ -139,11 +142,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			);
 
 			laps = 1;
-
+			//score = 0;
 			isClear = false;
 			isGameover = false;
 			break;
 		case GameStatus::Main:
+			//score = 0;
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
 				if (isClear == true || isGameover == true)
@@ -240,6 +244,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::GreenBLOCK:
 					case ObjectStatus::YellowBLOCK:
 					{
+						//score++;
 						OBB  blockOBB;
 						blockOBB.Initilize(XMFLOAT3(
 							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
@@ -271,11 +276,43 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 					break;
 					case ObjectStatus::Floor:
+					{
+						OBB  blockOBB;
+						blockOBB.Initilize(XMFLOAT3(
+							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y + floorOffsetY, mapOffset.z
+						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+						bool HitDown = false;
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{//押し戻し処理
+							OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
+						}
+						//地面に触れたらの処理
+						if (HitDown)
+						{
+							player.groundFlag = true;
+							//変わる色を保持
+							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
+
+							hp.AddDamage(0.005);
+						}
+						else
+						{
+							//プレイヤーの色に合わせてブロックを変える
+							if (mapColor[y][x] > 0)
+							{
+								map[y][x] = mapColor[y][x];
+								mapColor[y][x] = 0;
+							}
+						}
+					}
+					break;
 					case ObjectStatus::RedFloor:
 					case ObjectStatus::BlueFloor:
 					case ObjectStatus::GreenFloor:
 					case ObjectStatus::YellowFloor:
 					{
+						//score++;
 						OBB  blockOBB;
 
 						blockOBB.Initilize(XMFLOAT3(
@@ -418,7 +455,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		/* 描画 */
 
 		// 背景
-		draw.DrawTextrue(0, 0, window_width, window_height, 0, background, XMFLOAT2(0.0f, 0.0f));
+		//draw.DrawTextrue(0, 0, window_width, window_height, 0, background, XMFLOAT2(0.0f, 0.0f));
 
 		switch (gameStatus)
 		{
@@ -445,7 +482,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-							0
+							boxGraph
 						);
 						break;
 					case ObjectStatus::Floor:
@@ -459,7 +496,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-							0
+							boxGraph
 						);
 						break;
 					case ObjectStatus::ITEM:
@@ -469,7 +506,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 								y * (-blockSize) + mapOffset.y,
 								mapOffset.z),
 							XMMatrixRotationX(XMConvertToRadians(90)),
-							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT3(1.5f, 1.5f, 1.5f),
 							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
 						);
 						break;
@@ -513,7 +550,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							),
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+							changeColor[0],
 							0
 						);
 						break;
@@ -531,7 +568,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							),
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f),
+							changeColor[1],
 							0
 						);
 						break;
@@ -545,7 +582,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							),
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(1.0f, 0.0f, 0.0f, 1.0f),
+							changeColor[0],
 							0
 						);
 						break;
@@ -563,7 +600,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							),
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(1.0f, 1.0f, 0.0f, 1.0f),
+							changeColor[1],
 							0
 						);
 						break;
@@ -578,7 +615,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMFLOAT3(0.0f, -50.0f, 0.0f),
 				XMMatrixIdentity(),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
-				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+				boxGraph
 			);
 			/*ゴール地点*/
 			draw.Draw(
@@ -602,10 +640,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0),
 				XMMatrixIdentity(),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
-				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f)
+				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+				boxGraph
 			);
 
 			player.Draw();
+
 
 #if _DEBUG
 			if (isClear == true)
@@ -614,10 +654,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 			if (isGameover == true)
 			{
-				draw.DrawString(0, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
+				draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 			}
-			draw.DrawString(0, 32, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "HP%f", hp.GetCurrentHP());
-			draw.DrawString(window_width - 100, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
+			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "ink:%d", hp.GetCurrentHP());
+			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
+			//draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 #endif // _DEBUG
 			break;
 		case GameStatus::Config:

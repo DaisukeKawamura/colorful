@@ -46,11 +46,11 @@ void Player::Init(DrawPolygon *draw)
 
 	this->pos = XMFLOAT3(0, 0, 0);
 	this->oldPos = XMFLOAT3(0, 0, 0);
-	this->rotaMat = XMMatrixIdentity();
+	this->rotaMat = XMMatrixRotationY(XMConvertToRadians(270));
 	this->scale = scale_xyz(2.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
-	this->speed = 2.0f;
+	this->speed = 2.8f;
 	this->speedVec = XMFLOAT3(1, 0, 0);
 	this->accel = 0.0f;
 	this->accelVec = XMFLOAT3(1, 0, 0);
@@ -83,7 +83,7 @@ void Player::Update()
 	}
 
 	jumpPower -= jumpPowerDecay;
-	
+
 
 	if (jumpFlag == true && groundFlag == true)
 	{
@@ -147,7 +147,7 @@ void Player::Update()
 	{
 		if (oldPos.x < pos.x)
 		{
-			pos.x += 0.1f;
+			pos.x += 0.3f;
 		}
 	}
 

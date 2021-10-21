@@ -1035,7 +1035,7 @@ int DrawPolygon::Draw(
 
 	if (isOrthoGraphic == true)
 	{
-		mat *= objectData.matProjection[CommonData::Projection::ORTHOGRAPHIC];
+		mat *= objectData[isDepthWriteBan].matProjection[CommonData::Projection::ORTHOGRAPHIC];
 		lightVec = {
 			-vertices[polygonData].vertices[0].normal.x,
 			-vertices[polygonData].vertices[0].normal.y,
@@ -1044,7 +1044,7 @@ int DrawPolygon::Draw(
 	}
 	else
 	{
-		mat *= objectData.matProjection[CommonData::Projection::PERSPECTIVE];
+		mat *= objectData[isDepthWriteBan].matProjection[CommonData::Projection::PERSPECTIVE];
 		lightVec = light;
 	}
 
@@ -1052,8 +1052,8 @@ int DrawPolygon::Draw(
 
 	BaseDrawGraphics();
 
-	w->cmdList->SetPipelineState(objectData.pipelinestate[blendMode].Get());
-	w->cmdList->SetGraphicsRootSignature(objectData.rootsignature.Get());
+	w->cmdList->SetPipelineState(objectData[isDepthWriteBan].pipelinestate[blendMode].Get());
+	w->cmdList->SetGraphicsRootSignature(objectData[isDepthWriteBan].rootsignature.Get());
 
 	ConstBufferData* constMap = nullptr;
 	obj[index.constant].constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
@@ -1146,7 +1146,7 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 
 	if (isOrthoGraphic == true)
 	{
-		mat *= objectData.matProjection[CommonData::Projection::ORTHOGRAPHIC];
+		mat *= materialData[isDepthWriteBan].matProjection[CommonData::Projection::ORTHOGRAPHIC];
 		lightVec = {
 			-vertices[obj[object].polygonData].vertices[0].normal.x,
 			-vertices[obj[object].polygonData].vertices[0].normal.y,
@@ -1155,7 +1155,7 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 	}
 	else
 	{
-		mat *= objectData.matProjection[CommonData::Projection::PERSPECTIVE];
+		mat *= materialData[isDepthWriteBan].matProjection[CommonData::Projection::PERSPECTIVE];
 		lightVec = light;
 	}
 
@@ -1163,8 +1163,8 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 
 	BaseDrawGraphics();
 
-	w->cmdList->SetPipelineState(materialData.pipelinestate[blendMode].Get());
-	w->cmdList->SetGraphicsRootSignature(materialData.rootsignature.Get());
+	w->cmdList->SetPipelineState(materialData[isDepthWriteBan].pipelinestate[blendMode].Get());
+	w->cmdList->SetGraphicsRootSignature(materialData[isDepthWriteBan].rootsignature.Get());
 
 	ConstBufferData* constMap = nullptr;
 	obj[index.constant].constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
@@ -1254,7 +1254,7 @@ DirectX::XMFLOAT3 DrawPolygon::ScreenToWorld(int x, int y, float z)
 	XMMATRIX InvView, InvPrj, VP, InvViewport;
 
 	InvView = XMMatrixInverse(nullptr, matView[cameraNo]);
-	InvPrj = XMMatrixInverse(nullptr, objectData.matProjection[CommonData::Projection::PERSPECTIVE]);
+	InvPrj = XMMatrixInverse(nullptr, objectData[isDepthWriteBan].matProjection[CommonData::Projection::PERSPECTIVE]);
 	VP = XMMatrixIdentity();
 	VP.r[0].m128_f32[0] = w->GetWindowWidthF() / 2.0f;
 	VP.r[1].m128_f32[1] = -(w->GetWindowHeightF()) / 2.0f;

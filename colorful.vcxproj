@@ -160,6 +160,8 @@
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\background.png" />
+    <Image Include="Resources\box.png" />
+    <Image Include="Resources\check.png" />
     <Image Include="Resources\ring.png" />
   </ItemGroup>
   <ItemGroup>

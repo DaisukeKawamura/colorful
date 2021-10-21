@@ -44,6 +44,12 @@
     <Image Include="Resources\ring.png">
       <Filter>リソース ファイル</Filter>
     </Image>
+    <Image Include="Resources\box.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\check.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\OBBCollision.h">

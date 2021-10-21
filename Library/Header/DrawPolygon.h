@@ -67,7 +67,7 @@ private:
 	int DrawPolygonInit();
 	
 	// 描画関数の初期化
-	int DrawOBJInit(const int& index);
+	int DrawOBJInit();
 
 	// マテリアル読み込み
 	void LoadMaterial(const std::string& directoryPath, const std::string& filename);
@@ -85,4 +85,6 @@ private: // メンバ変数
 
 	vector<XMMATRIX> matView; //ビュー変換行列(カメラ)
 	int cameraNo;             //カメラの番号（最初はMAIN_CAMERAを指している）
+
+	size_t objModelCount; //objファイルから読み込んだモデルの数
 };

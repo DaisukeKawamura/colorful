@@ -1052,7 +1052,7 @@ int DrawPolygon::Draw(
 
 	BaseDrawGraphics();
 
-	w->cmdList->SetPipelineState(objectData.pipelinestate.Get());
+	w->cmdList->SetPipelineState(objectData.pipelinestate[blendMode].Get());
 	w->cmdList->SetGraphicsRootSignature(objectData.rootsignature.Get());
 
 	ConstBufferData* constMap = nullptr;
@@ -1163,7 +1163,7 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 
 	BaseDrawGraphics();
 
-	w->cmdList->SetPipelineState(materialData.pipelinestate.Get());
+	w->cmdList->SetPipelineState(materialData.pipelinestate[blendMode].Get());
 	w->cmdList->SetGraphicsRootSignature(materialData.rootsignature.Get());
 
 	ConstBufferData* constMap = nullptr;

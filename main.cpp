@@ -66,7 +66,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int boxFloor = draw.Create3Dbox(20.0f, 5.0f, 20.0f);   //床
 	int startBox = draw.Create3Dbox(240.0f, 20.0f, 20.0f); //スタート部分の床
 	int goalBox = draw.Create3Dbox(280.0f, 20.0f, 20.0f);  //ゴール部分の床
-	int ringPolygon = draw.CreateCircle(10.0f, 32);        //リング
+	int ringPolygon = draw.CreateCircle(10.0f, 16);        //リング
 	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);   //色が一致していれば破壊出来るブロック
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);         //ゴールの旗
 
@@ -459,6 +459,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		w.ClearScreen();
 		draw.SetDrawBlendMode(BLENDMODE_ALPHA);
+		DirectDrawing::isDepthWriteBan = true;
 
 		/* 描画 */
 

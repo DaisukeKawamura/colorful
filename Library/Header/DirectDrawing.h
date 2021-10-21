@@ -201,7 +201,9 @@ protected: // エイリアス
 	// Microsoft::WRL::を省略
 	template<class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-protected: // 静的メンバ変数
+public: // 静的メンバ変数
+	static bool isDepthWriteBan; //trueだったら、デプスに対しての上書き禁止
+protected:
 	static vector<Sprite> sprite; //スプライトのデータ
 	static vector<IndexData> spriteIndex; //スプライトのデータのインデックス
 
@@ -278,8 +280,8 @@ protected: // メンバ変数
 	ComPtr<ID3DBlob> errorBlob; //エラーオブジェクト
 	ComPtr<ID3DBlob> rootSigBlob;
 
-	CommonData objectData;   //オブジェクトデータで共通のデータ
-	CommonData materialData; //マテリアルデータで共通のデータ
+	CommonData objectData[2];   //オブジェクトデータで共通のデータ
+	CommonData materialData[2]; //マテリアルデータで共通のデータ
 private:
 	float nearClip; //ニアクリップ距離
 	float farClip;  //ファークリップ距離

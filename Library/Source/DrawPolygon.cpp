@@ -12,7 +12,8 @@ DrawPolygon::DrawPolygon(const DirectXInit* w) :
 	loopCount(0),
 	lightVec{},
 	light(100, -100, 100),
-	cameraNo(MAIN_CAMERA)
+	cameraNo(MAIN_CAMERA),
+	objModelCount(0)
 {
 	using DirectX::XMLoadFloat3;
 
@@ -520,6 +521,7 @@ int DrawPolygon::CreateOBJModel(const char* filePath, const char* directoryPath)
 	vertices.push_back({});
 	obj.push_back({});
 	obj[obj.size() - 1].polygonData = (int)(vertices.size() - 1);
+	objModelCount++;
 
 	// 一行ずつ読み込む
 	string line;
@@ -722,6 +724,29 @@ int DrawPolygon::CreateOBJModel(const char* filePath, const char* directoryPath)
 
 #pragma endregion //IndexBuffer
 
+	hr = w->dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferData) + 0xFF) & ~0xFF), //リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&obj[obj.size() - 1].constBuff));
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+	hr = w->dev->CreateCommittedResource(
+		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
+		D3D12_HEAP_FLAG_NONE,
+		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(MaterialConstBufferData) + 0xFF) & ~0xFF), //リソース設定
+		D3D12_RESOURCE_STATE_GENERIC_READ,
+		nullptr,
+		IID_PPV_ARGS(&obj[obj.size() - 1].materialConstBuff));
+	if (FAILED(hr))
+	{
+		return hr;
+	}
+
 	return (int)(obj.size() - 1);
 }
 
@@ -915,52 +940,17 @@ int DrawPolygon::DrawPolygonInit()
 	return index;
 }
 
-int DrawPolygon::DrawOBJInit(const int& index)
+int DrawPolygon::DrawOBJInit()
 {
 	HRESULT hr = S_FALSE;
 	static bool isDrawOBJPolygonInit = false;
 
-	hr = w->dev->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(ConstBufferData) + 0xFF) & ~0xFF), //リソース設定
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&obj[index].constBuff));
+	int index = (int)obj.size();
+	hr = CreateConstBuffer(&index);
 	if (FAILED(hr))
 	{
-		return hr;
+		return EoF;
 	}
-	hr = w->dev->CreateCommittedResource(
-		&CD3DX12_HEAP_PROPERTIES(D3D12_HEAP_TYPE_UPLOAD), //アップロード可能
-		D3D12_HEAP_FLAG_NONE,
-		&CD3DX12_RESOURCE_DESC::Buffer((sizeof(MaterialConstBufferData) + 0xFF) & ~0xFF), //リソース設定
-		D3D12_RESOURCE_STATE_GENERIC_READ,
-		nullptr,
-		IID_PPV_ARGS(&obj[index].materialConstBuff));
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-
-	hr = BasicDescHeapInit();
-	if (FAILED(hr))
-	{
-		return hr;
-	}
-
-	// 定数バッファビュー生成
-	//D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc{};
-	//cbvDesc.BufferLocation = obj[index].constBuff->GetGPUVirtualAddress();
-	//cbvDesc.SizeInBytes = (UINT)obj[index].constBuff->GetDesc().Width;
-	//w->dev->CreateConstantBufferView(
-	//	&cbvDesc,
-	//	CD3DX12_CPU_DESCRIPTOR_HANDLE(
-	//		basicDescHeap->GetCPUDescriptorHandleForHeapStart(),
-	//		index,
-	//		w->dev->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV)
-	//	)
-	//);
 
 	if (isDrawOBJPolygonInit == false)
 	{
@@ -972,6 +962,8 @@ int DrawPolygon::DrawOBJInit(const int& index)
 			return EoF;
 		}
 	}
+
+	return index;
 }
 
 int DrawPolygon::Draw(
@@ -1103,10 +1095,8 @@ int DrawPolygon::Draw(
 int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
 	const XMFLOAT4& color, const bool& isOrthoGraphic, const bool& viewMultiFlag, const int& parent)
 {
-	auto& OBJ = obj[object];
-
-	if ((OBJ.polygonData < 0 || (size_t)OBJ.polygonData >= vertices.size()) ||
-		(OBJ.textrueIndex < 0 || (UINT)OBJ.textrueIndex > texCommonData.textrueCount) ||
+	if ((obj[object].polygonData < 0 || (size_t)obj[object].polygonData >= vertices.size()) ||
+		(obj[object].textrueIndex < 0 || (UINT)obj[object].textrueIndex > texCommonData.textrueCount) ||
 		(parent < -1 && (parent != -1 && (size_t)parent >= obj.size())))
 	{
 		return EoF;
@@ -1116,7 +1106,6 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 
 	bool isInit = false;
 	XMMATRIX mat = XMMatrixIdentity();
-	HRESULT hr = S_FALSE;
 
 	if ((size_t)(polygonCount + 1) < objIndex.size())
 	{
@@ -1125,11 +1114,13 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 
 	if (isInit == false)
 	{
-		hr = DrawOBJInit(object);
-		if (FAILED(hr))
+		int size = DrawOBJInit();
+		if (size == EoF)
 		{
 			return EoF;
 		}
+
+		objIndex.push_back({ size, (int)obj[object].textrueIndex });
 	}
 
 	if (objIndex.size() <= 0)
@@ -1137,7 +1128,12 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 		return EoF;
 	}
 
-	UpdataConstant(position, rotation, scale, object, OBJ.polygonData, parent);
+	polygonCount++;
+	polygonCount %= objIndex.size();
+
+	IndexData& index = objIndex[polygonCount];
+
+	UpdataConstant(position, rotation, scale, index.constant, obj[object].polygonData, parent);
 
 	if (viewMultiFlag == true)
 	{
@@ -1152,9 +1148,9 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 	{
 		mat *= objectData.matProjection[CommonData::Projection::ORTHOGRAPHIC];
 		lightVec = {
-			-vertices[OBJ.polygonData].vertices[0].normal.x,
-			-vertices[OBJ.polygonData].vertices[0].normal.y,
-			-vertices[OBJ.polygonData].vertices[0].normal.z
+			-vertices[obj[object].polygonData].vertices[0].normal.x,
+			-vertices[obj[object].polygonData].vertices[0].normal.y,
+			-vertices[obj[object].polygonData].vertices[0].normal.z
 		};
 	}
 	else
@@ -1171,40 +1167,40 @@ int DrawPolygon::DrawOBJ(const int& object, const XMFLOAT3& position, const XMMA
 	w->cmdList->SetGraphicsRootSignature(materialData.rootsignature.Get());
 
 	ConstBufferData* constMap = nullptr;
-	OBJ.constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
+	obj[index.constant].constBuff->Map(0, nullptr, (void**)&constMap); //マッピング
 
 	constMap->color = color;
-	constMap->mat = OBJ.matWorld * mat;
+	constMap->mat = obj[index.constant].matWorld * mat;
 	constMap->lightVec = lightVec;
-	OBJ.constBuff->Unmap(0, nullptr); //マッピング解除
+	obj[index.constant].constBuff->Unmap(0, nullptr); //マッピング解除
 
 	MaterialConstBufferData* materialConstMap = nullptr;
-	OBJ.materialConstBuff->Map(0, nullptr, (void**)&materialConstMap); //マッピング
+	obj[index.constant].materialConstBuff->Map(0, nullptr, (void**)&materialConstMap); //マッピング
 
-	materialConstMap->ambient = OBJ.material.ambient;
-	materialConstMap->diffuse = OBJ.material.diffuse;
-	materialConstMap->specular = OBJ.material.specular;
-	materialConstMap->alpha = OBJ.material.alpha;
-	OBJ.materialConstBuff->Unmap(0, nullptr); //マッピング解除
+	materialConstMap->ambient = obj[object].material.ambient;
+	materialConstMap->diffuse = obj[object].material.diffuse;
+	materialConstMap->specular = obj[object].material.specular;
+	materialConstMap->alpha = obj[object].material.alpha;
+	obj[index.constant].materialConstBuff->Unmap(0, nullptr); //マッピング解除
 
 	// デスクリプタヒープをセット
 	ID3D12DescriptorHeap* ppHeaps[] = { texCommonData.descHeap.Get() };
 	w->cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
 	// 定数バッファビューをセット
-	w->cmdList->SetGraphicsRootConstantBufferView(0, OBJ.constBuff->GetGPUVirtualAddress());
-	w->cmdList->SetGraphicsRootConstantBufferView(1, OBJ.materialConstBuff->GetGPUVirtualAddress());
-	w->cmdList->SetGraphicsRootDescriptorTable(2, textrueData[OBJ.textrueIndex].gpuDescHandle);
+	w->cmdList->SetGraphicsRootConstantBufferView(0, obj[index.constant].constBuff->GetGPUVirtualAddress());
+	w->cmdList->SetGraphicsRootConstantBufferView(1, obj[index.constant].materialConstBuff->GetGPUVirtualAddress());
+	w->cmdList->SetGraphicsRootDescriptorTable(2, textrueData[obj[object].textrueIndex].gpuDescHandle);
 
 	// プリミティブ形状の設定
 	w->cmdList->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 
 	// 頂点バッファの設定
-	w->cmdList->IASetVertexBuffers(0, 1, &vertices[OBJ.polygonData].vbView);
+	w->cmdList->IASetVertexBuffers(0, 1, &vertices[obj[object].polygonData].vbView);
 	// インデックスバッファビューの設定
-	w->cmdList->IASetIndexBuffer(&vertices[OBJ.polygonData].ibView);
+	w->cmdList->IASetIndexBuffer(&vertices[obj[object].polygonData].ibView);
 	// 描画コマンド
-	w->cmdList->DrawIndexedInstanced((UINT)vertices[OBJ.polygonData].indices.size(), 1, 0, 0, 0);
+	w->cmdList->DrawIndexedInstanced((UINT)vertices[obj[object].polygonData].indices.size(), 1, 0, 0, 0);
 
 	return object;
 }
@@ -1287,7 +1283,7 @@ void DrawPolygon::PolygonLoopEnd()
 
 	TextLoopEnd();
 
-	polygonCount = -1;
+	polygonCount = objModelCount - 1;
 }
 
 void DrawPolygon::Circle(const XMFLOAT3& centerPos, const float& r, const size_t& divNum,

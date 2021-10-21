@@ -69,7 +69,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int ringPolygon = draw.CreateCircle(10.0f, 32);        //リング
 	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);   //色が一致していれば破壊出来るブロック
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);         //ゴールの旗
-	int itemModel = draw.CreateCylinder(5.0f, 10.0f, 16);  //アイテム
+
+	// モデルの読み込み
+	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/"); //アイテム
 
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
@@ -500,13 +502,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						break;
 					case ObjectStatus::ITEM:
-						draw.Draw(
+						draw.DrawOBJ(
 							itemModel,
 							XMFLOAT3(x * blockSize + mapOffset.x,
 								y * (-blockSize) + mapOffset.y,
 								mapOffset.z),
-							XMMatrixRotationX(XMConvertToRadians(90)),
-							XMFLOAT3(1.5f, 1.5f, 1.5f),
+							XMMatrixRotationX(XMConvertToRadians(0)),
+							XMFLOAT3(5.0f, 5.0f, 5.0f),
 							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
 						);
 						break;

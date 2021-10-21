@@ -94,10 +94,10 @@ struct CommonData
 		PERSPECTIVE   //透視投影
 	};
 
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelinestate; //パイプラインの状態
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootsignature; //ルートシグネチャ
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelinestate[5]; //パイプラインの状態
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootsignature;    //ルートシグネチャ
 
-	DirectX::XMMATRIX matProjection[2] = {}; //射影行列
+	DirectX::XMMATRIX matProjection[2]; //射影行列
 
 	// コンストラクタ
 	CommonData();
@@ -207,6 +207,8 @@ protected: // 静的メンバ変数
 
 	static CommonData spriteData; //スプライトのデータで共通のデータ
 
+	static size_t blendMode; //ブレンドモード
+
 public: // メンバ関数
 	// コンストラクタ
 	DirectDrawing(const DirectXInit* w);
@@ -279,13 +281,6 @@ protected: // メンバ変数
 	CommonData objectData;   //オブジェクトデータで共通のデータ
 	CommonData materialData; //マテリアルデータで共通のデータ
 private:
-	// グラフィックスパイプライン設定
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC materialPipeline;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC spritePipeline;
-	D3D12_RENDER_TARGET_BLEND_DESC& blendDesc;
-	D3D12_RENDER_TARGET_BLEND_DESC& spriteBlendDesc;
-
 	float nearClip; //ニアクリップ距離
 	float farClip;  //ファークリップ距離
 

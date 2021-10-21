@@ -73,6 +73,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	// モデルの読み込み
 	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/"); //アイテム
 
+	// テクスチャのタイリング
+	draw.NormalizeUV(startBox, boxGraph);
+	draw.NormalizeUV(box, boxGraph);
+	draw.NormalizeUV(boxFloor, boxGraph);
+	draw.NormalizeUV(goalBox, boxGraph);
+
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
 	const float blockSize = 20.0f;                      //ステージをマップチップとして扱うための定数
@@ -100,7 +106,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	bool isGameover = false; //ゲームオーバーかどうか
 
 	bool isHit = false;
-	bool isLoopEnd = false;  //無限ループを抜けるかどうか
+	bool isLoopEnd = false; //無限ループを抜けるかどうか
 
 	//int score = 0;
 
@@ -553,7 +559,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[0],
-							0
+							boxGraph
 						);
 						break;
 					case ObjectStatus::BlueBLOCK:
@@ -571,7 +577,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[1],
-							0
+							boxGraph
 						);
 						break;
 					case ObjectStatus::RedFloor:
@@ -585,7 +591,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[0],
-							0
+							boxGraph
 						);
 						break;
 					case ObjectStatus::BlueFloor:
@@ -603,7 +609,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[1],
-							0
+							boxGraph
 						);
 						break;
 					default:

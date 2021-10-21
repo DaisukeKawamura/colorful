@@ -152,6 +152,7 @@
     <ClCompile Include="Source\OBBCollision.cpp" />
     <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\Vector3.cpp" />
+    <ClCompile Include="Warp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Library\Library.vcxproj">
@@ -169,6 +170,7 @@
     <ClInclude Include="Header\OBBCollision.h" />
     <ClInclude Include="Header\Player.h" />
     <ClInclude Include="Header\Vector3.h" />
+    <ClInclude Include="Warp.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\stage\stage1.csv" />

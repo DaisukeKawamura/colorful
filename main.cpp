@@ -20,10 +20,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 {
 	enum GameStatus
 	{
-		Title,    //タイトル
-		GameInit, //Mainの初期化
-		Main,     //ゲームメイン
-		Config    //設定
+		Title,      //タイトル
+		Select,     //ステージセレクト
+		Main,       //ゲームメイン
+		TitleInit,  //Titleの初期化
+		SelectInit, //ステージセレクト
+		MainInit    //Mainの初期化
 	} gameStatus = GameStatus::Title;
 
 	using namespace DirectX;
@@ -107,9 +109,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	int laps = 1; //周回数
 
+	const int maxStageCount = 5 + 1; //ステージ数＋タイトル
+	int stageNo = 0;                 //選択されているステージ
+
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
 
+	UINT64 nowTime = 0; //現在の時間
+	int keyCount = 0;   //キー入力され続けたの時間
 	bool isHit = false;
 	bool isLoopEnd = false; //無限ループを抜けるかどうか
 
@@ -120,15 +127,87 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		if (w.WindowMessage() == -1) { break; }
 
 		Input::Update();
+		nowTime++;
 
 		/* 更新 */
 
 		switch (gameStatus)
 		{
+		case GameStatus::TitleInit:
+			gameStatus = GameStatus::Title;
+
+			// メインカメラの初期化
+			draw.SetCamera(
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z - 170.0f),
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z),
+				upVec, MAIN_CAMERA
+			);
+
 		case GameStatus::Title:
-			gameStatus = GameStatus::GameInit;
+			if (Input::IsKeyTrigger(DIK_SPACE))
+			{
+				gameStatus = GameStatus::SelectInit;
+			}
 			break;
-		case GameStatus::GameInit:
+		case GameStatus::SelectInit:
+			gameStatus = GameStatus::Select;
+
+			// メインカメラの初期化
+			draw.SetCamera(
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z - 170.0f),
+				XMFLOAT3(player.pos.x + 100.0f, 0.0f, player.pos.z),
+				upVec, MAIN_CAMERA
+			);
+
+			stageNo = 1;
+
+		case GameStatus::Select:
+			if (Input::IsKey(DIK_LEFT) && Input::IsKey(DIK_RIGHT))
+			{
+				keyCount = 0;
+			}
+			else if (Input::IsKey(DIK_LEFT))
+			{
+				keyCount++;
+
+				if (keyCount % 10 == 0)
+				{
+					stageNo--;
+
+					if (stageNo < 0)
+					{
+						stageNo += maxStageCount;
+					}
+				}
+			}
+			else if (Input::IsKey(DIK_RIGHT))
+			{
+				keyCount++;
+
+				if (keyCount % 10 == 0)
+				{
+					stageNo++;
+					stageNo %= maxStageCount;
+				}
+			}
+			else
+			{
+				keyCount = 0;
+			}
+
+			if (Input::IsKeyTrigger(DIK_SPACE))
+			{
+				if (stageNo == 0)
+				{
+					gameStatus = GameStatus::TitleInit;
+				}
+				else
+				{
+					gameStatus = GameStatus::MainInit;
+				}
+			}
+			break;
+		case GameStatus::MainInit:
 			gameStatus = GameStatus::Main;
 
 			player.Init(&draw);
@@ -138,8 +217,22 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			player.cameraPosX = player.pos.x;
 
 			{
-				int temp = LoadCSV(map, "./Resources/stage/stage1.csv");
+				int temp = 0;
+				char* filePath = nullptr;
+				
+				switch (stageNo)
+				{
+				case 1:
+					filePath = (char*)"./Resources/stage/stage1.csv";
+					break;
+				case 2:
+					filePath = (char*)"./Resources/stage/stage2.csv";
+					break;
+				default:
+					break;
+				}
 
+				temp = LoadCSV(map, filePath);
 				if (temp != 0)
 				{
 					isLoopEnd = true;
@@ -158,7 +251,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			//score = 0;
 			isClear = false;
 			isGameover = false;
-			break;
 		case GameStatus::Main:
 			//score = 0;
 			if (Input::IsKeyTrigger(DIK_SPACE))
@@ -437,9 +529,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				isGameover = hp.isEmpty();
 			}
 			break;
-		case GameStatus::Config:
-			gameStatus = GameStatus::Title;
-			break;
 		default:
 			gameStatus = GameStatus::Title;
 			break;
@@ -472,8 +561,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		}
 
 		w.ClearScreen();
-		//draw.SetDrawBlendMode(BLENDMODE_ALPHA);
-		//DirectDrawing::isDepthWriteBan = true;
 
 		/* 描画 */
 
@@ -482,9 +569,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		switch (gameStatus)
 		{
+		case GameStatus::TitleInit:
 		case GameStatus::Title:
+			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
+			DirectDrawing::isDepthWriteBan = false;
+
+			draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "PAINTWO");
+			draw.DrawString(window_width / 2 - 120, window_height / 2 + 100, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
 			break;
-		case GameStatus::GameInit:
+		case GameStatus::SelectInit:
+		case GameStatus::Select:
+			switch (stageNo)
+			{
+			case 0:
+				draw.DrawString(window_width / 2 - 120, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Title");
+				break;
+			default:
+				draw.DrawString(window_width / 2 - 20, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "%d", stageNo);
+				break;
+			}
+			break;
+		case GameStatus::MainInit:
 		case GameStatus::Main:
 			ringCount = 0;
 			colorWallCount = 0;
@@ -690,7 +795,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 
-#if _DEBUG
 			if (isClear == true)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
@@ -700,12 +804,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 			}
+#if _DEBUG
 			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "ink:%d", hp.GetCurrentHP());
 			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
 			//draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 #endif // _DEBUG
-			break;
-		case GameStatus::Config:
 			break;
 		default:
 			break;

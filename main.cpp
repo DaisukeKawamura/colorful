@@ -56,10 +56,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");
-	int tex1 = draw.LoadTextrue(L"./Resources/tex1.png");
 	int ringGraph = draw.LoadTextrue(L"./Resources/ring.png");
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
+	int test = draw.LoadTextrue(L"./Resources/tex1.png");
 
 	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
 	XMFLOAT3 cameraTarget = { 0, 0, 0 }; //カメラの注視点
@@ -69,13 +69,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 
 	// オブジェクトの生成
-	int box = draw.Create3Dbox(20.0f, 20.0f, 20.0f);       //ブロック
-	int boxFloor = draw.Create3Dbox(20.0f, 5.0f, 20.0f);   //床
-	int startBox = draw.Create3Dbox(240.0f, 20.0f, 20.0f); //スタート部分の床
-	int goalBox = draw.Create3Dbox(280.0f, 20.0f, 20.0f);  //ゴール部分の床
-	int ringPolygon = draw.CreateCircle(10.0f, 16);        //リング
-	int colorBox = draw.Create3Dbox(5.0f, 20.0f, 20.0f);   //色が一致していれば破壊出来るブロック
-	int goalFlag = draw.CreateRect(100.0f, 20.0f);         //ゴールの旗
+	const XMFLOAT3 blockSize = { 40.0f, 20.0f, 20.0f };                         //ブロック一個分の大きさ
+	int box = draw.Create3Dbox(blockSize.x, blockSize.y, blockSize.z);          //ブロック
+	int boxFloor = draw.Create3Dbox(blockSize.x, blockSize.y / 4, blockSize.z); //床
+	int startBox = draw.Create3Dbox(240.0f, blockSize.y, blockSize.z); //スタート部分の床
+	int goalBox = draw.Create3Dbox(280.0f, blockSize.y, blockSize.z);  //ゴール部分の床
+	int ringPolygon = draw.CreateCircle(10.0f, 16); //リング
+	int goalFlag = draw.CreateRect(100.0f, 20.0f);  //ゴールの旗
 
 	// モデルの読み込み
 	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/"); //アイテム
@@ -88,7 +88,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
-	const float blockSize = 20.0f;                      //ステージをマップチップとして扱うための定数
 	const XMFLOAT3 mapOffset = { 130.0f, 50.0f, 0.0f }; //ステージの描画開始位置（左上、オブジェクト）
 
 	const float floorOffsetY = 10.0f;					//床のY軸の位置
@@ -109,8 +108,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	int laps = 1; //周回数
 
-	const int maxStageCount = 5 + 1; //ステージ数＋タイトル
-	int stageNo = 0;                 //選択されているステージ
+	const int maxStageCount = 5 + 1;      //ステージ数＋タイトル
+	int stageNo = 0;                      //選択されているステージ
+	bool isStageClear[maxStageCount - 1]; //各ステージのクリアフラグ
+
+	for (size_t i = 0; i < sizeof(isStageClear); i++)
+	{
+#if _DEBUG
+		isStageClear[i] = true; //デバッグ用にステージを全開放
+#else
+		isStageClear[i] = false;
+#endif
+	}
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
@@ -159,7 +168,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				upVec, MAIN_CAMERA
 			);
 
-			stageNo = 1;
+			stageNo = 0;
 
 		case GameStatus::Select:
 			if (Input::IsKey(DIK_LEFT) && Input::IsKey(DIK_RIGHT))
@@ -197,13 +206,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
-				if (stageNo == 0)
+				if (stageNo == maxStageCount - 1)
 				{
 					gameStatus = GameStatus::TitleInit;
 				}
 				else
 				{
-					gameStatus = GameStatus::MainInit;
+					if (stageNo > 0)
+					{
+						if (isStageClear[stageNo - 1] == true)
+						{
+							gameStatus = GameStatus::MainInit;
+						}
+					}
+					else
+					{
+						gameStatus = GameStatus::MainInit;
+					}
 				}
 			}
 			break;
@@ -222,11 +241,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				
 				switch (stageNo)
 				{
-				case 1:
+				case 0:
 					filePath = (char*)"./Resources/stage/stage1.csv";
+					goalMapWidth = 90;
 					break;
-				case 2:
+				case 1:
 					filePath = (char*)"./Resources/stage/stage2.csv";
+					goalMapWidth = 30;
 					break;
 				default:
 					break;
@@ -272,7 +293,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			player.Update();
 
 			// メインカメラの更新
-			if (player.cameraPosX < goalMapWidth * blockSize + mapOffset.x)
+			if (player.cameraPosX < goalMapWidth * blockSize.x + mapOffset.x)
 			{
 				draw.SetCamera(
 					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 170.0f),
@@ -284,7 +305,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				OBB startOBB, goalOBB;
 
 				startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, 10.0f, 10.0f);
-				goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
+				goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
 
 				isHit = OBBCollision::ColOBBs(player.collision, startOBB);
 				if (isHit)
@@ -307,15 +328,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				for (size_t x = 0; x < goalMapWidth + 1; x++)
 				{
+					XMFLOAT3 mapPosition = { x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z };
 					switch (map[y][x])
 					{
 					case ObjectStatus::BLOCK:
 					{
 						OBB blockOBB;
 
-						blockOBB.Initilize(XMFLOAT3(
-							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
@@ -350,10 +370,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::YellowBLOCK:
 					{
 						//score++;
-						OBB  blockOBB;
-						blockOBB.Initilize(XMFLOAT3(
-							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
+						OBB blockOBB;
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
 						if (isHit)
@@ -382,10 +400,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					break;
 					case ObjectStatus::Floor:
 					{
-						OBB  blockOBB;
-						blockOBB.Initilize(XMFLOAT3(
-							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y + floorOffsetY, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+						OBB blockOBB;
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
 						bool HitDown = false;
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
@@ -418,11 +434,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::YellowFloor:
 					{
 						//score++;
-						OBB  blockOBB;
+						OBB blockOBB;
 
-						blockOBB.Initilize(XMFLOAT3(
-							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y + floorOffsetY, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
 						bool HitDown = false;
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
@@ -453,13 +467,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::ITEM:
 					{
 						OBB itemOBB;
-						itemOBB.Initilize(XMFLOAT3(
-							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
-						), XMMatrixIdentity(), 5.0f, 5.0f, 5.0f);
+						itemOBB.Initilize(mapPosition, XMMatrixIdentity(), 5.0f, 5.0f, 5.0f);
 						bool isHit = OBBCollision::ColOBBs(player.collision, itemOBB);
 						if (isHit)
 						{
-							directing.ItemStart(XMFLOAT3(x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z),
+							directing.ItemStart(XMFLOAT3(x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z),
 								XMFLOAT3(player.cameraPosX - 35, 110, 0), 50, player.cameraPosX);
 							hp.RecoverDamage(5);
 							map[y][x] = ObjectStatus::BREAK_ITEM;
@@ -470,9 +482,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						OBB blockOBB;
 
-						blockOBB.Initilize(XMFLOAT3(
-							x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z
-						), XMMatrixIdentity(), 10.0f, 2.5f, 10.0f);
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
@@ -488,6 +498,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::BREAK_RING:
 						ringCount++;
 						break;
+					case ObjectStatus::COLLECTION:
+					{
+						OBB blockOBB;
+
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{
+							map[y][x] = ObjectStatus::NONE;
+						}
+					}
 					default:
 						break;
 					}
@@ -498,13 +520,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			directing.RingUpdate(player.pos, player.color);
 			directing.ShakeUpdate();
 
-			if (player.pos.x > goalMapWidth * blockSize + mapOffset.x)
+			if (player.pos.x > goalMapWidth * blockSize.x + mapOffset.x)
 			{
 				if (laps >= 2)
 				{
 					if (isGameover == false)
 					{
 						isClear = true;
+						isStageClear[stageNo] = true;
 						directing.scoreEasingStart(XMFLOAT3(200, -400, 0), XMFLOAT3(200, 200, 0), 20);
 					}
 				}
@@ -579,14 +602,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			break;
 		case GameStatus::SelectInit:
 		case GameStatus::Select:
-			switch (stageNo)
+			if (stageNo == maxStageCount - 1)
 			{
-			case 0:
 				draw.DrawString(window_width / 2 - 120, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Title");
-				break;
-			default:
-				draw.DrawString(window_width / 2 - 20, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "%d", stageNo);
-				break;
+			}
+			else
+			{
+				draw.DrawString(window_width / 2 - 20, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "%d", stageNo + 1);
 			}
 			break;
 		case GameStatus::MainInit:
@@ -597,16 +619,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				for (size_t x = 0; x < goalMapWidth + 1; x++)
 				{
+					XMFLOAT3 mapPosition = { x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z };
 					switch (map[y][x])
 					{
 					case ObjectStatus::BLOCK:
 						draw.Draw(
 							box,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -616,11 +635,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::Floor:
 						draw.Draw(
 							boxFloor,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y + floorOffsetY,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -630,9 +645,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::ITEM:
 						draw.DrawOBJ(
 							itemModel,
-							XMFLOAT3(x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y,
-								mapOffset.z),
+							mapPosition,
 							XMMatrixRotationX(XMConvertToRadians(0)),
 							XMFLOAT3(5.0f, 5.0f, 5.0f),
 							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
@@ -641,11 +654,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::RING:
 						draw.Draw(
 							ringPolygon,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixRotationY(XMConvertToRadians(90)),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
@@ -653,11 +662,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						draw.Draw(
 							ringPolygon,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixRotationY(XMConvertToRadians(-90)),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
@@ -671,11 +676,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::RedBLOCK:
 						draw.Draw(
 							box,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[0],
@@ -689,11 +690,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::YellowBLOCK:
 						draw.Draw(
 							box,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[1],
@@ -703,11 +700,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::RedFloor:
 						draw.Draw(
 							boxFloor,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y + floorOffsetY,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[0],
@@ -721,15 +714,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::YellowFloor:
 						draw.Draw(
 							boxFloor,
-							XMFLOAT3(
-								x * blockSize + mapOffset.x,
-								y * (-blockSize) + mapOffset.y + floorOffsetY,
-								mapOffset.z
-							),
+							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[1],
 							boxGraph
+						);
+						break;
+					case ObjectStatus::COLLECTION:
+						draw.Draw(
+							boxFloor,
+							mapPosition,
+							XMMatrixRotationX(XMConvertToRadians(90)),
+							XMFLOAT3(1, 1, 1),
+							XMFLOAT4(1, 1, 1, 1),
+							test
 						);
 						break;
 					default:
@@ -749,7 +748,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			/*ゴール地点*/
 			draw.Draw(
 				goalFlag,
-				XMFLOAT3(goalMapWidth * blockSize + mapOffset.x, 50.0f, 0.0f),
+				XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0.0f),
 				XMMatrixRotationY(XMConvertToRadians(90)),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -757,7 +756,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			);
 			draw.Draw(
 				goalFlag,
-				XMFLOAT3(goalMapWidth * blockSize + mapOffset.x, 50.0f, 0.0f),
+				XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0.0f),
 				XMMatrixRotationY(XMConvertToRadians(-90)),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
@@ -765,7 +764,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			);
 			draw.Draw(
 				goalBox,
-				XMFLOAT3(goalMapWidth * blockSize + mapOffset.x * 2.0f, -50.0f, 0),
+				XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x * 2.0f, -50.0f, 0),
 				XMMatrixIdentity(),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),

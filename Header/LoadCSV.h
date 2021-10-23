@@ -5,21 +5,22 @@
 
 enum ObjectStatus
 {
-	NONE,            //空
-	BLOCK,           //床、壁
-	Floor,			 //下からすり抜け可能床
-	ITEM,            //アイテム
-	RING,            //色変えリング
-	BREAK_ITEM,		 //元アイテム
-	BREAK_RING,      //元RING
-	RedBLOCK,		 //赤色ブロック
-	BlueBLOCK,		 //青色ブロック
-	GreenBLOCK,		 //緑色ブロック
-	YellowBLOCK,	 //黄色ブロック
-	RedFloor,		 //赤色の床
-	BlueFloor,		 //青色の床
-	GreenFloor,		 //緑色の床
-	YellowFloor,	 //黄色の床
+	NONE,        //空
+	BLOCK,       //床、壁
+	Floor,       //下からすり抜け可能床
+	ITEM,        //アイテム
+	RING,        //色変えリング
+	BREAK_ITEM,  //元アイテム
+	BREAK_RING,  //元RING
+	RedBLOCK,    //赤色ブロック
+	BlueBLOCK,   //青色ブロック
+	GreenBLOCK,  //緑色ブロック
+	YellowBLOCK, //黄色ブロック
+	RedFloor,    //赤色の床
+	BlueFloor,   //青色の床
+	GreenFloor,  //緑色の床
+	YellowFloor, //黄色の床
+	COLLECTION   //コレクション
 };
 
 /// <summary>

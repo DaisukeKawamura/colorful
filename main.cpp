@@ -56,10 +56,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");
-	int tex1 = draw.LoadTextrue(L"./Resources/tex1.png");
 	int ringGraph = draw.LoadTextrue(L"./Resources/ring.png");
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
+	int test = draw.LoadTextrue(L"./Resources/tex1.png");
 
 	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
 	XMFLOAT3 cameraTarget = { 0, 0, 0 }; //カメラの注視点
@@ -108,8 +108,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	int laps = 1; //周回数
 
-	const int maxStageCount = 5 + 1; //ステージ数＋タイトル
-	int stageNo = 0;                 //選択されているステージ
+	const int maxStageCount = 5 + 1;      //ステージ数＋タイトル
+	int stageNo = 0;                      //選択されているステージ
+	bool isStageClear[maxStageCount - 1]; //各ステージのクリアフラグ
+
+	for (size_t i = 0; i < sizeof(isStageClear); i++)
+	{
+#if _DEBUG
+		isStageClear[i] = true; //デバッグ用にステージを全開放
+#else
+		isStageClear[i] = false;
+#endif
+	}
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
@@ -158,7 +168,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				upVec, MAIN_CAMERA
 			);
 
-			stageNo = 1;
+			stageNo = 0;
 
 		case GameStatus::Select:
 			if (Input::IsKey(DIK_LEFT) && Input::IsKey(DIK_RIGHT))
@@ -196,13 +206,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
-				if (stageNo == 0)
+				if (stageNo == maxStageCount - 1)
 				{
 					gameStatus = GameStatus::TitleInit;
 				}
 				else
 				{
-					gameStatus = GameStatus::MainInit;
+					if (stageNo > 0)
+					{
+						if (isStageClear[stageNo - 1] == true)
+						{
+							gameStatus = GameStatus::MainInit;
+						}
+					}
+					else
+					{
+						gameStatus = GameStatus::MainInit;
+					}
 				}
 			}
 			break;
@@ -221,11 +241,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				
 				switch (stageNo)
 				{
-				case 1:
+				case 0:
 					filePath = (char*)"./Resources/stage/stage1.csv";
+					goalMapWidth = 90;
 					break;
-				case 2:
+				case 1:
 					filePath = (char*)"./Resources/stage/stage2.csv";
+					goalMapWidth = 30;
 					break;
 				default:
 					break;
@@ -460,7 +482,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						OBB blockOBB;
 
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
@@ -476,6 +498,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::BREAK_RING:
 						ringCount++;
 						break;
+					case ObjectStatus::COLLECTION:
+					{
+						OBB blockOBB;
+
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{
+							map[y][x] = ObjectStatus::NONE;
+						}
+					}
 					default:
 						break;
 					}
@@ -493,6 +527,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (isGameover == false)
 					{
 						isClear = true;
+						isStageClear[stageNo] = true;
 						directing.scoreEasingStart(XMFLOAT3(200, -400, 0), XMFLOAT3(200, 200, 0), 20);
 					}
 				}
@@ -567,14 +602,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			break;
 		case GameStatus::SelectInit:
 		case GameStatus::Select:
-			switch (stageNo)
+			if (stageNo == maxStageCount - 1)
 			{
-			case 0:
 				draw.DrawString(window_width / 2 - 120, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Title");
-				break;
-			default:
-				draw.DrawString(window_width / 2 - 20, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "%d", stageNo);
-				break;
+			}
+			else
+			{
+				draw.DrawString(window_width / 2 - 20, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "%d", stageNo + 1);
 			}
 			break;
 		case GameStatus::MainInit:
@@ -685,6 +719,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							changeColor[1],
 							boxGraph
+						);
+						break;
+					case ObjectStatus::COLLECTION:
+						draw.Draw(
+							boxFloor,
+							mapPosition,
+							XMMatrixRotationX(XMConvertToRadians(90)),
+							XMFLOAT3(1, 1, 1),
+							XMFLOAT4(1, 1, 1, 1),
+							test
 						);
 						break;
 					default:

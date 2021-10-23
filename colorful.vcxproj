@@ -147,9 +147,11 @@
   <ItemGroup>
     <ClCompile Include="main.cpp" />
     <ClCompile Include="Source\BlockChange.cpp" />
+    <ClCompile Include="Source\Directing.cpp" />
     <ClCompile Include="Source\LoadCSV.cpp" />
     <ClCompile Include="Source\HP.cpp" />
     <ClCompile Include="Source\OBBCollision.cpp" />
+    <ClCompile Include="Source\Partcle.cpp" />
     <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\Vector3.cpp" />
   </ItemGroup>
@@ -166,9 +168,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\BlockChange.h" />
+    <ClInclude Include="Header\Directing.h" />
     <ClInclude Include="Header\LoadCSV.h" />
     <ClInclude Include="Header\HP.h" />
     <ClInclude Include="Header\OBBCollision.h" />
+    <ClInclude Include="Header\Partcle.h" />
     <ClInclude Include="Header\Player.h" />
     <ClInclude Include="Header\Vector3.h" />
   </ItemGroup>

@@ -7,6 +7,7 @@
 #include "./Header/HP.h"
 #include "./Header/LoadCSV.h"
 #include "./Header/BlockChange.h"
+#include"./Header/Directing.h"
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -46,6 +47,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	HP hp;
 	hp.Init(25, 1, 60);
+
+	Directing directing;
+	directing.Init();
+	directing.ParticleInit(&draw);
 
 	// 画像の読み込み
 	int background = draw.LoadTextrue(L"./Resources/background.png");
@@ -128,7 +133,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			player.Init(&draw);
 			hp.Init(25, 1, 60);
-
+			directing.Init();
 			player.pos = startPlayerPos;
 			player.cameraPosX = player.pos.x;
 
@@ -178,7 +183,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			if (player.cameraPosX < goalMapWidth * blockSize + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.cameraPosX + 100.0f, 30.0f, player.pos.z - 170.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 170.0f),
 					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
@@ -362,6 +367,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						bool isHit = OBBCollision::ColOBBs(player.collision, itemOBB);
 						if (isHit)
 						{
+							directing.ItemStart(XMFLOAT3(x * blockSize + mapOffset.x, y * (-blockSize) + mapOffset.y, mapOffset.z),
+								XMFLOAT3(player.cameraPosX - 35, 110, 0), 50, player.cameraPosX);
 							hp.RecoverDamage(5);
 							map[y][x] = ObjectStatus::BREAK_ITEM;
 						}
@@ -378,6 +385,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
 						{
+							directing.RingStart();//リングパーティクルスタート
 							player.color = changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))];
 							map[y][x] = ObjectStatus::BREAK_RING;
 							hp.RecoverDamage(5);
@@ -394,6 +402,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				}
 			}
 
+			directing.RunUpdate(player.pos, player.color);
+			directing.RingUpdate(player.pos, player.color);
+			directing.ShakeUpdate();
+
 			if (player.pos.x > goalMapWidth * blockSize + mapOffset.x)
 			{
 				if (laps >= 2)
@@ -401,6 +413,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (isGameover == false)
 					{
 						isClear = true;
+						directing.scoreEasingStart(XMFLOAT3(200, -400, 0), XMFLOAT3(200, 200, 0), 20);
 					}
 				}
 				else
@@ -416,6 +429,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				if (isClear == false)
 				{
 					isGameover = true;
+					directing.ShakeStart(10.0f, 10);
 				}
 			}
 			if (isClear == false && isGameover == false)
@@ -458,8 +472,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		}
 
 		w.ClearScreen();
-		draw.SetDrawBlendMode(BLENDMODE_ALPHA);
-		DirectDrawing::isDepthWriteBan = true;
+		//draw.SetDrawBlendMode(BLENDMODE_ALPHA);
+		//DirectDrawing::isDepthWriteBan = true;
 
 		/* 描画 */
 
@@ -655,11 +669,32 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			player.Draw();
 
+			//アイテムイージング
+			if (directing.itemFlag == true)
+			{
+				XMFLOAT3 itemPos = directing.ItemUpdate(XMFLOAT3(player.cameraPosX, 0.0f, 0));
+
+				draw.DrawOBJ(
+					itemModel,
+					itemPos,
+					XMMatrixRotationX(XMConvertToRadians(0)),
+					directing.itemScale,
+					XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
+				);
+			}
+
+			DirectDrawing::isDepthWriteBan = true;
+			draw.SetDrawBlendMode(BLENDMODE_ADD);
+			directing.RunDraw();
+			directing.RingDraw();
+			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
+			DirectDrawing::isDepthWriteBan = false;
 
 #if _DEBUG
 			if (isClear == true)
 			{
-				draw.DrawString(0, 0, 2.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
+				XMFLOAT3 scorePos = directing.scoreEasing();
+				draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
 			}
 			if (isGameover == true)
 			{

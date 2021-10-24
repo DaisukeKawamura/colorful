@@ -11,13 +11,13 @@ void Directing::Init()
 	//アイテムイージング初期化
 	itemFlag = false;
 	//走るパーティクル削除
-	for (int i = run.size() - 1; i >= 0; i--)
+	for (int i = (int)run.size() - 1; i >= 0; i--)
 	{
 		delete run[i];
 		run.erase(run.begin() + i);
 	}
 	//色変えパーティクル削除
-	for (int i = ring.size() - 1; i >= 0; i--)
+	for (int i = (int)ring.size() - 1; i >= 0; i--)
 	{
 		delete ring[i];
 		ring.erase(ring.begin() + i);
@@ -47,7 +47,7 @@ void Directing::ShakeUpdate()
 		shakeX = (rand() % shakeString - shakeString / 2) * shkeStringTime;
 		shakeY = (rand() % shakeString - shakeString / 2) * shkeStringTime;
 		shakeTime -= 1;
-		shkeStringTime -= 0.1;
+		shkeStringTime -= 0.1f;
 	}
 }
 
@@ -116,7 +116,7 @@ XMFLOAT3 Directing::ItemUpdate(XMFLOAT3 cameraPos)
 
 	if (itemScale.x > 0.0f)
 	{
-		itemScale = itemScale - XMFLOAT3(0.05, 0.05, 0.05);
+		itemScale = itemScale - XMFLOAT3(0.05f, 0.05f, 0.05f);
 	}
 
 	if (itemTimeRate >= 1.0f)
@@ -148,7 +148,7 @@ void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 	}
 
 	//更新
-	for (int i = 0; i < run.size(); i++)
+	for (size_t i = 0; i < run.size(); i++)
 	{
 		run[i]->pos = run[i]->pos + run[i]->speed;
 
@@ -167,7 +167,7 @@ void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 		}
 	}
 	//削除
-	for (int i = run.size() - 1; i >= 0; i--)
+	for (int i = (int)run.size() - 1; i >= 0; i--)
 	{
 		if (run[i]->DelFlag == false)
 		{
@@ -180,7 +180,7 @@ void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 void Directing::RunDraw()
 {
 	//描画
-	for (int i = 0; i < run.size(); i++)
+	for (size_t i = 0; i < run.size(); i++)
 	{
 		draw->Draw(particlePolygon, run[i]->pos, run[i]->rotaMat, run[i]->scale, run[i]->color, graph1);
 	}
@@ -212,7 +212,7 @@ void Directing::RingUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 	}
 
 	//更新
-	for (int i = 0; i < ring.size(); i++)
+	for (size_t i = 0; i < ring.size(); i++)
 	{
 		ring[i]->pos = ring[i]->pos + ring[i]->speed;
 
@@ -226,7 +226,7 @@ void Directing::RingUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 		}
 	}
 	//削除
-	for (int i = ring.size() - 1; i >= 0; i--)
+	for (int i = (int)ring.size() - 1; i >= 0; i--)
 	{
 		if (ring[i]->DelFlag == false)
 		{
@@ -239,7 +239,7 @@ void Directing::RingUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 void Directing::RingDraw()
 {
 	//描画
-	for (int i = 0; i < ring.size(); i++)
+	for (size_t i = 0; i < ring.size(); i++)
 	{
 		draw->Draw(particlePolygon, ring[i]->pos, ring[i]->rotaMat, ring[i]->scale, ring[i]->color, graph2);
 	}

@@ -95,16 +95,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int mapColor[MAP_HEIGHT][MAP_WIDTH] = {};			//変わる色の情報を保持
 
 	int ringCount = 0; //色変えリングの数
-	int colorWallCount = 0; //色付き壁の数
-	// 色変えリング等で使う色
-	const XMFLOAT4 changeColor[] = {
-		{ 0.964f, 0.176f, 0.352f, 1.0f },
-		{ 0.9f, 0.9f, 0.0f, 1.0f }
-	};
+	const auto& changeColor = BlockChange::changeColor;
+	int ringColor[10] = {}; //リングの色
 
 	size_t goalMapWidth = 90;
 
-	const XMFLOAT3 startPlayerPos = { 130, -25, 0 }; //プレイヤーのスタート位置
+	const XMFLOAT3 startPlayerPos = { 0, -25, 0 }; //プレイヤーのスタート位置
 
 	int laps = 1; //周回数
 
@@ -179,7 +175,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				keyCount++;
 
-				if (keyCount % 10 == 0)
+				if (keyCount % 10 == (10 - 1) % 10)
 				{
 					stageNo--;
 
@@ -193,7 +189,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				keyCount++;
 
-				if (keyCount % 10 == 0)
+				if (keyCount % 10 == (10 + 1) % 10)
 				{
 					stageNo++;
 					stageNo %= maxStageCount;
@@ -203,6 +199,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				keyCount = 0;
 			}
+
 
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
@@ -237,19 +234,29 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			{
 				int temp = 0;
-				char *filePath = nullptr;
+				char* filePath = nullptr;
+				char* ringFilePath = nullptr;
+				XMFLOAT4 startColor = {};
 
 				switch (stageNo)
 				{
 				case 0:
-					filePath = (char *)"./Resources/stage/stage1.csv";
-					goalMapWidth = 90;
+					filePath = (char*)"./Resources/stage/stage1.csv";
+					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
+					goalMapWidth = 100;
+					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
 				case 1:
-					filePath = (char *)"./Resources/stage/stage2.csv";
-					goalMapWidth = 30;
+					filePath = (char*)"./Resources/stage/stage2.csv";
+					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
+					goalMapWidth = 100;
+					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
 				default:
+					filePath = (char*)"./Resources/stage/stage0.csv";
+					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
+					goalMapWidth = 90;
+					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
 				}
 
@@ -259,6 +266,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					isLoopEnd = true;
 					break;
 				}
+				temp = LoadCSV1D(ringColor, ringFilePath);
+				if (temp != 0)
+				{
+					isLoopEnd = true;
+					break;
+				}
+
+				if (goalMapWidth >= MAP_WIDTH)
+				{
+					goalMapWidth = MAP_WIDTH - 1;
+				}
+
+				player.color = startColor;
 			}
 
 			// メインカメラの初期化
@@ -322,7 +342,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 
 			ringCount = 0;
-			colorWallCount = 0;
 
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
@@ -415,7 +434,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							//変わる色を保持
 							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
 
-							hp.AddDamage(0.005);
+							hp.AddDamage(0.005f);
 						}
 						else
 						{
@@ -451,7 +470,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							//変わる色を保持
 							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
 
-							hp.AddDamage(0.005);
+							hp.AddDamage(0.005f);
 						}
 						else
 						{
@@ -488,7 +507,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (isHit)
 						{
 							directing.RingStart();//リングパーティクルスタート
-							player.color = changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))];
+							player.color = changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]];
 							map[y][x] = ObjectStatus::BREAK_RING;
 							hp.RecoverDamage(5);
 						}
@@ -614,7 +633,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		case GameStatus::MainInit:
 		case GameStatus::Main:
 			ringCount = 0;
-			colorWallCount = 0;
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
 				for (size_t x = 0; x < goalMapWidth + 1; x++)
@@ -657,7 +675,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixRotationY(XMConvertToRadians(90)),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
+							changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]],
 							ringGraph
 						);
 						draw.Draw(
@@ -665,7 +683,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixRotationY(XMConvertToRadians(-90)),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[ringCount % (sizeof(changeColor) / sizeof(changeColor[0]))],
+							changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]],
 							ringGraph
 						);
 						ringCount++;
@@ -679,13 +697,29 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[0],
+							changeColor[BlockChange::ColorNo::RED],
 							boxGraph
 						);
 						break;
 					case ObjectStatus::BlueBLOCK:
+						draw.Draw(
+							box,
+							mapPosition,
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							changeColor[BlockChange::ColorNo::BLUE],
+							boxGraph
+						);
 						break;
 					case ObjectStatus::GreenBLOCK:
+						draw.Draw(
+							box,
+							mapPosition,
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							changeColor[BlockChange::ColorNo::GREEN],
+							boxGraph
+						);
 						break;
 					case ObjectStatus::YellowBLOCK:
 						draw.Draw(
@@ -693,7 +727,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[1],
+							changeColor[BlockChange::ColorNo::YELLOW],
 							boxGraph
 						);
 						break;
@@ -703,13 +737,29 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[0],
+							changeColor[BlockChange::ColorNo::RED],
 							boxGraph
 						);
 						break;
 					case ObjectStatus::BlueFloor:
+						draw.Draw(
+							boxFloor,
+							mapPosition,
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							changeColor[BlockChange::ColorNo::BLUE],
+							boxGraph
+						);
 						break;
 					case ObjectStatus::GreenFloor:
+						draw.Draw(
+							boxFloor,
+							mapPosition,
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							changeColor[BlockChange::ColorNo::GREEN],
+							boxGraph
+						);
 						break;
 					case ObjectStatus::YellowFloor:
 						draw.Draw(
@@ -717,7 +767,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[1],
+							changeColor[BlockChange::ColorNo::YELLOW],
 							boxGraph
 						);
 						break;
@@ -804,8 +854,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 			}
 #if _DEBUG
-			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "ink:%d", hp.GetCurrentHP());
 			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
+			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "ink:%d", hp.GetCurrentHP());
+			draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
 			//draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 #endif // _DEBUG
 			break;

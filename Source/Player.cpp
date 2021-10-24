@@ -1,9 +1,17 @@
 #include "./Header/Player.h"
+#include "./Header/BlockChange.h"
 
 #define scale_xyz(_scale) DirectX::XMFLOAT3(_scale, _scale, _scale)
 
 const float Player::gravity = 0.70f;
 const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
+
+const XMFLOAT4 Player::changeColor[4] = {
+	BlockChange::changeColor[0],
+	BlockChange::changeColor[1],
+	BlockChange::changeColor[2],
+	BlockChange::changeColor[3],
+};
 
 Player::Player() :
 	draw(nullptr),
@@ -67,7 +75,6 @@ void Player::Update()
 {
 	oldPos = pos;
 
-
 	if (jumpPower < -5.0f)
 	{
 		jumpPowerDecay = 0;
@@ -84,11 +91,13 @@ void Player::Update()
 
 	jumpPower -= jumpPowerDecay;
 
-
 	if (jumpFlag == true && groundFlag == true)
 	{
 		//ÔƒuƒƒbƒN“¥‚ñ‚¾Žž
-		if (groundColor == red)
+		if (color.x == changeColor[BlockChange::ColorNo::RED].x &&
+			color.y == changeColor[BlockChange::ColorNo::RED].y &&
+			color.z == changeColor[BlockChange::ColorNo::RED].z &&
+			color.w == changeColor[BlockChange::ColorNo::RED].w)
 		{
 			JumpStart(9.0f, 0.5);
 		}

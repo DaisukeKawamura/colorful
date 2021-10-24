@@ -177,6 +177,8 @@
     <ClInclude Include="Header\Vector3.h" />
   </ItemGroup>
   <ItemGroup>
+    <None Include="Resources\stage\ringColor1.csv" />
+    <None Include="Resources\stage\ringColor2.csv" />
     <None Include="Resources\stage\stage0.csv" />
     <None Include="Resources\stage\stage1.csv" />
     <None Include="Resources\stage\stage2.csv" />

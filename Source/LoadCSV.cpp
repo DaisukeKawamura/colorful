@@ -27,15 +27,22 @@ int LoadCSV(int map[MAP_HEIGHT][MAP_WIDTH], const char* FilePath, int LoadStopNu
 		return err;
 	}
 
-	for (int y = 0; y < MAP_HEIGHT; y++)
+	for (int y = 0; y < MAP_HEIGHT;)
 	{
 		bool end = false;
 		fgets(string, 256, fileHandle);
 		for (int x = 0, j = 0; x < MAP_WIDTH; j++)
 		{
-			if (string[j] == '\0' || string[j] == '\n')
+			if (string[j] == '\0')
+			{
+				// “Ç‚Ýž‚ÝI—¹
+				fgets(string, 256, fileHandle);
+				j = 0;
+			}
+			else if (string[j] == '\n')
 			{
 				// ‰üs
+				y++;
 				break;
 			}
 			else if (string[j] == ',')

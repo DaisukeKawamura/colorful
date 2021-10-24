@@ -97,5 +97,11 @@
     <None Include="Resources\stage\stage2.csv">
       <Filter>ステージファイル</Filter>
     </None>
+    <None Include="Resources\stage\ringColor2.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\ringColor1.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
   </ItemGroup>
 </Project>

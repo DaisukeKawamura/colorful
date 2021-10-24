@@ -55,7 +55,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	directing.ParticleInit(&draw);
 
 	// âÊëúÇÃì«Ç›çûÇ›
-	int background = draw.LoadTextrue(L"./Resources/background.png");
+	int background1 = draw.LoadTextrue(L"./Resources/bag1.png");
+	int background2 = draw.LoadTextrue(L"./Resources/bag2.png");
 	int ringGraph = draw.LoadTextrue(L"./Resources/ring.png");
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
@@ -117,6 +118,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		isStageClear[i] = false;
 #endif
 	}
+
+	float scrollX = 0;
 
 	bool isClear = false;    //ÉNÉäÉAÇ©Ç«Ç§Ç©
 	bool isGameover = false; //ÉQÅ[ÉÄÉIÅ[ÉoÅ[Ç©Ç«Ç§Ç©
@@ -608,7 +611,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		/* ï`âÊ */
 
 		// îwåi
-		//draw.DrawTextrue(0, 0, window_width, window_height, 0, background, XMFLOAT2(0.0f, 0.0f));
+		draw.DrawTextrue(scrollX, 0, window_width, window_height, 0, background1, XMFLOAT2(0.0f, 0.0f));
+		draw.DrawTextrue(scrollX + window_width, 0, window_width, window_height, 0, background2, XMFLOAT2(0.0f, 0.0f));
+		draw.DrawTextrue(scrollX + window_width * 2, 0, window_width, window_height, 0, background1, XMFLOAT2(0.0f, 0.0f));
+
+		scrollX -= player.speed;
+
+		if (scrollX <= -window_width * 2)
+		{
+			scrollX += window_width * 2;
+		}
 
 		switch (gameStatus)
 		{

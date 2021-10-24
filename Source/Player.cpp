@@ -110,6 +110,20 @@ void Player::Update()
 	groundFlag = false;
 	groundColor = false;
 
+	//黄ブロック踏んだ時
+	if (color.x == changeColor[BlockChange::ColorNo::YELLOW].x &&
+		color.y == changeColor[BlockChange::ColorNo::YELLOW].y &&
+		color.z == changeColor[BlockChange::ColorNo::YELLOW].z &&
+		color.w == changeColor[BlockChange::ColorNo::YELLOW].w)
+	{
+		speed = 2.8f * 1.5f;
+	}
+	//ノーマルスピード
+	else
+	{
+		speed = 2.8f;
+	}
+
 	oldPos = pos;
 
 	// accelVecを正規化

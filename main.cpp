@@ -248,19 +248,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					filePath = (char*)"./Resources/stage/stage1.csv";
 					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 100;
-					startColor = changeColor[BlockChange::ColorNo::YELLOW];
+					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				case 1:
 					filePath = (char*)"./Resources/stage/stage2.csv";
 					ringFilePath = (char*)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 110;
-					startColor = changeColor[BlockChange::ColorNo::YELLOW];
+					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				default:
 					filePath = (char*)"./Resources/stage/stage0.csv";
 					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 90;
-					startColor = changeColor[BlockChange::ColorNo::YELLOW];
+					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				}
 

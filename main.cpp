@@ -270,7 +270,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					isLoopEnd = true;
 					break;
 				}
-				temp = LoadCSV1D(ringColor, ringFilePath);
+				temp = LoadCSV1D(ringColor, sizeof(ringColor) / sizeof(ringColor[0]), ringFilePath);
 				if (temp != 0)
 				{
 					isLoopEnd = true;

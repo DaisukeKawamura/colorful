@@ -84,8 +84,13 @@ int LoadCSV(int map[MAP_HEIGHT][MAP_WIDTH], const char* FilePath, int LoadStopNu
 	return 0;
 }
 
-int LoadCSV1D(int* mapArray, const char* FilePath, int LoadStopNumber)
+int LoadCSV1D(int* mapArray, const size_t& mapSize, const char* FilePath, int LoadStopNumber)
 {
+	for (size_t i = 0; i < mapSize; i++)
+	{
+		mapArray[i] = 0;
+	}
+
 	FILE* fileHandle;
 	errno_t err;
 	char string[256] = { 0 };

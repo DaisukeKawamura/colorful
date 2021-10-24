@@ -1,7 +1,7 @@
 #pragma once
 
-#define MAP_WIDTH (100) //‰¡‚ÌÅ‘å–‡”
-#define MAP_HEIGHT (6)  //c‚ÌÅ‘å–‡”
+#define MAP_WIDTH (200) //‰¡‚ÌÅ‘å–‡”
+#define MAP_HEIGHT (8)  //c‚ÌÅ‘å–‡”
 
 enum ObjectStatus
 {

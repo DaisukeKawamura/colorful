@@ -55,7 +55,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	directing.ParticleInit(&draw);
 
 	// 画像の読み込み
-	int background = draw.LoadTextrue(L"./Resources/background.png");
+	int background1 = draw.LoadTextrue(L"./Resources/bag1.png");
+	int background2 = draw.LoadTextrue(L"./Resources/bag2.png");
 	int ringGraph = draw.LoadTextrue(L"./Resources/ring.png");
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
@@ -73,7 +74,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int box = draw.Create3Dbox(blockSize.x, blockSize.y, blockSize.z);          //ブロック
 	int boxFloor = draw.Create3Dbox(blockSize.x, blockSize.y / 4, blockSize.z); //床
 	int startBox = draw.Create3Dbox(240.0f, blockSize.y, blockSize.z); //スタート部分の床
-	int goalBox = draw.Create3Dbox(280.0f, blockSize.y, blockSize.z);  //ゴール部分の床
+	int goalBox = draw.Create3Dbox(320.0f, blockSize.y, blockSize.z);  //ゴール部分の床
 	int ringPolygon = draw.CreateCircle(10.0f, 16); //リング
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);  //ゴールの旗
 
@@ -88,7 +89,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所
-	const XMFLOAT3 mapOffset = { 130.0f, 50.0f, 0.0f }; //ステージの描画開始位置（左上、オブジェクト）
+	const float mapTop = -50.0f + 20.0f * (MAP_HEIGHT - 1);
+	const XMFLOAT3 mapOffset = { 130.0f, mapTop, 0.0f }; //ステージの描画開始位置（左上、オブジェクト）
 
 	const float floorOffsetY = 10.0f;					//床のY軸の位置
 
@@ -116,6 +118,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		isStageClear[i] = false;
 #endif
 	}
+
+	float scrollX = 0;
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
@@ -248,8 +252,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					break;
 				case 1:
 					filePath = (char*)"./Resources/stage/stage2.csv";
-					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
-					goalMapWidth = 100;
+					ringFilePath = (char*)"./Resources/stage/ringColor2.csv";
+					goalMapWidth = 110;
 					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
 				default:
@@ -324,8 +328,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				OBB startOBB, goalOBB;
 
-				startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, 10.0f, 10.0f);
-				goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 140.0f, 10.0f, 10.0f);
+				startOBB.Initilize(XMFLOAT3(0.0f, -50.0f, 0.0f), XMMatrixIdentity(), 120.0f, blockSize.y / 2, blockSize.z / 2);
+				goalOBB.Initilize(XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x * 2.0f, -50.0f, 0.0f), XMMatrixIdentity(), 160.0f, blockSize.y / 2, blockSize.z / 2);
 
 				isHit = OBBCollision::ColOBBs(player.collision, startOBB);
 				if (isHit)
@@ -607,7 +611,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		/* 描画 */
 
 		// 背景
-		//draw.DrawTextrue(0, 0, window_width, window_height, 0, background, XMFLOAT2(0.0f, 0.0f));
+		draw.DrawTextrue(scrollX, 0, window_width, window_height, 0, background1, XMFLOAT2(0.0f, 0.0f));
+		draw.DrawTextrue(scrollX + window_width, 0, window_width, window_height, 0, background2, XMFLOAT2(0.0f, 0.0f));
+		draw.DrawTextrue(scrollX + window_width * 2, 0, window_width, window_height, 0, background1, XMFLOAT2(0.0f, 0.0f));
+
+		scrollX -= player.speed;
+
+		if (scrollX <= -window_width * 2)
+		{
+			scrollX += window_width * 2;
+		}
 
 		switch (gameStatus)
 		{

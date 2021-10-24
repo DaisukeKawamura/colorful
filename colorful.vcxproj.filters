@@ -60,6 +60,9 @@
     <Image Include="Resources\check.png">
       <Filter>リソース ファイル</Filter>
     </Image>
+    <Image Include="Resources\bag1.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\OBBCollision.h">
@@ -95,6 +98,12 @@
       <Filter>ステージファイル</Filter>
     </None>
     <None Include="Resources\stage\stage2.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\ringColor2.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\ringColor1.csv">
       <Filter>ステージファイル</Filter>
     </None>
   </ItemGroup>

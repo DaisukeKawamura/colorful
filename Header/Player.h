@@ -14,6 +14,8 @@ private: // エイリアス
 public: // 定数
 	static const float gravity;        //重力加速度
 	static const XMFLOAT3 gravityAxis; //重力が加わる方向
+private:
+	static const XMFLOAT4 changeColor[4];
 
 public: // メンバ関数
 	// コンストラクタ

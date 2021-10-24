@@ -1,12 +1,12 @@
 #pragma
-#include"./Header/Vector3.h"
+#include "./Header/Vector3.h"
 #include <stdlib.h>
 #include <./DirectXTex/d3dx12.h>
 #include "./Header/DrawPolygon.h"
-#include"./Header/Partcle.h"
+#include "./Header/Partcle.h"
 #include <vector>
 using namespace std;
- 
+
 class Directing
 {
 	// DirectX::‚ğÈ—ª
@@ -74,7 +74,7 @@ public:
 	vector<Particle *>ring;
 	bool ringFlag;
 
-	int ringTime = 20;
+	int ringTime = 0;
 
 	void RingStart();
 

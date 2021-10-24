@@ -10,7 +10,7 @@ class OBB
 protected:
 	Vector3 m_Pos;              // 位置
 	Vector3 m_NormaDirect[3];   // 方向ベクトル
-	FLOAT m_fLength[3];             // 各軸方向の長さ
+	FLOAT m_fLength[3];         // 各軸方向の長さ
 public:
 	//XMFLOAT3 Pos 位置, XMMATRIX rotM 回転行列、FLOAT xの半分の長さ、 FLOAT yの半分の長さ、 FLOAT zの半分の長さ、
 	void Initilize(XMFLOAT3 Pos, XMMATRIX rotM, FLOAT xLength, FLOAT yLength, FLOAT zLength);

@@ -13,6 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ステージファイル">
+      <UniqueIdentifier>{340e4c6d-8473-48c4-831d-e2d50fcb79db}</UniqueIdentifier>
+      <Extensions>csv</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -85,7 +89,13 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\stage\stage1.csv">
-      <Filter>リソース ファイル</Filter>
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\stage0.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\stage2.csv">
+      <Filter>ステージファイル</Filter>
     </None>
   </ItemGroup>
 </Project>

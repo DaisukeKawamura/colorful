@@ -9,6 +9,7 @@ Particle::Particle(XMFLOAT3 pos, XMFLOAT3 speed, XMFLOAT3 scale, XMFLOAT4 color,
 	this->color = color;
 	this->speed = speed;
 	this->time = time;
+	this->DelFlag = true;
 }
 
 Particle::~Particle()

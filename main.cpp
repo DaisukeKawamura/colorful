@@ -237,16 +237,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			{
 				int temp = 0;
-				char* filePath = nullptr;
-				
+				char *filePath = nullptr;
+
 				switch (stageNo)
 				{
 				case 0:
-					filePath = (char*)"./Resources/stage/stage1.csv";
+					filePath = (char *)"./Resources/stage/stage1.csv";
 					goalMapWidth = 90;
 					break;
 				case 1:
-					filePath = (char*)"./Resources/stage/stage2.csv";
+					filePath = (char *)"./Resources/stage/stage2.csv";
 					goalMapWidth = 30;
 					break;
 				default:
@@ -342,7 +342,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 						if (isHit)
 						{//âüÇµñﬂÇµèàóù
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[y + 1][x], map[y - 1][x]);
 						}
 						//ínñ Ç…Ç¬Ç¢ÇΩéûÇÃèàóù
 						if (isHitDown)
@@ -376,7 +376,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						bool isHitDown = false;
 						if (isHit)
 						{//âüÇµñﬂÇµèàóù
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[y + 1][x], map[y - 1][x]);
 						}
 						//ínñ Ç…Ç¬Ç¢ÇΩéûÇÃèàóù
 						if (isHitDown)

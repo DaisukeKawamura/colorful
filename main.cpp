@@ -77,7 +77,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int goalBox = draw.Create3Dbox(320.0f, blockSize.y, blockSize.z);  //ゴール部分の床
 	int ringPolygon = draw.CreateCircle(10.0f, 16); //リング
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);  //ゴールの旗
-
+	int wallBreak = draw.Create3Dbox(20.0f, 200.0f, 20.0f);//壊れる壁
 	// モデルの読み込み
 	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/"); //アイテム
 
@@ -97,7 +97,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int mapColor[MAP_HEIGHT][MAP_WIDTH] = {};			//変わる色の情報を保持
 
 	int ringCount = 0; //色変えリングの数
-	const auto& changeColor = BlockChange::changeColor;
+	const auto &changeColor = BlockChange::changeColor;
 	int ringColor[10] = {}; //リングの色
 
 	size_t goalMapWidth = 90;
@@ -238,27 +238,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			{
 				int temp = 0;
-				char* filePath = nullptr;
-				char* ringFilePath = nullptr;
+				char *filePath = nullptr;
+				char *ringFilePath = nullptr;
 				XMFLOAT4 startColor = {};
 
 				switch (stageNo)
 				{
 				case 0:
-					filePath = (char*)"./Resources/stage/stage1.csv";
-					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
+					filePath = (char *)"./Resources/stage/stage1.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 100;
 					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
 				case 1:
-					filePath = (char*)"./Resources/stage/stage2.csv";
-					ringFilePath = (char*)"./Resources/stage/ringColor2.csv";
+					filePath = (char *)"./Resources/stage/stage2.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 110;
 					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
 				default:
-					filePath = (char*)"./Resources/stage/stage0.csv";
-					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
+					filePath = (char *)"./Resources/stage/stage0.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 90;
 					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
@@ -542,6 +542,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			directing.RunUpdate(player.pos, player.color);
 			directing.RingUpdate(player.pos, player.color);
 			directing.ShakeUpdate();
+			directing.Lap1Update(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
+			directing.Lap2Update();
+			if (directing.wallFlag == false)
+			{
+				directing.BreakWall(XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, -50.0f, 0), player.pos);
+			}
+			if (player.pos.x > (goalMapWidth - 1) * blockSize.x + mapOffset.x)
+			{
+				directing.BreakWallStart();
+			}
 
 			if (player.pos.x > goalMapWidth * blockSize.x + mapOffset.x)
 			{
@@ -556,9 +566,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				}
 				else
 				{
-					player.pos.x = mapOffset.x;
-					player.cameraPosX = player.pos.x;
-
+					/*player.pos.x = mapOffset.x;
+					player.cameraPosX = player.pos.x;*/
+					//戻り処理開始
+					directing.FlyStart(player.pos, XMFLOAT3(player.pos.x / 2, 200.0f, player.pos.z),
+						XMFLOAT3(player.pos.x / 4, 200.0f, player.pos.z), XMFLOAT3(0, 0.0f, 0.0f), 200);
 					laps++;
 				}
 			}
@@ -574,6 +586,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				isGameover = hp.isEmpty();
 			}
+
+			//ラップ２の戻り処理
+			if (directing.pFlyFlag == false)
+			{
+				player.pos = directing.PFly();
+				player.cameraPosX = player.pos.x;
+				draw.SetCamera(
+					XMFLOAT3(player.pos.x + 100.0f + directing.shakeX, player.pos.y + 30.0f + directing.shakeY, player.pos.z - 170.0f),
+					XMFLOAT3(player.pos.x + 100.0f, player.pos.y + 30.0f + directing.shakeY, player.pos.z),
+					upVec, MAIN_CAMERA);
+				player.rotaMat = XMMatrixRotationZ(XMConvertToRadians(directing.playerAngle));
+				if (directing.pFlyTimeRate >= 1.0f)
+				{
+					player.rotaMat = XMMatrixRotationY(XMConvertToRadians(270));
+					directing.pFlyFlag = true;
+					directing.Lap2Start(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
+				}
+			}
+
 			break;
 		default:
 			gameStatus = GameStatus::Title;
@@ -809,22 +840,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				boxGraph
 			);
 			/*ゴール地点*/
-			draw.Draw(
-				goalFlag,
-				XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0.0f),
-				XMMatrixRotationY(XMConvertToRadians(90)),
-				XMFLOAT3(1.0f, 1.0f, 1.0f),
-				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				goalGraph
-			);
-			draw.Draw(
-				goalFlag,
-				XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0.0f),
-				XMMatrixRotationY(XMConvertToRadians(-90)),
-				XMFLOAT3(1.0f, 1.0f, 1.0f),
-				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				goalGraph
-			);
+			if (directing.wallFlag == false)
+			{
+				draw.Draw(
+					goalFlag,
+					XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0.0f),
+					XMMatrixRotationY(XMConvertToRadians(90)),
+					XMFLOAT3(1.0f, 1.0f, 1.0f),
+					XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+					goalGraph
+				);
+				draw.Draw(
+					goalFlag,
+					XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0.0f),
+					XMMatrixRotationY(XMConvertToRadians(-90)),
+					XMFLOAT3(1.0f, 1.0f, 1.0f),
+					XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+					goalGraph
+				);
+			}
 			draw.Draw(
 				goalBox,
 				XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x * 2.0f, -50.0f, 0),
@@ -835,6 +869,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			);
 
 			player.Draw();
+
+			//壊れる壁
+			if (directing.wallFlag == true)
+			{
+				draw.Draw(
+					wallBreak,
+					XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0),
+					XMMatrixIdentity(),
+					XMFLOAT3(1.0f, 1.0f, 1.0f),
+					XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+					boxGraph
+				);
+			}
 
 			//アイテムイージング
 			if (directing.itemFlag == true)
@@ -849,11 +896,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
 				);
 			}
-
+			directing.Lap1Draw();
+			directing.Lap2Draw();
+			directing.wallDraw();
 			DirectDrawing::isDepthWriteBan = true;
 			draw.SetDrawBlendMode(BLENDMODE_ADD);
 			directing.RunDraw();
 			directing.RingDraw();
+			directing.explosionDraw();
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 

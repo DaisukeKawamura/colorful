@@ -10,6 +10,12 @@ void Directing::Init()
 	scoreFlag = true;
 	//アイテムイージング初期化
 	itemFlag = false;
+	//周回フラグ初期化
+	lap1Flag = true;
+	lap2Flag = true;
+	wallFlag = true;
+	pFlyFlag = true;
+	wallTime = 8;
 	//走るパーティクル削除
 	for (int i = (int)run.size() - 1; i >= 0; i--)
 	{
@@ -22,8 +28,20 @@ void Directing::Init()
 		delete ring[i];
 		ring.erase(ring.begin() + i);
 	}
+	//壊れるかべ削除
+	for (int i = (int)wall.size() - 1; i >= 0; i--)
+	{
+		delete wall[i];
+		wall.erase(wall.begin() + i);
+	}
+	//爆発削除
+	for (int i = (int)explosion.size() - 1; i >= 0; i--)
+	{
+		delete explosion[i];
+		explosion.erase(explosion.begin() + i);
+	}
 }
-#pragma once パーティクル画像読み込み
+//画像読み込み
 void Directing::ParticleInit(DrawPolygon *draw)
 {
 	static bool isInit = false;
@@ -33,10 +51,15 @@ void Directing::ParticleInit(DrawPolygon *draw)
 		this->graph1 = draw->LoadTextrue(L"./Resources/particle.jpg");
 		this->graph2 = draw->LoadTextrue(L"./Resources/effect2.png");
 		this->graph3 = draw->LoadTextrue(L"./Resources/effect3.png");
+		this->lap1Graph = draw->LoadTextrue(L"./Resources/lap1.png");
+		this->lap2Graph = draw->LoadTextrue(L"./Resources/lap2.png");
+		this->wallBreakGraph = draw->LoadTextrue(L"./Resources/box.png");
 		this->particlePolygon = this->draw->CreateRect(10, 10);
+		this->wallBreak3D = this->draw->Create3Dbox(10.0f, 10.0f, 20.0f);
+		this->draw->NormalizeUV(wallBreak3D, wallBreakGraph);
 	}
 }
-#pragma once 死亡時シェイク
+// 死亡時シェイク
 void Directing::ShakeUpdate()
 {
 	//シェイク初期化
@@ -64,7 +87,7 @@ void Directing::ShakeStart(float shakeTime, int shakeString)
 		shakeFlag = false;
 	}
 }
-#pragma once スコアイージング
+//スコアイージング
 void Directing::scoreEasingStart(XMFLOAT3 start, XMFLOAT3 end, float time)
 {
 	if (scoreFlag == true)
@@ -90,7 +113,7 @@ XMFLOAT3 Directing::scoreEasing()
 
 	return XMFLOAT3(scoreStart.x, position.y, scoreStart.z);
 }
-#pragma once アイテムイージング
+//アイテムイージング
 void Directing::ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos)
 {
 	itemFlag = true;
@@ -131,7 +154,7 @@ XMFLOAT3 Directing::ItemUpdate(XMFLOAT3 cameraPos)
 
 	return XMFLOAT3(position.x, position.y, position.z);
 }
-#pragma once プレイヤーRunパーティクル
+//プレイヤーRunパーティクル
 void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 {
 	//生み出す
@@ -186,7 +209,7 @@ void Directing::RunDraw()
 	}
 }
 
-#pragma once 色変わる瞬間のパーティクル
+//色変わる瞬間のパーティクル
 void Directing::RingStart()
 {
 	ringTime = 10;
@@ -244,39 +267,191 @@ void Directing::RingDraw()
 		draw->Draw(particlePolygon, ring[i]->pos, ring[i]->rotaMat, ring[i]->scale, ring[i]->color, graph2);
 	}
 }
-
-void Directing::Lap1()
+//1週目演出
+void Directing::Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time)
 {
-	if (shakeFlag == true)
+	if (lap1Flag == true)
 	{
-		//シェイクする時間
-		this->shakeTime = shakeTime;
-		//シェイクの強さ
-		this->shakeString = shakeString;
-		//減衰
-		shkeStringTime = shakeTime / 10;
-		shakeFlag = false;
+		lap1Flag = false;
+		this->lap1Start = Vector3(start.x, start.y, start.z);
+		this->lap1End = Vector3(end.x, end.y, end.z);
+		this->lap1MaxTime = time;
+		lap1EasingTime = 0;
 	}
-}
 
-void Directing::Lap1Start()
-{
-	//lap1EasingTime++;
+	lap1EasingTime++;
 
-	//lap1TimeRate = min(lap1EasingTime / lap1MaxTime, 1.0f);
-	//Vector3 position;
+	lap1TimeRate = min(lap1EasingTime / lap1MaxTime, 1.0f);
 
-	//position = easeOut(lap1Start, lap1End, lap1TimeRate);
-	///*position = easeIn(start, end, timeRate);*/
-	////position = easeInOut(start, end, timeRate);
-
-	//return XMFLOAT3(lap1Start.x, position.y, lap1Start.z);
+	//lap1Pos = easeOut(lap1Start, lap1End, lap1TimeRate);
+	lap1Pos = easeIn(lap1Start, lap1End, lap1TimeRate);
+	//lap1Pos = easeInOut(lap1Start, lap1End, lap1TimeRate);
 }
 
 void Directing::Lap1Draw()
 {
-	//draw->DrawTextrue(0, 0, 200, 100, 0, lap1Graph, XMFLOAT2(0.0f, 0.0f));
+	if (lap1Flag == false)
+	{
+		draw->DrawTextrue(lap1Pos.x, lap1Pos.y, 200, 100, 0, lap1Graph, XMFLOAT2(0.0f, 0.0f));
+	}
 }
+
+//2週目演出
+void Directing::Lap2Start(XMFLOAT3 start, XMFLOAT3 end, float time)
+{
+	if (lap2Flag == true)
+	{
+		lap2Flag = false;
+		this->lap2Start = Vector3(start.x, start.y, start.z);
+		this->lap2End = Vector3(end.x, end.y, end.z);
+		this->lap2MaxTime = time;
+		lap2EasingTime = 0;
+	}
+}
+
+void Directing::Lap2Update()
+{
+	lap2EasingTime++;
+
+	lap2TimeRate = min(lap2EasingTime / lap2MaxTime, 1.0f);
+
+	//lap2Pos = easeOut(lap2Start, lap2End, lap2TimeRate);
+	lap2Pos = easeIn(lap2Start, lap2End, lap2TimeRate);
+	//lap2Pos = easeInOut(lap2Start, lap2End, lap2TimeRate);
+}
+
+void Directing::Lap2Draw()
+{
+	if (lap2Flag == false)
+	{
+		draw->DrawTextrue(lap2Pos.x, lap2Pos.y, 200, 100, 0, lap2Graph, XMFLOAT2(0.0f, 0.0f));
+	}
+}
+//2週目演出
+void Directing::FlyStart(XMFLOAT3 start, XMFLOAT3 controlPoint1, XMFLOAT3 controlPoint2, XMFLOAT3 end, float time)
+{
+	if (pFlyFlag == true)
+	{
+		pFlyFlag = false;
+		this->playerStart = Vector3(start.x, start.y, start.z);
+		this->controlPoint1 = Vector3(controlPoint1.x, controlPoint1.y, controlPoint1.z);
+		this->controlPoint2 = Vector3(controlPoint2.x, controlPoint2.y, controlPoint2.z);
+		this->playerEnd = Vector3(end.x, end.y, end.z);
+		this->pFlyMaxTime = time;
+		playerAngle = 0.0f;
+		pFlyEasingTime = 0;
+	}
+}
+//プレイヤー飛ばし
+XMFLOAT3 Directing::PFly()
+{
+	pFlyEasingTime++;
+	playerAngle += 2.0f;
+	pFlyTimeRate = min(pFlyEasingTime / pFlyMaxTime, 1.0f);
+
+	Vector3 a = lerp(playerStart, controlPoint1, pFlyTimeRate);
+
+	Vector3 b = lerp(controlPoint1, controlPoint2, pFlyTimeRate);
+
+	Vector3 c = lerp(controlPoint2, playerEnd, pFlyTimeRate);
+
+	Vector3 n = lerp(a, b, pFlyTimeRate);
+
+	Vector3 m = lerp(b, c, pFlyTimeRate);
+
+	Vector3 position = lerp(n, m, pFlyTimeRate);
+
+	return XMFLOAT3(position.x, position.y, position.z);
+}
+void Directing::BreakWallStart()
+{
+	wallFlag = false;
+}
+//壊れる壁と爆発
+void Directing::BreakWall(XMFLOAT3 wallPos, XMFLOAT3 player)
+{
+	if (wallTime > 0)
+	{
+		explosionPos = wallPos;
+		for (int i = 0; i < 10; i++)
+		{//壁
+			wallPos.x += rand() % 18 - 9.0f;
+			wallPos.y += rand() % 100;
+			XMFLOAT3 speed = { 3.0f,-3.0f,0.0f };
+			speed.x += rand() % 6 - 3.0f;
+			speed.y += rand() % 6 - 3.0f;
+			XMFLOAT4 color = { 1.0f,1.0f,1.0f,1.0f };
+
+			wall.push_back(new Particle(wallPos, speed, XMFLOAT3(1.0, 1.0, 1.0), color, 20));
+		}
+		for (int i = 0; i < 20; i++)
+		{//爆発
+			XMFLOAT3 speed = { 3.0f,-3.0f,0.0f };
+			speed.x = rand() % 6 - 3.0f;
+			speed.y = rand() % 6;
+			XMFLOAT4 color = { 0.8f,0.8f,1.0f,1.0f };
+			explosion.push_back(new Particle(explosionPos, speed, XMFLOAT3(1.0, 1.0, 1.0), color, 20));
+		}
+		wallTime--;
+	}
+	//壁
+	for (size_t i = 0; i < wall.size(); i++)
+	{//更新
+		wall[i]->pos = wall[i]->pos + wall[i]->speed;
+
+		wall[i]->time--;
+		if (wall[i]->time == 0)
+		{
+			wall[i]->DelFlag = false;
+		}
+	}
+	for (int i = (int)wall.size() - 1; i >= 0; i--)
+	{//削除
+		if (wall[i]->DelFlag == false)
+		{
+			delete wall[i];
+			wall.erase(wall.begin() + i);
+		}
+	}
+
+	//爆発
+	for (size_t i = 0; i < explosion.size(); i++)
+	{//更新
+		explosion[i]->pos = explosion[i]->pos + explosion[i]->speed;
+
+		explosion[i]->time--;
+		if (explosion[i]->time == 0)
+		{
+			explosion[i]->DelFlag = false;
+		}
+	}
+	for (int i = (int)explosion.size() - 1; i >= 0; i--)
+	{	//削除
+		if (explosion[i]->DelFlag == false)
+		{
+			delete explosion[i];
+			explosion.erase(explosion.begin() + i);
+		}
+	}
+}
+
+void Directing::wallDraw()
+{
+	//描画
+	for (size_t i = 0; i < wall.size(); i++)
+	{//壁
+		draw->Draw(wallBreak3D, wall[i]->pos, wall[i]->rotaMat, wall[i]->scale, wall[i]->color, wallBreakGraph);
+	}
+}
+
+void Directing::explosionDraw()
+{
+	for (size_t i = 0; i < explosion.size(); i++)
+	{//爆発
+		draw->Draw(particlePolygon, explosion[i]->pos, explosion[i]->rotaMat, explosion[i]->scale, explosion[i]->color, graph1);
+	}
+}
+
 
 
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs)

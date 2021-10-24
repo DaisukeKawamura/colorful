@@ -17,40 +17,41 @@ public:
 
 	//全体初期化
 	void Init();
-#pragma once パーティクル画像読み込み
-public:
+
+public:// パーティクル画像読み込み
 	int particlePolygon;//テクスチャ用四角形
+	int wallBreak3D;     //壊れる壁ポリゴン
 	int graph1;			//パーティクルテクスチャその1
 	int graph2;			//パーティクルテクスチャその2
 	int graph3;			//パーティクルテクスチャその3
 	int lap1Graph;      //Lap1の画像
+	int lap2Graph;      //Lap2の画像
+	int wallBreakGraph; //壊れる壁
 	void ParticleInit(DrawPolygon *draw);
-#pragma once 死亡時シェイク
-public:
+
+public:// 死亡時シェイク
 	float shakeX, shakeY;	//シェイクした分の大きさ
-private:
 	float shakeTime;		//シェイク時間
 	int  shakeString;		//シェイクの強さ
 	float shkeStringTime;	//減衰
 	bool shakeFlag;			//シェイクフラグ
-public:
 	//シェイク更新
 	void ShakeUpdate();
 	//シェイクスタート/シェイク時間、シェイクの強さ
 	void ShakeStart(float shakeTime, int shakeString);
-#pragma once スコアイージング
-public:
+
+public:// スコアイージング
 	Vector3 scoreStart;				//スタート地点
 	Vector3 scoreEnd;				//エンド地点
 	float scoreEasingTime;
 	float scoreMaxTime;				//全体時間[s]
-	float scoreTimeRate;				//何％　時間が進んだか(率)
+	float scoreTimeRate;			//何％　時間が進んだか(率)
 	bool scoreFlag;
 	//スコアイージング/スタート位置、終了位置、進む時間
 	void scoreEasingStart(XMFLOAT3 start, XMFLOAT3 end, float Time);
 	//スコアイージング更新
 	XMFLOAT3 scoreEasing();
-#pragma once アイテムイージング
+public:	//アイテムイージング
 	Vector3 itemStart;				//スタート地点
 	Vector3 itemEnd;				//エンド地点
 	float itemEasingTime;
@@ -59,18 +60,18 @@ public:
 	float itemCameraPos;
 	bool itemFlag;
 	XMFLOAT3 itemScale;
-public:
 	//アイテムイージング/スタート位置、終了位置、進む時間
 	void ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos);
 
 	XMFLOAT3 ItemUpdate(XMFLOAT3 cameraPos);
-#pragma once プレイヤーRunパーティクル
+public:	//プレイヤーRunパーティクル
 	vector<Particle *> run;
 
 	void RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor);
 
 	void RunDraw();
-#pragma once 色変わる瞬間のパーティクル
+
+public:// 色変わる瞬間のパーティクル
 	vector<Particle *>ring;
 	bool ringFlag;
 
@@ -81,26 +82,62 @@ public:
 	void RingUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor);
 
 	void RingDraw();
-#pragma 1週目演出
+
+public://1週目演出
+
 	Vector3 lap1Start;				//スタート地点
 	Vector3 lap1End;				//エンド地点
 	float lap1EasingTime;
 	float lap1MaxTime;				//全体時間[s]
 	float lap1TimeRate;				//何％　時間が進んだか(率)
-	float lap1CameraPos;
+	Vector3 lap1Pos;
 	bool lap1Flag;
 
-	void Lap1();
-
-	void Lap1Start();
+	void Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time);
 
 	void Lap1Draw();
 
-#pragma 2週目演出
+public:	//2週目演出
+	Vector3 lap2Start;				//スタート地点
+	Vector3 lap2End;				//エンド地点
+	float lap2EasingTime;
+	float lap2MaxTime;				//全体時間[s]
+	float lap2TimeRate;				//何％　時間が進んだか(率)
+	Vector3 lap2Pos;
+	bool lap2Flag;
 
+	void Lap2Start(XMFLOAT3 start, XMFLOAT3 end, float time);
 
+	void Lap2Update();
 
+	void Lap2Draw();
+public://プレイヤー飛ばし
+	Vector3 playerStart;				//スタート地点
+	Vector3 controlPoint1;				//制御点1
+	Vector3 controlPoint2;				//制御点2
+	Vector3 playerEnd;					//エンド地点
+	float pFlyEasingTime;
+	float pFlyMaxTime;				//全体時間[s]
+	float pFlyTimeRate;				//何％　時間が進んだか(率)
+	Vector3 pFlyPos;
+	bool pFlyFlag;
+	void FlyStart(XMFLOAT3 start, XMFLOAT3 controlPoint1, XMFLOAT3 controlPoint2, XMFLOAT3 end, float time);
+	XMFLOAT3 PFly();
+public:	//壊れる壁と爆発
+	vector<Particle *> wall;
+	vector<Particle *>explosion;
+	XMFLOAT3 explosionPos;			//爆発の初期位置
+	int wallTime;					//パーティクル出す時間
+	bool wallFlag;
+	float playerAngle;				//飛ばし中のプレイヤー回転
 
+	void BreakWallStart();
+
+	void BreakWall(XMFLOAT3 wallPos, XMFLOAT3 player);
+
+	void wallDraw();
+
+	void explosionDraw();
 };
 //XMFLOAT3同士の計算
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs);

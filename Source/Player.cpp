@@ -27,7 +27,6 @@ Player::Player() :
 	accelVec{},
 	collision{},
 	playerObject{},
-	playerTex{},
 	jumpPower{},
 	jumpPowerDecay{},
 	jumpFlag(false),
@@ -48,8 +47,10 @@ void Player::Init(DrawPolygon *draw)
 	{
 		this->draw = draw;
 
-		this->playerObject = this->draw->CreateOBJModel("./Resources/playerobj/playerobj.obj", "./Resources/playerobj/");
-		this->playerTex = 0;
+		this->playerObject[BlockChange::ColorNo::RED] = this->draw->CreateOBJModel("./Resources/playerobj/jumpmode.obj", "./Resources/playerobj/");
+		this->playerObject[BlockChange::ColorNo::BLUE] = this->draw->CreateOBJModel("./Resources/playerobj/speed01.obj", "./Resources/playerobj/");
+		this->playerObject[BlockChange::ColorNo::GREEN] = this->draw->CreateOBJModel("./Resources/playerobj/kan1.obj", "./Resources/playerobj/");
+		this->playerObject[BlockChange::ColorNo::YELLOW] = this->draw->CreateOBJModel("./Resources/playerobj/playerobj.obj", "./Resources/playerobj/");
 	}
 
 	this->pos = XMFLOAT3(0, 0, 0);
@@ -111,10 +112,10 @@ void Player::Update()
 	groundColor = false;
 
 	//‰©ƒuƒƒbƒN“¥‚ñ‚¾Žž
-	if (color.x == changeColor[BlockChange::ColorNo::YELLOW].x &&
-		color.y == changeColor[BlockChange::ColorNo::YELLOW].y &&
-		color.z == changeColor[BlockChange::ColorNo::YELLOW].z &&
-		color.w == changeColor[BlockChange::ColorNo::YELLOW].w)
+	if (color.x == changeColor[BlockChange::ColorNo::BLUE].x &&
+		color.y == changeColor[BlockChange::ColorNo::BLUE].y &&
+		color.z == changeColor[BlockChange::ColorNo::BLUE].z &&
+		color.w == changeColor[BlockChange::ColorNo::BLUE].w)
 	{
 		speed = 2.8f * 1.5f;
 	}
@@ -179,7 +180,31 @@ void Player::Update()
 
 void Player::Draw()
 {
-	draw->DrawOBJ(playerObject, pos, rotaMat, scale, color);
+	if (color.x == changeColor[BlockChange::ColorNo::RED].x ||
+		color.y == changeColor[BlockChange::ColorNo::RED].y ||
+		color.z == changeColor[BlockChange::ColorNo::RED].z ||
+		color.w == changeColor[BlockChange::ColorNo::RED].w)
+	{
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::RED], pos, rotaMat, scale);
+	}
+	else if (color.x == changeColor[BlockChange::ColorNo::BLUE].x ||
+		color.y == changeColor[BlockChange::ColorNo::BLUE].y ||
+		color.z == changeColor[BlockChange::ColorNo::BLUE].z ||
+		color.w == changeColor[BlockChange::ColorNo::BLUE].w)
+	{
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::BLUE], pos, rotaMat, scale);
+	}
+	else if (color.x == changeColor[BlockChange::ColorNo::GREEN].x ||
+		color.y == changeColor[BlockChange::ColorNo::GREEN].y ||
+		color.z == changeColor[BlockChange::ColorNo::GREEN].z ||
+		color.w == changeColor[BlockChange::ColorNo::GREEN].w)
+	{
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::GREEN], pos, rotaMat, scale);
+	}
+	else
+	{
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::YELLOW], pos, rotaMat, scale, color);
+	}
 }
 
 void Player::JumpStart(float jumpPower, float jumpPowerDecay)
@@ -211,4 +236,14 @@ void Player::ChangeGroundColor(const int map)
 		groundColor = yellow;
 		break;
 	};
+}
+
+int Player::GetPlayerObject(const int& color) const
+{
+	if (color < 0 || color >= sizeof(BlockChange::changeColor) / sizeof(BlockChange::changeColor[0]))
+	{
+		return -1;
+	}
+
+	return playerObject[color];
 }

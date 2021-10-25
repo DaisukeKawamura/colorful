@@ -30,10 +30,8 @@ public: // メンバ関数
 	// 描画
 	void Draw();
 
-	// プレイヤーの頂点データを取得
-	const int& GetPlayerObject() { return playerObject; }
-	// プレイヤーのテクスチャを取得
-	const int& GetPlayerTex() { return playerTex; }
+	// プレイヤーのオブジェクトデータを取得 (戻り値が-1で失敗)
+	int GetPlayerObject(const int& color) const;
 	//色のブロックを踏んだ時の処理
 	void ChangeGroundColor(const int map);
 	/// <summary>
@@ -64,8 +62,7 @@ public: // メンバ変数
 
 	float cameraPosX;//カメラの位置
 private:
-	int playerObject; //プレイヤーの頂点データ
-	int playerTex;    //プレイヤーのテクスチャ
+	int playerObject[4]; //プレイヤーのオブジェクトデータ
 
 	float jumpPower;      //ジャンプパワー
 	float jumpPowerDecay; //ジャンプパワーの減衰量

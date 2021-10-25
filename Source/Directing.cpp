@@ -388,7 +388,7 @@ void Directing::BreakWall(XMFLOAT3 wallPos, XMFLOAT3 player)
 		{//”š”­
 			XMFLOAT3 speed = { 3.0f,-3.0f,0.0f };
 			speed.x = rand() % 6 - 3.0f;
-			speed.y = rand() % 6;
+			speed.y = (float)(rand() % 6);
 			XMFLOAT4 color = { 0.8f,0.8f,1.0f,1.0f };
 			explosion.push_back(new Particle(explosionPos, speed, XMFLOAT3(1.0, 1.0, 1.0), color, 20));
 		}

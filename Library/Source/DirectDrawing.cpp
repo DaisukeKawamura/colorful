@@ -1062,7 +1062,7 @@ int DirectDrawing::CreateSprite()
 	HRESULT hr = S_FALSE;
 	sprite.push_back({});
 
-	SpriteVertex vert[] = {
+	static SpriteVertex vert[] = {
 		{{}, { 0.0f, 1.0f }},
 		{{}, { 0.0f, 0.0f }},
 		{{}, { 1.0f, 1.0f }},

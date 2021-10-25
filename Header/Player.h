@@ -56,8 +56,9 @@ public: // メンバ変数
 	XMFLOAT3 accelVec; //加速度を加える方向
 
 	bool jumpFlag; //ジャンプフラグ
-	bool groundFlag;//地面に接したか
-	int  groundColor;//どの色に接したか
+	int  jumpCount; //ジャンプカウント
+	bool groundFlag; //地面に接したか
+	int  groundColor; //どの色に接したか
 	OBB collision; //当たり判定
 
 	float cameraPosX;//カメラの位置

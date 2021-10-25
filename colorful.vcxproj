@@ -163,9 +163,19 @@
   <ItemGroup>
     <Image Include="Resources\background.png" />
     <Image Include="Resources\bag1.png" />
+    <Image Include="Resources\bag2.png" />
     <Image Include="Resources\box.png" />
     <Image Include="Resources\check.png" />
+    <Image Include="Resources\effect2.png" />
+    <Image Include="Resources\effect3.png" />
+    <Image Include="Resources\hosi.png" />
+    <Image Include="Resources\lap1.png" />
+    <Image Include="Resources\lap2.png" />
+    <Image Include="Resources\medaru.png" />
+    <Image Include="Resources\particle.jpg" />
     <Image Include="Resources\ring.png" />
+    <Image Include="Resources\stageclear.png" />
+    <Image Include="Resources\tex1.png" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\BlockChange.h" />

@@ -28,7 +28,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		TitleInit,  //Titleの初期化
 		SelectInit, //ステージセレクト
 		MainInit    //Mainの初期化
-	} gameStatus = GameStatus::Title;
+	} gameStatus = GameStatus::Title, oldGameStatus = gameStatus;
 
 	using namespace DirectX;
 
@@ -77,8 +77,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int wallBreak = draw.Create3Dbox(20.0f, 200.0f, 20.0f);//壊れる壁
 
 	// モデルの読み込み
-	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/"); //アイテム
-	int ringModel = draw.CreateOBJModel("./Resources/ring/5.obj", "./Resources/ring/"); //リング
+	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/");    //アイテム
+	int ringModel = draw.CreateOBJModel("./Resources/ring/5.obj", "./Resources/ring/");    //リング
+	int coinModel = draw.CreateOBJModel("./Resources/coin/coin.obj", "./Resources/coin/"); //収集アイテムのコイン
 
 	// テクスチャのタイリング
 	draw.NormalizeUV(startBox, boxGraph);
@@ -118,6 +119,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	const int maxStageCount = 5 + 1;      //ステージ数＋タイトル
 	int stageNo = 0;                      //選択されているステージ
 	bool isStageClear[maxStageCount - 1]; //各ステージのクリアフラグ
+	float blockCount = 0.0f;      //塗れるブロックの総数
+	float paintBlockCount = 0.0f; //塗ったブロックの数
 
 	for (size_t i = 0; i < sizeof(isStageClear); i++)
 	{
@@ -128,17 +131,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 #endif
 	}
 
-	float scrollX = 0;
+	int score = 0; //スコア
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
+
+	float scrollX = 0; //背景のスクロール値
 
 	UINT64 nowTime = 0; //現在の時間
 	int keyCount = 0;   //キー入力され続けたの時間
 	bool isHit = false;
 	bool isLoopEnd = false; //無限ループを抜けるかどうか
-
-	//int score = 0;
 
 	while (true)
 	{
@@ -146,6 +149,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		Input::Update();
 		nowTime++;
+
+		oldGameStatus = gameStatus;
 
 		/* 更新 */
 
@@ -301,12 +306,24 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				upVec, MAIN_CAMERA
 			);
 
+			blockCount = 0.0f;
+			paintBlockCount = 0.0f;
+			for (size_t y = 0; y < MAP_HEIGHT; y++)
+			{
+				for (size_t x = 0; x < goalMapWidth; x++)
+				{
+					if (map[y][x] == ObjectStatus::BLOCK || map[y][x] == ObjectStatus::FLOOR)
+					{
+						blockCount += 1.0f;
+					}
+				}
+			}
+
 			laps = 1;
-			//score = 0;
+			score = 0;
 			isClear = false;
 			isGameover = false;
 		case GameStatus::Main:
-			//score = 0;
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
 				if (isClear == true || isGameover == true)
@@ -374,7 +391,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 						if (isHit)
 						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[y + 1][x], map[y - 1][x]);
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
 						}
 						//地面についた時の処理
 						if (isHitDown)
@@ -383,23 +400,24 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							player.groundFlag = true;
 							//地面の色を変える
 							map[y][x] = BlockChange::changeBlockPColor(player.color);
+
+							paintBlockCount += 1.0f;
 						}
 					
 					}
 					break;
-					case ObjectStatus::RedBLOCK:
-					case ObjectStatus::BlueBLOCK:
-					case ObjectStatus::GreenBLOCK:
-					case ObjectStatus::YellowBLOCK:
+					case ObjectStatus::RED_BLOCK:
+					case ObjectStatus::BLUE_BLOCK:
+					case ObjectStatus::GREEN_BLOCK:
+					case ObjectStatus::YELLOW_BLOCK:
 					{
-						//score++;
 						OBB blockOBB;
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
 						if (isHit)
 						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[y + 1][x], map[y - 1][x]);
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
 						}
 						//地面についた時の処理
 						if (isHitDown)
@@ -413,7 +431,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						
 					}
 					break;
-					case ObjectStatus::Floor:
+					case ObjectStatus::FLOOR:
 					{
 						OBB blockOBB;
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
@@ -431,16 +449,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							map[y][x] = BlockChange::changeFloorPColor(player.color);
 
 							hp.AddDamage(0.005f);
+
+							paintBlockCount += 1.0f;
 						}
 						
 					}
 					break;
-					case ObjectStatus::RedFloor:
-					case ObjectStatus::BlueFloor:
-					case ObjectStatus::GreenFloor:
-					case ObjectStatus::YellowFloor:
+					case ObjectStatus::RED_FLOOR:
+					case ObjectStatus::BLUE_FLOOR:
+					case ObjectStatus::GREEN_FLOOR:
+					case ObjectStatus::YELLOW_FLOOR:
 					{
-						//score++;
 						OBB blockOBB;
 
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
@@ -480,7 +499,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						OBB blockOBB;
 
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), 10.0f, 10.0f, 10.0f);
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), 5.0f, 10.0f, 10.0f);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
@@ -500,7 +519,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						OBB blockOBB;
 
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / (2 * 4), blockSize.y / 2, blockSize.z / 2);
 
 						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
@@ -525,28 +544,36 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 			if (player.pos.x > (goalMapWidth - 1) * blockSize.x + mapOffset.x)
 			{
-				directing.BreakWallStart();
+				if (isGameover == false)
+				{
+					directing.BreakWallStart();
+				}
 			}
+
+			score = (int)(paintBlockCount / blockCount * 100.0f);
 
 			if (player.pos.x > goalMapWidth * blockSize.x + mapOffset.x)
 			{
-				if (laps >= 2)
+				if (isGameover == true)
 				{
-					if (isGameover == false)
+					player.pos.x = mapOffset.x;
+					player.cameraPosX = player.pos.x;
+				}
+				else
+				{
+					if (laps >= 2)
 					{
 						isClear = true;
 						isStageClear[stageNo] = true;
 						directing.scoreEasingStart(XMFLOAT3(200, -400, 0), XMFLOAT3(200, 200, 0), 20);
 					}
-				}
-				else
-				{
-					/*player.pos.x = mapOffset.x;
-					player.cameraPosX = player.pos.x;*/
-					//戻り処理開始
-					directing.FlyStart(player.pos, XMFLOAT3(player.pos.x / 2, 200.0f, player.pos.z),
-						XMFLOAT3(player.pos.x / 4, 200.0f, player.pos.z), XMFLOAT3(0, 0.0f, 0.0f), 200);
-					laps++;
+					else
+					{
+						//戻り処理開始
+						directing.FlyStart(player.pos, XMFLOAT3(player.pos.x / 2, 200.0f, player.pos.z),
+							XMFLOAT3(player.pos.x / 4, 200.0f, player.pos.z), XMFLOAT3(0, 0.0f, 0.0f), 200);
+						laps++;
+					}
 				}
 			}
 			if (player.pos.y <= -70.0f || player.cameraPosX - player.pos.x > 90)
@@ -574,6 +601,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.rotaMat = XMMatrixRotationZ(XMConvertToRadians(directing.playerAngle));
 				if (directing.pFlyTimeRate >= 1.0f)
 				{
+					for (size_t y = 0; y < MAP_HEIGHT; y++)
+					{
+						for (size_t x = 0; x < MAP_WIDTH; x++)
+						{
+							if (map[y][x] == ObjectStatus::BREAK_RING)
+							{
+								// リングを元に戻す
+								map[y][x] = ObjectStatus::RING;
+							}
+						}
+					}
+
 					player.rotaMat = XMMatrixRotationY(XMConvertToRadians(0));
 					directing.pFlyFlag = true;
 					directing.Lap2Start(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
@@ -628,7 +667,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			scrollX += window_width * 2;
 		}
 
-		switch (gameStatus)
+		switch (oldGameStatus)
 		{
 		case GameStatus::TitleInit:
 		case GameStatus::Title:
@@ -640,6 +679,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			break;
 		case GameStatus::SelectInit:
 		case GameStatus::Select:
+			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
+			DirectDrawing::isDepthWriteBan = false;
+
 			if (stageNo == maxStageCount - 1)
 			{
 				draw.DrawString(window_width / 2 - 120, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Title");
@@ -669,13 +711,33 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::Floor:
+					case ObjectStatus::NOPAINT_BLOCK:
+						draw.Draw(
+							box,
+							mapPosition,
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
+							boxGraph
+						);
+						break;
+					case ObjectStatus::FLOOR:
 						draw.Draw(
 							boxFloor,
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
 							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							boxGraph
+						);
+						break;
+					case ObjectStatus::NOPAINT_FLOOR:
+						draw.Draw(
+							boxFloor,
+							mapPosition,
+							XMMatrixIdentity(),
+							XMFLOAT3(1.0f, 1.0f, 1.0f),
+							XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
 							boxGraph
 						);
 						break;
@@ -701,7 +763,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					case ObjectStatus::BREAK_RING:
 						ringCount++;
 						break;
-					case ObjectStatus::RedBLOCK:
+					case ObjectStatus::RED_BLOCK:
 						draw.Draw(
 							box,
 							mapPosition,
@@ -711,7 +773,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::BlueBLOCK:
+					case ObjectStatus::BLUE_BLOCK:
 						draw.Draw(
 							box,
 							mapPosition,
@@ -721,7 +783,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::GreenBLOCK:
+					case ObjectStatus::GREEN_BLOCK:
 						draw.Draw(
 							box,
 							mapPosition,
@@ -731,7 +793,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::YellowBLOCK:
+					case ObjectStatus::YELLOW_BLOCK:
 						draw.Draw(
 							box,
 							mapPosition,
@@ -741,7 +803,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::RedFloor:
+					case ObjectStatus::RED_FLOOR:
 						draw.Draw(
 							boxFloor,
 							mapPosition,
@@ -751,7 +813,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::BlueFloor:
+					case ObjectStatus::BLUE_FLOOR:
 						draw.Draw(
 							boxFloor,
 							mapPosition,
@@ -761,7 +823,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::GreenFloor:
+					case ObjectStatus::GREEN_FLOOR:
 						draw.Draw(
 							boxFloor,
 							mapPosition,
@@ -771,7 +833,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::YellowFloor:
+					case ObjectStatus::YELLOW_FLOOR:
 						draw.Draw(
 							boxFloor,
 							mapPosition,
@@ -780,15 +842,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							changeColor[BlockChange::ColorNo::YELLOW],
 							boxGraph
 						);
+						break;
+					case ObjectStatus::WARP:
 						break;
 					case ObjectStatus::COLLECTION:
-						draw.Draw(
-							boxFloor,
+						draw.DrawOBJ(
+							coinModel,
 							mapPosition,
-							XMMatrixRotationX(XMConvertToRadians(90)),
-							XMFLOAT3(1, 1, 1),
-							XMFLOAT4(1, 1, 1, 1),
-							test
+							XMMatrixIdentity(),
+							scale_xyz(10.0f)
 						);
 						break;
 					default:
@@ -877,16 +939,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
 				draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
+				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 			if (isGameover == true)
 			{
 				draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
+				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
 			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
 			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "ink:%d", hp.GetCurrentHP());
 			draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
-			//draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 #endif // _DEBUG
 			break;
 		default:

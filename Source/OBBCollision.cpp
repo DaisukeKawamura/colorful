@@ -230,7 +230,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//左上
 	if (oldLeft >= BRight && oldUp <= BDown)
 	{
-		if (up == BLOCK || up == RedBLOCK || up == BlueBLOCK || up == GreenBLOCK || up == YellowBLOCK)
+		if (up == BLOCK || up == RED_BLOCK || up == BLUE_BLOCK || up == GREEN_BLOCK || up == YELLOW_BLOCK)
 		{
 		}
 		//上にブロックがなかったら上優先
@@ -242,7 +242,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//左下
 	else if (oldLeft >= BRight && oldDown >= BUp)
 	{
-		if (down == BLOCK || down == RedBLOCK || down == BlueBLOCK || down == GreenBLOCK || down == YellowBLOCK)
+		if (down == BLOCK || down == RED_BLOCK || down == BLUE_BLOCK || down == GREEN_BLOCK || down == YELLOW_BLOCK)
 		{
 		}
 		//下にブロックがなかったら下優先
@@ -254,7 +254,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//右上
 	else if (oldRight <= BLeft && oldUp <= BDown)
 	{
-		if (up == BLOCK || up == RedBLOCK || up == BlueBLOCK || up == GreenBLOCK || up == YellowBLOCK)
+		if (up == BLOCK || up == RED_BLOCK || up == BLUE_BLOCK || up == GREEN_BLOCK || up == YELLOW_BLOCK)
 		{
 		}
 		//上にブロックがなかったら上優先
@@ -266,7 +266,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//右下
 	else if (oldRight <= BLeft && oldDown >= BUp)
 	{
-		if (down == BLOCK || down == RedBLOCK || down == BlueBLOCK || down == GreenBLOCK || down == YellowBLOCK)
+		if (down == BLOCK || down == RED_BLOCK || down == BLUE_BLOCK || down == GREEN_BLOCK || down == YELLOW_BLOCK)
 		{
 		}
 		//下にブロックがなかったら下優先

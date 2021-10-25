@@ -14,7 +14,7 @@ int BlockChange::changeBlockPColor(XMFLOAT4 pColor)
 		//プレイヤーの色と同じだったらその色に変える
 		if (pColor.x == changeColor[i].x && pColor.y == changeColor[i].y && pColor.z == changeColor[i].z && pColor.w == changeColor[i].w)
 		{
-			return  ObjectStatus::RedBLOCK + i;
+			return  ObjectStatus::RED_BLOCK + i;
 		}
 	}
 
@@ -28,7 +28,7 @@ int BlockChange::changeFloorPColor(XMFLOAT4 pColor)
 		//プレイヤーの色と同じだったらその色に変える
 		if (pColor.x == changeColor[i].x && pColor.y == changeColor[i].y && pColor.z == changeColor[i].z && pColor.w == changeColor[i].w)
 		{
-			return  ObjectStatus::RedFloor + i;
+			return  ObjectStatus::RED_FLOOR + i;
 		}
 	}
 

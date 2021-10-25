@@ -1,5 +1,5 @@
 #include "./Header/Directing.h"
-#define scale_xyz(_scale) DirectX::XMFLOAT3(_scale, _scale, _scale)
+
 void Directing::Init()
 {
 	//シェイク初期化

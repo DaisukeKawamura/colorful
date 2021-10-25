@@ -7,12 +7,14 @@
 #include "./Header/HP.h"
 #include "./Header/LoadCSV.h"
 #include "./Header/BlockChange.h"
-#include"./Header/Directing.h"
+#include "./Header/Directing.h"
+#include "./Header/Audio.h"
+
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
 
-const WCHAR title[] = L"title"; //タイトル
+const WCHAR title[] = L"PAINTWO"; //タイトル
 
 const float clearColor[] = { 0.1f,0.1f,0.3f,0.0f }; //背景色
 
@@ -54,6 +56,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	directing.Init();
 	directing.ParticleInit(&draw);
 
+	Audio audio;
+	audio.Init();
+
 	// 画像の読み込み
 	int background1 = draw.LoadTextrue(L"./Resources/bag1.png");
 	int background2 = draw.LoadTextrue(L"./Resources/bag2.png");
@@ -61,13 +66,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
 	int test = draw.LoadTextrue(L"./Resources/tex1.png");
-
-	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
-	XMFLOAT3 cameraTarget = { 0, 0, 0 }; //カメラの注視点
-	XMFLOAT3 upVec = { 0, 1, 0 };        //上ベクトル
-
-	// メインカメラの初期化
-	draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 
 	// オブジェクトの生成
 	const XMFLOAT3 blockSize = { 40.0f, 20.0f, 20.0f };                         //ブロック一個分の大きさ
@@ -86,6 +84,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	draw.NormalizeUV(box, boxGraph);
 	draw.NormalizeUV(boxFloor, boxGraph);
 	draw.NormalizeUV(goalBox, boxGraph);
+
+	// 音声データの読み込み
+	int testSound = audio.SoundLoadWave("./Resources/Sound/Alarm01.wav");
+	audio.SoundPlayWave(testSound);
+
+	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
+	XMFLOAT3 cameraTarget = { 0, 0, 0 }; //カメラの注視点
+	XMFLOAT3 upVec = { 0, 1, 0 };        //上ベクトル
+
+	// メインカメラの初期化
+	draw.SetCamera(cameraPos, cameraTarget, upVec, MAIN_CAMERA);
 
 	// ゲームループで使う変数の宣言
 	int map[MAP_HEIGHT][MAP_WIDTH] = {};                //CSVファイルの保存場所

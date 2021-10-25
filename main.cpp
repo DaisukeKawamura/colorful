@@ -104,7 +104,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	const float floorOffsetY = 10.0f;					//床のY軸の位置
 
-	int mapColor[MAP_HEIGHT][MAP_WIDTH] = {};			//変わる色の情報を保持
 
 	int ringCount = 0; //色変えリングの数
 	const auto &changeColor = BlockChange::changeColor;
@@ -382,19 +381,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						{
 							hp.AddDamage(0.01f);
 							player.groundFlag = true;
-							//変わる色の情報を保持
-							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
+							//地面の色を変える
+							map[y][x] = BlockChange::changeBlockPColor(player.color);
 						}
-						else
-						{
-							//地面から離れたら保持していた色に変える
-							if (mapColor[y][x] > 0)
-							{
-								map[y][x] = mapColor[y][x];
-
-								mapColor[y][x] = 0;
-							}
-						}
+					
 					}
 					break;
 					case ObjectStatus::RedBLOCK:
@@ -417,18 +407,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							player.ChangeGroundColor(map[y][x]);
 							hp.AddDamage(0.01f);
 							player.groundFlag = true;
-							//変わる色の情報を保持
-							mapColor[y][x] = BlockChange::changeBlockPColor(player.color);
+							//地面の色を変える
+							map[y][x] = BlockChange::changeBlockPColor(player.color);
 						}
-						else
-						{
-							//地面から離れたら保持していた色に変える
-							if (mapColor[y][x] > 0)
-							{
-								map[y][x] = mapColor[y][x];
-								mapColor[y][x] = 0;
-							}
-						}
+						
 					}
 					break;
 					case ObjectStatus::Floor:
@@ -445,20 +427,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (HitDown)
 						{
 							player.groundFlag = true;
-							//変わる色を保持
-							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
+							//地面の色を変える
+							map[y][x] = BlockChange::changeFloorPColor(player.color);
 
 							hp.AddDamage(0.005f);
 						}
-						else
-						{
-							//プレイヤーの色に合わせてブロックを変える
-							if (mapColor[y][x] > 0)
-							{
-								map[y][x] = mapColor[y][x];
-								mapColor[y][x] = 0;
-							}
-						}
+						
 					}
 					break;
 					case ObjectStatus::RedFloor:
@@ -481,19 +455,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						{
 							player.groundFlag = true;
 							player.ChangeGroundColor(map[y][x]);
-							//変わる色を保持
-							mapColor[y][x] = BlockChange::changeFloorPColor(player.color);
+							//地面の色を変える
+							map[y][x] = BlockChange::changeFloorPColor(player.color);
 
 							hp.AddDamage(0.005f);
-						}
-						else
-						{
-							//プレイヤーの色に合わせてブロックを変える
-							if (mapColor[y][x] > 0)
-							{
-								map[y][x] = mapColor[y][x];
-								mapColor[y][x] = 0;
-							}
 						}
 					}
 					break;

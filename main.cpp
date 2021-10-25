@@ -73,11 +73,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int boxFloor = draw.Create3Dbox(blockSize.x, blockSize.y / 4, blockSize.z); //床
 	int startBox = draw.Create3Dbox(240.0f, blockSize.y, blockSize.z); //スタート部分の床
 	int goalBox = draw.Create3Dbox(320.0f, blockSize.y, blockSize.z);  //ゴール部分の床
-	int ringPolygon = draw.CreateCircle(10.0f, 16); //リング
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);  //ゴールの旗
 	int wallBreak = draw.Create3Dbox(20.0f, 200.0f, 20.0f);//壊れる壁
+
 	// モデルの読み込み
 	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/"); //アイテム
+	int ringModel = draw.CreateOBJModel("./Resources/ring/5.obj", "./Resources/ring/"); //リング
 
 	// テクスチャのタイリング
 	draw.NormalizeUV(startBox, boxGraph);
@@ -608,7 +609,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.rotaMat = XMMatrixRotationZ(XMConvertToRadians(directing.playerAngle));
 				if (directing.pFlyTimeRate >= 1.0f)
 				{
-					player.rotaMat = XMMatrixRotationY(XMConvertToRadians(270));
+					player.rotaMat = XMMatrixRotationY(XMConvertToRadians(0));
 					directing.pFlyFlag = true;
 					directing.Lap2Start(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
 				}
@@ -723,21 +724,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						break;
 					case ObjectStatus::RING:
-						draw.Draw(
-							ringPolygon,
+						draw.DrawOBJ(
+							ringModel,
 							mapPosition,
-							XMMatrixRotationY(XMConvertToRadians(90)),
-							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]],
-							ringGraph
-						);
-						draw.Draw(
-							ringPolygon,
-							mapPosition,
-							XMMatrixRotationY(XMConvertToRadians(-90)),
-							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]],
-							ringGraph
+							XMMatrixRotationY(XMConvertToRadians(0)),
+							XMFLOAT3(10.0f, 10.0f, 10.0f),
+							changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]]
 						);
 						ringCount++;
 						break;

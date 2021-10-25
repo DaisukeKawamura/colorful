@@ -55,8 +55,8 @@ void Player::Init(DrawPolygon *draw)
 
 	this->pos = XMFLOAT3(0, 0, 0);
 	this->oldPos = XMFLOAT3(0, 0, 0);
-	this->rotaMat = XMMatrixRotationY(XMConvertToRadians(270));
-	this->scale = scale_xyz(2.0f);
+	this->rotaMat = XMMatrixRotationY(XMConvertToRadians(0));
+	this->scale = scale_xyz(4.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	this->speed = 2.8f;
@@ -180,23 +180,23 @@ void Player::Update()
 
 void Player::Draw()
 {
-	if (color.x == changeColor[BlockChange::ColorNo::RED].x ||
-		color.y == changeColor[BlockChange::ColorNo::RED].y ||
-		color.z == changeColor[BlockChange::ColorNo::RED].z ||
+	if (color.x == changeColor[BlockChange::ColorNo::RED].x &&
+		color.y == changeColor[BlockChange::ColorNo::RED].y &&
+		color.z == changeColor[BlockChange::ColorNo::RED].z &&
 		color.w == changeColor[BlockChange::ColorNo::RED].w)
 	{
 		draw->DrawOBJ(playerObject[BlockChange::ColorNo::RED], pos, rotaMat, scale);
 	}
-	else if (color.x == changeColor[BlockChange::ColorNo::BLUE].x ||
-		color.y == changeColor[BlockChange::ColorNo::BLUE].y ||
-		color.z == changeColor[BlockChange::ColorNo::BLUE].z ||
+	else if (color.x == changeColor[BlockChange::ColorNo::BLUE].x &&
+		color.y == changeColor[BlockChange::ColorNo::BLUE].y &&
+		color.z == changeColor[BlockChange::ColorNo::BLUE].z &&
 		color.w == changeColor[BlockChange::ColorNo::BLUE].w)
 	{
 		draw->DrawOBJ(playerObject[BlockChange::ColorNo::BLUE], pos, rotaMat, scale);
 	}
-	else if (color.x == changeColor[BlockChange::ColorNo::GREEN].x ||
-		color.y == changeColor[BlockChange::ColorNo::GREEN].y ||
-		color.z == changeColor[BlockChange::ColorNo::GREEN].z ||
+	else if (color.x == changeColor[BlockChange::ColorNo::GREEN].x &&
+		color.y == changeColor[BlockChange::ColorNo::GREEN].y &&
+		color.z == changeColor[BlockChange::ColorNo::GREEN].z &&
 		color.w == changeColor[BlockChange::ColorNo::GREEN].w)
 	{
 		draw->DrawOBJ(playerObject[BlockChange::ColorNo::GREEN], pos, rotaMat, scale);

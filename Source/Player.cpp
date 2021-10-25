@@ -1,8 +1,6 @@
 #include "./Header/Player.h"
 #include "./Header/BlockChange.h"
 
-#define scale_xyz(_scale) DirectX::XMFLOAT3(_scale, _scale, _scale)
-
 const float Player::gravity = 0.70f;
 const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
 
@@ -86,7 +84,8 @@ void Player::Update()
 	}
 
 	if (jumpPower == 0 && jumpPowerDecay == 0)
-	{//ふわふわ落ちないように
+	{
+		// ふわふわ落ちないように
 		jumpPowerDecay = 0.5f;
 	}
 
@@ -94,7 +93,7 @@ void Player::Update()
 
 	if (jumpFlag == true && groundFlag == true)
 	{
-		//赤ブロック踏んだ時
+		// 赤ブロック踏んだ時
 		if (color.x == changeColor[BlockChange::ColorNo::RED].x &&
 			color.y == changeColor[BlockChange::ColorNo::RED].y &&
 			color.z == changeColor[BlockChange::ColorNo::RED].z &&
@@ -102,7 +101,7 @@ void Player::Update()
 		{
 			JumpStart(9.0f, 0.5);
 		}
-		//ノーマルジャンプ
+		// ノーマルジャンプ
 		else
 		{
 			JumpStart(6.8f, 0.5);
@@ -111,7 +110,7 @@ void Player::Update()
 	groundFlag = false;
 	groundColor = false;
 
-	//黄ブロック踏んだ時
+	// 青ブロック踏んだ時
 	if (color.x == changeColor[BlockChange::ColorNo::BLUE].x &&
 		color.y == changeColor[BlockChange::ColorNo::BLUE].y &&
 		color.z == changeColor[BlockChange::ColorNo::BLUE].z &&
@@ -185,21 +184,21 @@ void Player::Draw()
 		color.z == changeColor[BlockChange::ColorNo::RED].z &&
 		color.w == changeColor[BlockChange::ColorNo::RED].w)
 	{
-		draw->DrawOBJ(playerObject[BlockChange::ColorNo::RED], pos, rotaMat, scale);
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::RED], XMFLOAT3(pos.x, pos.y - 5.0f, pos.z), rotaMat, scale);
 	}
 	else if (color.x == changeColor[BlockChange::ColorNo::BLUE].x &&
 		color.y == changeColor[BlockChange::ColorNo::BLUE].y &&
 		color.z == changeColor[BlockChange::ColorNo::BLUE].z &&
 		color.w == changeColor[BlockChange::ColorNo::BLUE].w)
 	{
-		draw->DrawOBJ(playerObject[BlockChange::ColorNo::BLUE], pos, rotaMat, scale);
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::BLUE], XMFLOAT3(pos.x, pos.y - 5.0f, pos.z), rotaMat, scale);
 	}
 	else if (color.x == changeColor[BlockChange::ColorNo::GREEN].x &&
 		color.y == changeColor[BlockChange::ColorNo::GREEN].y &&
 		color.z == changeColor[BlockChange::ColorNo::GREEN].z &&
 		color.w == changeColor[BlockChange::ColorNo::GREEN].w)
 	{
-		draw->DrawOBJ(playerObject[BlockChange::ColorNo::GREEN], pos, rotaMat, scale);
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::GREEN], XMFLOAT3(pos.x, pos.y - 5.0f, pos.z), rotaMat, scale);
 	}
 	else
 	{
@@ -219,20 +218,20 @@ void Player::ChangeGroundColor(const int map)
 	switch (map)
 	{
 		//色ごとの効果
-	case ObjectStatus::RedBLOCK:
-	case ObjectStatus::RedFloor:
+	case ObjectStatus::RED_BLOCK:
+	case ObjectStatus::RED_FLOOR:
 		groundColor = red;
 		break;
-	case ObjectStatus::BlueBLOCK:
-	case ObjectStatus::BlueFloor:
+	case ObjectStatus::BLUE_BLOCK:
+	case ObjectStatus::BLUE_FLOOR:
 		groundColor = blue;
 		break;
-	case ObjectStatus::GreenBLOCK:
-	case ObjectStatus::GreenFloor:
+	case ObjectStatus::GREEN_BLOCK:
+	case ObjectStatus::GREEN_FLOOR:
 		groundColor = green;
 		break;
-	case ObjectStatus::YellowBLOCK:
-	case ObjectStatus::YellowFloor:
+	case ObjectStatus::YELLOW_BLOCK:
+	case ObjectStatus::YELLOW_FLOOR:
 		groundColor = yellow;
 		break;
 	};

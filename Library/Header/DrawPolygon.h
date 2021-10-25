@@ -4,6 +4,8 @@
 
 #define MAIN_CAMERA (0)
 
+#define scale_xyz(_scale) DirectX::XMFLOAT3(_scale, _scale, _scale)
+
 class DrawPolygon final : public DebugText
 {
 public: // ƒƒ“ƒoŠÖ”

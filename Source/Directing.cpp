@@ -8,6 +8,7 @@ void Directing::Init()
 	shakeY = 0;
 	//スコアイージング初期化
 	scoreFlag = true;
+	scoreDirectFlag = true;
 	//アイテムイージング初期化
 	itemFlag = false;
 	//周回フラグ初期化
@@ -54,6 +55,8 @@ void Directing::ParticleInit(DrawPolygon *draw)
 		this->lap1Graph = draw->LoadTextrue(L"./Resources/lap1.png");
 		this->lap2Graph = draw->LoadTextrue(L"./Resources/lap2.png");
 		this->wallBreakGraph = draw->LoadTextrue(L"./Resources/box.png");
+		this->starGraph = draw->LoadTextrue(L"./Resources/hosi.png");
+		this->medalGraph = draw->LoadTextrue(L"./Resources/medaru.png");
 		this->particlePolygon = this->draw->CreateRect(10, 10);
 		this->wallBreak3D = this->draw->Create3Dbox(10.0f, 10.0f, 20.0f);
 		this->draw->NormalizeUV(wallBreak3D, wallBreakGraph);
@@ -110,8 +113,65 @@ XMFLOAT3 Directing::scoreEasing()
 	position = easeOut(scoreStart, scoreEnd, scoreTimeRate);
 	/*position = easeIn(start, end, timeRate);*/
 	//position = easeInOut(start, end, timeRate);
-
+	if (scoreTimeRate >= 1.0f)
+	{
+		scoreDirectFlag = false;
+	}
 	return XMFLOAT3(scoreStart.x, position.y, scoreStart.z);
+}
+void Directing::scoreDraw(const int score, const int medal)
+{
+	if (scoreDirectFlag == true)
+	{
+		scoreTime == 0;
+		for (int i = 0; i < 3; i++)
+		{
+			starScale[i] = 0;
+			medalScale[i] = 0;
+		}
+	}
+	if (scoreDirectFlag == false)
+	{
+		const int starR = 160;
+		const int medalR = 65;
+		const int scale = 15;
+		//星
+		for (int i = 0; i < 3; i++)
+		{
+			if (scoreTime > i * 10 && score >= clearScore[i])
+			{
+				if (scoreTime < 5 + i * 10)
+				{
+					starScale[i] += scale;
+				}
+				else if (scoreTime < 9 + i * 10)
+				{
+					starScale[i] -= scale;
+				}
+				draw->DrawTextrue(375 + (181 * i) - starScale[i] / 2, 330 - starScale[i] / 2, starR + starScale[i], starR + starScale[i], 0, starGraph, XMFLOAT2(0.0f, 0.0f));
+
+			}
+		}
+		for (int i = 0; i < 3; i++)
+		{
+			//メダル
+			if (scoreTime > i * 10 + 30 && medal >= i + 1)
+			{
+				if (scoreTime < 35 + i * 10)
+				{
+					medalScale[i] += scale;
+				}
+				else if (scoreTime < 39 + i * 10)
+				{
+					medalScale[i] -= scale;
+				}
+				draw->DrawTextrue(530 + (77 * i) - medalScale[i] / 2, 510 - medalScale[i] / 2, medalR + medalScale[i], medalR + medalScale[i], 0, medalGraph, XMFLOAT2(0.0f, 0.0f));
+			}
+
+		}
+
+		scoreTime++;
+	}
 }
 //アイテムイージング
 void Directing::ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos)

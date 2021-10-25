@@ -27,6 +27,8 @@ public:// パーティクル画像読み込み
 	int lap1Graph;      //Lap1の画像
 	int lap2Graph;      //Lap2の画像
 	int wallBreakGraph; //壊れる壁
+	int starGraph;		//星の画像
+	int medalGraph;		//メダルの画像
 	void ParticleInit(DrawPolygon *draw);
 
 public:// 死亡時シェイク
@@ -51,6 +53,15 @@ public:// スコアイージング
 	void scoreEasingStart(XMFLOAT3 start, XMFLOAT3 end, float Time);
 	//スコアイージング更新
 	XMFLOAT3 scoreEasing();
+public://スコア演出
+	bool scoreDirectFlag;
+	int scoreTime;
+	const int clearScore[3] = { 60,80,90 };
+
+	int  starScale[3];
+	int  medalScale[3];
+	//星とメダルの描画/スコア、メダル
+	void scoreDraw(const int score, const int medal);
 public:	//アイテムイージング
 	Vector3 itemStart;				//スタート地点
 	Vector3 itemEnd;				//エンド地点

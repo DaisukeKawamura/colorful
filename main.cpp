@@ -627,7 +627,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						}
 					}
 
-					player.rotaMat = XMMatrixRotationY(XMConvertToRadians(0));
+					player.rotaMat = XMMatrixIdentity();
 					directing.pFlyFlag = true;
 					directing.Lap2Start(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
 				}
@@ -635,12 +635,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			break;
 		default:
-			gameStatus = GameStatus::Title;
+			gameStatus = GameStatus::TitleInit;
 			break;
 		}
 
 		if (Input::IsKey(DIK_LEFT))
 		{
+			isClear = true;
 		}
 		if (Input::IsKey(DIK_RIGHT))
 		{

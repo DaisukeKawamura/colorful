@@ -39,4 +39,4 @@ int LoadCSV(int map[MAP_HEIGHT][MAP_WIDTH], const char* FilePath, int LoadStopNu
 /// <param name="FilePath"> CSVファイルのパス </param>
 /// <param name="LoadStopNumber"> ここに指定された値がヒットすると読み込みを終了する </param>
 /// <returns> 0以外で失敗、0で成功 </returns>
-int LoadCSV1D(int* mapArray, const char* FilePath, int LoadStopNumber = -1);
+int LoadCSV1D(int* mapArray, const size_t& mapSize, const char* FilePath, int LoadStopNumber = -1);

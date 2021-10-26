@@ -19,6 +19,7 @@ void Directing::Init()
 	wallFlag = true;
 	pFlyFlag = true;
 	wallTime = 8;
+	jumpTime = 0;
 	//走るパーティクル削除
 	for (int i = (int)run.size() - 1; i >= 0; i--)
 	{
@@ -43,6 +44,12 @@ void Directing::Init()
 		delete explosion[i];
 		explosion.erase(explosion.begin() + i);
 	}
+	//ジャンプ削除
+	for (int i = (int)jump.size() - 1; i >= 0; i--)
+	{
+		delete jump[i];
+		jump.erase(jump.begin() + i);
+	}
 }
 //画像読み込み
 void Directing::ParticleInit(DrawPolygon *draw)
@@ -51,14 +58,20 @@ void Directing::ParticleInit(DrawPolygon *draw)
 	if (isInit == false)
 	{
 		this->draw = draw;
-		this->graph1 = draw->LoadTextrue(L"./Resources/particle.jpg");
-		this->graph2 = draw->LoadTextrue(L"./Resources/effect2.png");
-		this->graph3 = draw->LoadTextrue(L"./Resources/effect3.png");
-		this->lap1Graph = draw->LoadTextrue(L"./Resources/lap1.png");
-		this->lap2Graph = draw->LoadTextrue(L"./Resources/lap2.png");
-		this->wallBreakGraph = draw->LoadTextrue(L"./Resources/box.png");
-		this->starGraph = draw->LoadTextrue(L"./Resources/hosi.png");
-		this->medalGraph = draw->LoadTextrue(L"./Resources/medaru.png");
+		this->graph1 = this->draw->LoadTextrue(L"./Resources/particle.jpg");
+		this->graph2 = this->draw->LoadTextrue(L"./Resources/effect2.png");
+		this->graph3 = this->draw->LoadTextrue(L"./Resources/effect3.png");
+		this->lap1Graph = this->draw->LoadTextrue(L"./Resources/lap1.png");
+		this->lap2Graph = this->draw->LoadTextrue(L"./Resources/lap2.png");
+		this->wallBreakGraph = this->draw->LoadTextrue(L"./Resources/box.png");
+		this->SelectGraph = this->draw->LoadTextrue(L"./Resources/stageselect.png");
+		this->SelectBotanGraph = this->draw->LoadTextrue(L"./Resources/stageselectBotan.png");
+		this->starGraph = this->draw->LoadTextrue(L"./Resources/hosi.png");
+		this->medalGraph = this->draw->LoadTextrue(L"./Resources/medaru.png");
+		this->SelectBackBotan = this->draw->LoadTextrue(L"./Resources/backbutton.png");
+		this->percentGraph = this->draw->LoadTextrue(L"./Resources/percent.png");
+		this->stageNumberGraph = this->draw->LoadTextrue(L"./Resources/stagenum.png");
+		this->scoreNumberGraph = this->draw->LoadTextrue(L"./Resources/scorenum.png");
 		this->particlePolygon = this->draw->CreateRect(10, 10);
 		this->wallBreak3D = this->draw->Create3Dbox(10.0f, 10.0f, 20.0f);
 		this->draw->NormalizeUV(wallBreak3D, wallBreakGraph);
@@ -171,7 +184,10 @@ void Directing::scoreDraw(const int score, const int medal)
 			}
 
 		}
-
+		//スコア数字
+		NumberDraw(score, 800, 280, 60, 60);
+		//パーセント
+		draw->DrawTextrue(830, 248, 70, 70, 0, percentGraph, XMFLOAT2(0.0f, 0.0f));
 		scoreTime++;
 	}
 }
@@ -577,7 +593,260 @@ void Directing::SceneChangeDraw()
 	}
 
 }
+//ジャンプエフェクト
+bool Directing::JumEfectJudge(int jumpCount, XMFLOAT4 pColor)
+{
+	if (jumpCount == 0 && pColor.x == yellowJump.x &&
+		pColor.y == yellowJump.y &&
+		pColor.z == yellowJump.z &&
+		pColor.w == yellowJump.w)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+void Directing::JumEfectStart()
+{
+	jumpTime = 5;
+}
+void Directing::DoubleJumpUpdate(XMFLOAT3 pPos)
+{
+	if (jumpTime > 0)
+	{
+		XMFLOAT3 speed = { 2.8f,-1.0f,0.0f };
+		for (int i = 0; i < 15; i++)
+		{
+			pPos.x += rand() % 2 - 1.0f;
+			jump.push_back(new Particle(pPos, speed, XMFLOAT3(0.6, 0.6, 0.6), XMFLOAT4(0.3f, 0.3f, 0.3f, 0.3f), 20));
+		}
+		jumpTime--;
+	}
+	for (size_t i = 0; i < jump.size(); i++)
+	{//更新
+		jump[i]->pos = jump[i]->pos + jump[i]->speed;
+		jump[i]->color = jump[i]->color - XMFLOAT4(0.02f, 0.02f, 0.02f, 0.02f);
+		jump[i]->time--;
+		if (jump[i]->time == 2)
+		{
+			jump[i]->DelFlag = false;
+		}
+	}
+	for (int i = (int)jump.size() - 1; i >= 0; i--)
+	{//削除
+		if (jump[i]->DelFlag == false)
+		{
+			delete jump[i];
+			jump.erase(jump.begin() + i);
+		}
+	}
+}
 
+void Directing::DoubleJumpDraw()
+{
+	for (size_t i = 0; i < jump.size(); i++)
+	{//爆発
+		draw->Draw(particlePolygon, jump[i]->pos, jump[i]->rotaMat, jump[i]->scale, jump[i]->color, graph1);
+	}
+
+}
+//ステージセレクト
+void Directing::stageSelectInit()
+{
+	stageSelectFlag = true;
+}
+
+void Directing::stageSelectEasingStart(XMFLOAT3 start, XMFLOAT3 end, float Time)
+{
+	if (stageSelectFlag == true)
+	{
+		stageSelectFlag = false;
+		this->stageSelectStart = Vector3(start.x, start.y, start.z);
+		this->stageSelectEnd = Vector3(end.x, end.y, end.z);
+		this->stageSelectMaxTime = Time;
+		stageSelectEasingTime = 0;
+		stageFlag == true;
+	}
+}
+
+XMFLOAT3 Directing::stageSelectEasing()
+{
+	stageSelectEasingTime++;
+
+	stageSelectTimeRate = min(stageSelectEasingTime / stageSelectMaxTime, 1.0f);
+
+	Vector3 position = easeOut(stageSelectStart, stageSelectEnd, stageSelectTimeRate);
+	/*position = easeIn(start, end, timeRate); */
+		//position = easeInOut(start, end, timeRate);
+	if (stageSelectTimeRate >= 1.0f)
+	{
+		stageSelectFlag = true;
+	}
+
+
+	return XMFLOAT3(position.x, stageSelectStart.y, stageSelectStart.z);
+}
+
+void Directing::StageSelectUpdate()
+{
+	if (stageSelectFlag == false)
+	{//ステージセレクトイージング
+		stageSlectPos = stageSelectEasing();
+	}
+}
+
+void Directing::StageSelectDraw(const int score[], const int medal[], int window_width, int window_height)
+{
+	int starOfsetX = 433, starOfsetY = 383;
+	int starR = 120, starDistance = 145;
+	int medalOfsetX = 554, medalOfsetY = 531;
+	int medalR = 51, medalDistance = 60;
+
+	int stageNumOfsetX = 780, stageNumOfsetY = 215;
+	int stageNumR = 70;
+
+	int stageNumXY = 70;
+
+	int numberOfsetX = 820, numberOfsetY = 340;
+
+	for (int i = -1; i < 6; i++)
+	{//ステージセレクト
+		draw->DrawTextrue(stageSlectPos.x + window_width * i, 0, window_width, window_height, 0, SelectGraph, XMFLOAT2(0.0f, 0.0f));
+
+		if (i == -1)
+		{//ステージ５番目
+			for (int j = 0; j < 3/*star[5]*/; j++)
+			{
+				if (score[4] >= clearScore[j])
+				{
+					draw->DrawTextrue(stageSlectPos.x + window_width * i + starOfsetX + starDistance * j,
+						starOfsetY, starR, starR, 0, starGraph, XMFLOAT2(0.0f, 0.0f));
+				}
+			}
+			for (int j = 0; j < medal[4]; j++)
+			{
+				draw->DrawTextrue(stageSlectPos.x + window_width * i + medalOfsetX + medalDistance * j,
+					medalOfsetY, medalR, medalR, 0, medalGraph, XMFLOAT2(0.0f, 0.0f));
+			}
+			//スコア数字
+			NumberDraw(score[4], stageSlectPos.x + window_width * i + numberOfsetX, numberOfsetY, 60, 60);
+			//パーセント
+			draw->DrawTextrue(stageSlectPos.x + window_width * i + 850,
+				310, stageNumXY, stageNumXY, 0, percentGraph, XMFLOAT2(0.0f, 0.0f));
+			//ステージ番号
+			draw->DrawCutTextrue(stageSlectPos.x + stageNumOfsetX + window_width * i, stageNumOfsetY, stageNumR, stageNumR,
+				XMFLOAT2(stageNumXY * 5, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, stageNumberGraph);
+		}
+		else if (i == 5)
+		{//ステージ1番目
+			for (int j = 0; j < 3/*star[0]*/; j++)
+			{
+				if (score[0] >= clearScore[j])
+				{
+					draw->DrawTextrue(stageSlectPos.x + window_width * i + starOfsetX + starDistance * j,
+						starOfsetY, starR, starR, 0, starGraph, XMFLOAT2(0.0f, 0.0f));
+				}
+			}
+			for (int j = 0; j < medal[0]; j++)
+			{
+				draw->DrawTextrue(stageSlectPos.x + window_width * i + medalOfsetX + medalDistance * j,
+					medalOfsetY, medalR, medalR, 0, medalGraph, XMFLOAT2(0.0f, 0.0f));
+			}
+			//スコア数字
+			NumberDraw(score[0], stageSlectPos.x + window_width * i + numberOfsetX, numberOfsetY, 60, 60);
+			//パーセント
+			draw->DrawTextrue(stageSlectPos.x + window_width * i + 850,
+				310, stageNumXY, stageNumXY, 0, percentGraph, XMFLOAT2(0.0f, 0.0f));
+			//ステージ番号
+			draw->DrawCutTextrue(stageSlectPos.x + window_width * i + stageNumOfsetX, stageNumOfsetY, stageNumR, stageNumR,
+				XMFLOAT2(stageNumXY, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, stageNumberGraph);
+		}
+		else
+		{//ステージ1～5
+			for (int j = 0; j < 3; j++)
+			{//星
+				if (score[i] >= clearScore[j])
+				{
+					draw->DrawTextrue(stageSlectPos.x + window_width * i + starOfsetX + starDistance * j,
+						starOfsetY, starR, starR, 0, starGraph, XMFLOAT2(0.0f, 0.0f));
+				}
+			}
+			for (int j = 0; j < medal[i]; j++)
+			{//メダル
+				draw->DrawTextrue(stageSlectPos.x + window_width * i + medalOfsetX + medalDistance * j,
+					medalOfsetY, medalR, medalR, 0, medalGraph, XMFLOAT2(0.0f, 0.0f));
+			}
+			//スコア数字
+			NumberDraw(score[i], stageSlectPos.x + window_width * i + numberOfsetX, numberOfsetY, 60, 60);
+			//パーセント
+			draw->DrawTextrue(stageSlectPos.x + window_width * i + 850,
+				310, stageNumXY, stageNumXY, 0, percentGraph, XMFLOAT2(0.0f, 0.0f));
+
+			//ステージ番号
+			draw->DrawCutTextrue(stageSlectPos.x + window_width * i + stageNumOfsetX, stageNumOfsetY, stageNumR, stageNumR,
+				XMFLOAT2(stageNumXY * i + stageNumXY, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, stageNumberGraph);
+		}
+	}
+	draw->DrawTextrue(50, 50, 96 + selectTitleR, 96 + selectTitleR, 0, SelectBackBotan);
+	//左右の→
+	draw->DrawTextrue(0, 0, window_width, window_height, 0, SelectBotanGraph, XMFLOAT2(0.0f, 0.0f));
+}
+
+
+void Directing::SelectTitle()
+{
+	if (selectTitleFlag == true)
+	{
+		selectTitleR++;
+		if (selectTitleR >= 10)
+		{
+			selectTitleFlag = false;
+		}
+	}
+	else
+	{
+		selectTitleR--;
+		if (selectTitleR <= -10)
+		{
+			selectTitleFlag = true;
+		}
+	}
+}
+
+void Directing::NumberDraw(const int score, const  int posX, const int posY, const int width, const int height)
+{
+	int stageNumXY = 70;
+	int numDistance = 70;
+	//スコアによって変わる
+	for (int i = 0; i < 10; i++)
+	{
+		if (score % 10 == i)
+		{
+			draw->DrawCutTextrue(posX, posY, width, height,
+				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+		}
+
+	}
+	for (int i = 0; i < 10; i++)
+	{
+		if (score / 10 % 10 == i)
+		{
+			draw->DrawCutTextrue(posX - numDistance, posY, width, height,
+				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+		}
+
+	}
+	for (int i = 0; i < 10; i++)
+	{
+		if (score / 100 % 10 == i)
+		{
+			draw->DrawCutTextrue(posX - numDistance * 2, posY, width, height,
+				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+		}
+	}
+}
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs)
 {
 	XMFLOAT3 result;

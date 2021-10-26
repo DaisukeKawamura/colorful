@@ -394,7 +394,7 @@ void Directing::Lap2Update()
 		lap2Pos = easeIn(lap2Start, lap2End, lap2TimeRate);
 		//lap2Pos = easeInOut(lap2Start, lap2End, lap2TimeRate);
 	}
-	
+
 }
 
 void Directing::Lap2Draw()
@@ -529,7 +529,54 @@ void Directing::explosionDraw()
 	}
 }
 
+bool Directing::ChangeScene()
+{
+	return changeColor.w >= 1.0f;
+}
 
+void Directing::StartSceneChange()
+{
+	if (sceneChangeFlag == false)
+	{
+		sceneChangeFlag = true;
+		firstHalfFlag = true;
+		changeColor = XMFLOAT4(0.0f, 0.0f, 0.0f, 0.0f);
+	}
+}
+
+void Directing::SceneChangeUpdate()
+{
+
+	if (sceneChangeFlag == true)
+	{
+		const float changeSpeed = 0.045f;
+		if (firstHalfFlag == true)
+		{
+			changeColor.w += changeSpeed;
+			if (changeColor.w >= 1.0f)
+			{
+				firstHalfFlag = false;
+			}
+		}
+		else
+		{
+			if (changeColor.w <= 0.0f)
+			{
+				sceneChangeFlag = false;
+			}
+			changeColor.w -= changeSpeed;
+		}
+	}
+}
+
+void Directing::SceneChangeDraw()
+{
+	if (sceneChangeFlag == true)
+	{
+		draw->DrawTextrue(0, 0, 1280, 780, 0, 0, XMFLOAT2(0.0f, 0.0f), changeColor);
+	}
+
+}
 
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs)
 {

@@ -149,6 +149,19 @@ public:	//壊れる壁と爆発
 	void wallDraw();
 
 	void explosionDraw();
+public://シーンチェンジ演出
+	bool sceneChangeFlag;//暗転しているか
+
+	bool firstHalfFlag;//演出の前半かどうか
+	XMFLOAT4 changeColor;
+	//シーンチェンジ
+	bool ChangeScene();
+	//シーンチェンジ演出スタート
+	void StartSceneChange();
+	//シーンチェンジ更新
+	void SceneChangeUpdate();
+	//シーンチェンジ描画
+	void SceneChangeDraw();
 };
 //XMFLOAT3同士の計算
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs);

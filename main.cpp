@@ -171,6 +171,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		case GameStatus::Title:
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
+				directing.StartSceneChange();
+				//gameStatus = GameStatus::SelectInit;
+			}
+			if (directing.ChangeScene())
+			{
 				gameStatus = GameStatus::SelectInit;
 			}
 			break;
@@ -222,6 +227,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 
 			if (Input::IsKeyTrigger(DIK_SPACE))
+			{
+				directing.StartSceneChange();
+			}
+			if (directing.ChangeScene())
 			{
 				if (stageNo == maxStageCount - 1)
 				{
@@ -330,7 +339,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (isClear == true || isGameover == true)
 				{
-					gameStatus = GameStatus::Title;
+					directing.StartSceneChange();
 				}
 				else
 				{
@@ -341,7 +350,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				player.jumpFlag = false;
 			}
-
+			
+			if (directing.ChangeScene()&& (isClear == true || isGameover == true))
+			{
+				gameStatus = GameStatus::Title;
+			}
 			player.Update();
 
 			// メインカメラの更新
@@ -988,7 +1001,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		default:
 			break;
 		}
-
+		directing.SceneChangeUpdate();
+		directing.SceneChangeDraw();
 		// ループの終了処理
 		draw.PolygonLoopEnd();
 		w.ScreenFlip();

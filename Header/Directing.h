@@ -103,7 +103,7 @@ public://1週目演出
 	float lap1TimeRate;				//何％　時間が進んだか(率)
 	Vector3 lap1Pos;
 	bool lap1Flag;
-
+	bool  stopLap1Flag;
 	void Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time);
 
 	void Lap1Draw();
@@ -116,7 +116,7 @@ public:	//2週目演出
 	float lap2TimeRate;				//何％　時間が進んだか(率)
 	Vector3 lap2Pos;
 	bool lap2Flag;
-
+	bool  stopLap2Flag;
 	void Lap2Start(XMFLOAT3 start, XMFLOAT3 end, float time);
 
 	void Lap2Update();

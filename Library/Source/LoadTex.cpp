@@ -262,13 +262,16 @@ int LoadTex::DrawTextrue(const float& posX, const float& posY, const float& widt
 
 	BaseDrawSpriteGraphics();
 
-	if (sprite[spriteIndex[spriteCount].constant].size.x != width ||
-		sprite[spriteIndex[spriteCount].constant].size.y != height ||
-		sprite[spriteIndex[spriteCount].constant].anchorpoint.x != anchorpoint.x ||
-		sprite[spriteIndex[spriteCount].constant].anchorpoint.y != anchorpoint.y)
+	IndexData& index = spriteIndex[spriteCount];
+	index.textrue = graphHandle;
+
+	if (sprite[index.constant].size.x != width ||
+		sprite[index.constant].size.y != height ||
+		sprite[index.constant].anchorpoint.x != anchorpoint.x ||
+		sprite[index.constant].anchorpoint.y != anchorpoint.y)
 	{
-		sprite[spriteIndex[spriteCount].constant].size = { width, height };
-		sprite[spriteIndex[spriteCount].constant].anchorpoint = anchorpoint;
+		sprite[index.constant].size = { width, height };
+		sprite[index.constant].anchorpoint = anchorpoint;
 
 		enum Corner { LB, LT, RB, RT };
 
@@ -279,14 +282,10 @@ int LoadTex::DrawTextrue(const float& posX, const float& posY, const float& widt
 			{{}, { 1.0f, 0.0f }},
 		};
 
-		float left = (0.0f - sprite[spriteIndex[spriteCount].constant].anchorpoint.x) *
-			sprite[spriteIndex[spriteCount].constant].size.x;
-		float right = (1.0f - sprite[spriteIndex[spriteCount].constant].anchorpoint.x) *
-			sprite[spriteIndex[spriteCount].constant].size.x;
-		float top = (0.0f - sprite[spriteIndex[spriteCount].constant].anchorpoint.y) *
-			sprite[spriteIndex[spriteCount].constant].size.y;
-		float bottom = (1.0f - sprite[spriteIndex[spriteCount].constant].anchorpoint.y) *
-			sprite[spriteIndex[spriteCount].constant].size.y;
+		float left = (0.0f - sprite[index.constant].anchorpoint.x) * sprite[index.constant].size.x;
+		float right = (1.0f - sprite[index.constant].anchorpoint.x) * sprite[index.constant].size.x;
+		float top = (0.0f - sprite[index.constant].anchorpoint.y) * sprite[index.constant].size.y;
+		float bottom = (1.0f - sprite[index.constant].anchorpoint.y) * sprite[index.constant].size.y;
 
 		vert[LB].pos = {  left, bottom, 0.0f };
 		vert[LT].pos = {  left,    top, 0.0f };
@@ -295,52 +294,51 @@ int LoadTex::DrawTextrue(const float& posX, const float& posY, const float& widt
 
 		// 頂点バッファへのデータ転送
 		SpriteVertex* vertexMap = nullptr;
-		sprite[sprite.size() - 1].vertBuff->Map(0, nullptr, (void**)&vertexMap);
+		sprite[index.constant].vertBuff->Map(0, nullptr, (void**)&vertexMap);
 		memcpy(vertexMap, vert, sizeof(vert));
-		sprite[sprite.size() - 1].vertBuff->Unmap(0, nullptr);
+		sprite[index.constant].vertBuff->Unmap(0, nullptr);
 	}
 
-	sprite[spriteIndex[spriteCount].constant].color = color;
-	sprite[spriteIndex[spriteCount].constant].pos = { posX, posY, 0 };
-	sprite[spriteIndex[spriteCount].constant].rotation = angle;
+	sprite[index.constant].color = color;
+	sprite[index.constant].pos = { posX, posY, 0 };
+	sprite[index.constant].rotation = angle;
 
-	sprite[spriteIndex[spriteCount].constant].matWorld = XMMatrixIdentity();
-	sprite[spriteIndex[spriteCount].constant].matWorld *=
-		XMMatrixRotationZ(XMConvertToRadians(sprite[spriteIndex[spriteCount].constant].rotation));
-	sprite[spriteIndex[spriteCount].constant].matWorld *=
-		XMMatrixTranslation(
-			sprite[spriteIndex[spriteCount].constant].pos.x,
-			sprite[spriteIndex[spriteCount].constant].pos.y,
-			sprite[spriteIndex[spriteCount].constant].pos.z);
+	sprite[index.constant].matWorld = XMMatrixIdentity();
+	sprite[index.constant].matWorld *=
+		XMMatrixRotationZ(XMConvertToRadians(sprite[index.constant].rotation));
+	sprite[index.constant].matWorld *= XMMatrixTranslation(
+		sprite[index.constant].pos.x,
+		sprite[index.constant].pos.y,
+		sprite[index.constant].pos.z);
 
 	if (parent != -1)
 	{
-		sprite[spriteIndex[spriteCount].constant].matWorld *= sprite[parent].matWorld;
+		sprite[index.constant].matWorld *= sprite[parent].matWorld;
 	}
 
 	SpriteConstBufferData* constMap = nullptr;
-	sprite[spriteIndex[spriteCount].constant].constBuff->Map(0, nullptr, (void**)&constMap);
-	constMap->color = sprite[spriteIndex[spriteCount].constant].color;
-	constMap->mat = sprite[spriteIndex[spriteCount].constant].matWorld *
+	sprite[index.constant].constBuff->Map(0, nullptr, (void**)&constMap);
+	constMap->color = sprite[index.constant].color;
+	constMap->mat = sprite[index.constant].matWorld *
 		spriteData.matProjection[CommonData::Projection::ORTHOGRAPHIC];
-	sprite[spriteIndex[spriteCount].constant].constBuff->Unmap(0, nullptr);
+	sprite[index.constant].constBuff->Unmap(0, nullptr);
 
 	// デスクリプタヒープをセット
 	ID3D12DescriptorHeap* ppHeaps[] = { texCommonData.descHeap.Get() };
 	w->cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
 	// 定数バッファビューをセット
-	w->cmdList->SetGraphicsRootConstantBufferView(0, sprite[spriteIndex[spriteCount].constant].constBuff->GetGPUVirtualAddress());
-	w->cmdList->SetGraphicsRootDescriptorTable(1, textrueData[spriteIndex[spriteCount].textrue].gpuDescHandle);
+	w->cmdList->SetGraphicsRootConstantBufferView(0, sprite[index.constant].constBuff->GetGPUVirtualAddress());
+	w->cmdList->SetGraphicsRootDescriptorTable(1, textrueData[index.textrue].gpuDescHandle);
 
 	// 頂点バッファの設定
-	w->cmdList->IASetVertexBuffers(0, 1, &sprite[spriteIndex[spriteCount].constant].vbView);
+	w->cmdList->IASetVertexBuffers(0, 1, &sprite[index.constant].vbView);
 	// 描画コマンド
 	w->cmdList->DrawInstanced(4, 1, 0, 0);
 
 #pragma endregion
 
-	return spriteIndex[spriteCount].constant;
+	return index.constant;
 }
 
 int LoadTex::DrawCutTextrue(const float& posX, const float& posY, const float& width, const float& height,
@@ -385,33 +383,36 @@ int LoadTex::DrawCutTextrue(const float& posX, const float& posY, const float& w
 
 	BaseDrawSpriteGraphics();
 
-	if (sprite[spriteCount].size.x != width ||
-		sprite[spriteCount].size.y != height ||
-		sprite[spriteCount].texLeftTop.x != texPos.x ||
-		sprite[spriteCount].texLeftTop.y != texPos.y ||
-		sprite[spriteCount].texSize.x != texSize.x ||
-		sprite[spriteCount].texSize.y != texSize.y ||
-		sprite[spriteIndex[spriteCount].constant].anchorpoint.x != anchorpoint.x ||
-		sprite[spriteIndex[spriteCount].constant].anchorpoint.y != anchorpoint.y)
+	IndexData& index = spriteIndex[spriteCount];
+	index.textrue = graphHandle;
+
+	if (sprite[index.constant].size.x != width ||
+		sprite[index.constant].size.y != height ||
+		sprite[index.constant].texLeftTop.x != texPos.x ||
+		sprite[index.constant].texLeftTop.y != texPos.y ||
+		sprite[index.constant].texSize.x != texSize.x ||
+		sprite[index.constant].texSize.y != texSize.y ||
+		sprite[index.constant].anchorpoint.x != anchorpoint.x ||
+		sprite[index.constant].anchorpoint.y != anchorpoint.y)
 	{
-		sprite[spriteCount].size = { width, height };
-		sprite[spriteCount].texLeftTop = texPos;
-		sprite[spriteCount].texSize = texSize;
-		sprite[spriteCount].anchorpoint = anchorpoint;
+		sprite[index.constant].size = { width, height };
+		sprite[index.constant].texLeftTop = texPos;
+		sprite[index.constant].texSize = texSize;
+		sprite[index.constant].anchorpoint = anchorpoint;
 
 		enum Corner { LB, LT, RB, RT };
 
-		SpriteVertex vert[] = {
+		static SpriteVertex vert[] = {
 			{{}, { 0.0f, 1.0f }},
 			{{}, { 0.0f, 0.0f }},
 			{{}, { 1.0f, 1.0f }},
 			{{}, { 1.0f, 0.0f }},
 		};
 
-		float left = (0.0f - sprite[spriteCount].anchorpoint.x) * sprite[spriteCount].size.x;
-		float right = (1.0f - sprite[spriteCount].anchorpoint.x) * sprite[spriteCount].size.x;
-		float top = (0.0f - sprite[spriteCount].anchorpoint.y) * sprite[spriteCount].size.y;
-		float bottom = (1.0f - sprite[spriteCount].anchorpoint.y) * sprite[spriteCount].size.y;
+		float left = (0.0f - sprite[index.constant].anchorpoint.x) * sprite[index.constant].size.x;
+		float right = (1.0f - sprite[index.constant].anchorpoint.x) * sprite[index.constant].size.x;
+		float top = (0.0f - sprite[index.constant].anchorpoint.y) * sprite[index.constant].size.y;
+		float bottom = (1.0f - sprite[index.constant].anchorpoint.y) * sprite[index.constant].size.y;
 
 		vert[LB].pos = {  left, bottom, 0.0f };
 		vert[LT].pos = {  left,    top, 0.0f };
@@ -419,12 +420,12 @@ int LoadTex::DrawCutTextrue(const float& posX, const float& posY, const float& w
 		vert[RT].pos = { right,    top, 0.0f };
 
 		// テクスチャデータ取得
-		D3D12_RESOURCE_DESC resDesc = textrueData[spriteIndex[spriteCount].textrue].texbuff->GetDesc();
+		D3D12_RESOURCE_DESC resDesc = textrueData[index.textrue].texbuff->GetDesc();
 
-		float texLeft = sprite[spriteCount].texLeftTop.x / resDesc.Width;
-		float texRight = (sprite[spriteCount].texLeftTop.x + sprite[spriteCount].texSize.x) / resDesc.Width;
-		float texTop = sprite[spriteCount].texLeftTop.y / resDesc.Height;
-		float texBottom = (sprite[spriteCount].texLeftTop.y + sprite[spriteCount].texSize.y) / resDesc.Height;
+		float texLeft = sprite[index.constant].texLeftTop.x / resDesc.Width;
+		float texRight = (sprite[index.constant].texLeftTop.x + sprite[index.constant].texSize.x) / resDesc.Width;
+		float texTop = sprite[index.constant].texLeftTop.y / resDesc.Height;
+		float texBottom = (sprite[index.constant].texLeftTop.y + sprite[index.constant].texSize.y) / resDesc.Height;
 
 		vert[LB].uv = {  texLeft, texBottom };
 		vert[LT].uv = {  texLeft,    texTop };
@@ -433,52 +434,52 @@ int LoadTex::DrawCutTextrue(const float& posX, const float& posY, const float& w
 
 		// 頂点バッファへのデータ転送
 		SpriteVertex* vertexMap = nullptr;
-		sprite[sprite.size() - 1].vertBuff->Map(0, nullptr, (void**)&vertexMap);
+		sprite[index.constant].vertBuff->Map(0, nullptr, (void**)&vertexMap);
 		memcpy(vertexMap, vert, sizeof(vert));
-		sprite[sprite.size() - 1].vertBuff->Unmap(0, nullptr);
+		sprite[index.constant].vertBuff->Unmap(0, nullptr);
 	}
 
-	sprite[spriteIndex[spriteCount].constant].color = color;
-	sprite[spriteIndex[spriteCount].constant].pos = { posX, posY, 0 };
-	sprite[spriteIndex[spriteCount].constant].rotation = angle;
+	sprite[index.constant].color = color;
+	sprite[index.constant].pos = { posX, posY, 0 };
+	sprite[index.constant].rotation = angle;
 
-	sprite[spriteIndex[spriteCount].constant].matWorld = XMMatrixIdentity();
-	sprite[spriteIndex[spriteCount].constant].matWorld *=
-		XMMatrixRotationZ(XMConvertToRadians(sprite[spriteIndex[spriteCount].constant].rotation));
-	sprite[spriteIndex[spriteCount].constant].matWorld *=
+	sprite[index.constant].matWorld = XMMatrixIdentity();
+	sprite[index.constant].matWorld *=
+		XMMatrixRotationZ(XMConvertToRadians(sprite[index.constant].rotation));
+	sprite[index.constant].matWorld *=
 		XMMatrixTranslation(
-			sprite[spriteIndex[spriteCount].constant].pos.x,
-			sprite[spriteIndex[spriteCount].constant].pos.y,
-			sprite[spriteIndex[spriteCount].constant].pos.z);
+			sprite[index.constant].pos.x,
+			sprite[index.constant].pos.y,
+			sprite[index.constant].pos.z);
 
 	if (parent != -1)
 	{
-		sprite[spriteIndex[spriteCount].constant].matWorld *= sprite[parent].matWorld;
+		sprite[index.constant].matWorld *= sprite[parent].matWorld;
 	}
 
 	SpriteConstBufferData* constMap = nullptr;
-	sprite[spriteIndex[spriteCount].constant].constBuff->Map(0, nullptr, (void**)&constMap);
-	constMap->color = sprite[spriteIndex[spriteCount].constant].color;
-	constMap->mat = sprite[spriteIndex[spriteCount].constant].matWorld *
+	sprite[index.constant].constBuff->Map(0, nullptr, (void**)&constMap);
+	constMap->color = sprite[index.constant].color;
+	constMap->mat = sprite[index.constant].matWorld *
 		spriteData.matProjection[CommonData::Projection::ORTHOGRAPHIC];
-	sprite[spriteIndex[spriteCount].constant].constBuff->Unmap(0, nullptr);
+	sprite[index.constant].constBuff->Unmap(0, nullptr);
 
 	// デスクリプタヒープをセット
 	ID3D12DescriptorHeap* ppHeaps[] = { texCommonData.descHeap.Get() };
 	w->cmdList->SetDescriptorHeaps(_countof(ppHeaps), ppHeaps);
 
 	// 定数バッファビューをセット
-	w->cmdList->SetGraphicsRootConstantBufferView(0, sprite[spriteIndex[spriteCount].constant].constBuff->GetGPUVirtualAddress());
-	w->cmdList->SetGraphicsRootDescriptorTable(1, textrueData[spriteIndex[spriteCount].textrue].gpuDescHandle);
+	w->cmdList->SetGraphicsRootConstantBufferView(0, sprite[index.constant].constBuff->GetGPUVirtualAddress());
+	w->cmdList->SetGraphicsRootDescriptorTable(1, textrueData[index.textrue].gpuDescHandle);
 
 	// 頂点バッファの設定
-	w->cmdList->IASetVertexBuffers(0, 1, &sprite[spriteCount].vbView);
+	w->cmdList->IASetVertexBuffers(0, 1, &sprite[index.constant].vbView);
 	// 描画コマンド
 	w->cmdList->DrawInstanced(4, 1, 0, 0);
 
 #pragma endregion
 
-	return spriteIndex[spriteCount].constant;
+	return index.constant;
 }
 
 void LoadTex::LoopEnd()

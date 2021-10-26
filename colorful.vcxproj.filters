@@ -63,6 +63,36 @@
     <Image Include="Resources\bag1.png">
       <Filter>リソース ファイル</Filter>
     </Image>
+    <Image Include="Resources\bag2.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\effect2.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\effect3.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\hosi.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\lap1.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\lap2.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\medaru.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\particle.jpg">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\stageclear.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\tex1.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="Header\OBBCollision.h">

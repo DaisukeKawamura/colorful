@@ -28,6 +28,7 @@ Player::Player() :
 	jumpPower{},
 	jumpPowerDecay{},
 	jumpFlag(false),
+	jumpCount(1),
 	groundFlag(false),
 	groundColor(0),
 	totalSpeed{},
@@ -48,12 +49,12 @@ void Player::Init(DrawPolygon *draw)
 		this->playerObject[BlockChange::ColorNo::RED] = this->draw->CreateOBJModel("./Resources/playerobj/jumpmode.obj", "./Resources/playerobj/");
 		this->playerObject[BlockChange::ColorNo::BLUE] = this->draw->CreateOBJModel("./Resources/playerobj/speed01.obj", "./Resources/playerobj/");
 		this->playerObject[BlockChange::ColorNo::GREEN] = this->draw->CreateOBJModel("./Resources/playerobj/kan1.obj", "./Resources/playerobj/");
-		this->playerObject[BlockChange::ColorNo::YELLOW] = this->draw->CreateOBJModel("./Resources/playerobj/playerobj.obj", "./Resources/playerobj/");
+		this->playerObject[BlockChange::ColorNo::YELLOW] = this->draw->CreateOBJModel("./Resources/playerobj/skyjump.obj", "./Resources/playerobj/");
 	}
 
 	this->pos = XMFLOAT3(0, 0, 0);
 	this->oldPos = XMFLOAT3(0, 0, 0);
-	this->rotaMat = XMMatrixRotationY(XMConvertToRadians(0));
+	this->rotaMat = XMMatrixIdentity();
 	this->scale = scale_xyz(4.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
@@ -64,6 +65,7 @@ void Player::Init(DrawPolygon *draw)
 	this->jumpPower = 0.0f;
 	this->jumpPowerDecay = 0.0f;
 	this->jumpFlag = false;
+	this->jumpCount = 1;
 	this->totalSpeed = XMFLOAT3(0, 0, 0);
 	this->totalAccel = XMFLOAT3(0, 0, 0);
 
@@ -81,6 +83,20 @@ void Player::Update()
 	if (groundFlag == true)
 	{
 		jumpPower = 0;
+
+		// 黄ブロック踏んだ時
+		if (color.x == changeColor[BlockChange::ColorNo::YELLOW].x &&
+			color.y == changeColor[BlockChange::ColorNo::YELLOW].y &&
+			color.z == changeColor[BlockChange::ColorNo::YELLOW].z &&
+			color.w == changeColor[BlockChange::ColorNo::YELLOW].w)
+		{
+			jumpCount = 2;
+		}
+		// ノーマルジャンプ
+		else
+		{
+			jumpCount = 1;
+		}
 	}
 
 	if (jumpPower == 0 && jumpPowerDecay == 0)
@@ -91,7 +107,7 @@ void Player::Update()
 
 	jumpPower -= jumpPowerDecay;
 
-	if (jumpFlag == true && groundFlag == true)
+	if (jumpFlag == true && jumpCount > 0)
 	{
 		// 赤ブロック踏んだ時
 		if (color.x == changeColor[BlockChange::ColorNo::RED].x &&
@@ -106,6 +122,7 @@ void Player::Update()
 		{
 			JumpStart(6.8f, 0.5);
 		}
+		jumpCount--;
 	}
 	groundFlag = false;
 	groundColor = false;
@@ -202,7 +219,7 @@ void Player::Draw()
 	}
 	else
 	{
-		draw->DrawOBJ(playerObject[BlockChange::ColorNo::YELLOW], pos, rotaMat, scale, color);
+		draw->DrawOBJ(playerObject[BlockChange::ColorNo::YELLOW], XMFLOAT3(pos.x, pos.y - 5.0f, pos.z), rotaMat, scale);
 	}
 }
 

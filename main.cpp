@@ -65,8 +65,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int ringGraph = draw.LoadTextrue(L"./Resources/ring.png");
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
-	int test = draw.LoadTextrue(L"./Resources/tex1.png");
 	int clearGraph = draw.LoadTextrue(L"./Resources/stageclear.png");
+	int testGraph = draw.LoadTextrue(L"./Resources/tex1.png"); //仮描画用の画像
+
 	// オブジェクトの生成
 	const XMFLOAT3 blockSize = { 40.0f, 20.0f, 20.0f };                         //ブロック一個分の大きさ
 	int box = draw.Create3Dbox(blockSize.x, blockSize.y, blockSize.z);          //ブロック
@@ -75,6 +76,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int goalBox = draw.Create3Dbox(320.0f, blockSize.y, blockSize.z);  //ゴール部分の床
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);  //ゴールの旗
 	int wallBreak = draw.Create3Dbox(20.0f, 200.0f, 20.0f);//壊れる壁
+	int testPolygon = draw.CreateTriangle({ 0.0f, 1.0f, 0.0f }, { 0.5f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f }, { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f }); //仮描画用のポリゴン
 
 	// モデルの読み込み
 	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/");    //アイテム
@@ -105,9 +107,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	const float floorOffsetY = 10.0f;					//床のY軸の位置
 
-
 	int ringCount = 0; //色変えリングの数
-	const auto &changeColor = BlockChange::changeColor;
+	const auto& changeColor = BlockChange::changeColor;
 	int ringColor[10] = {}; //リングの色
 
 	size_t goalMapWidth = 90;
@@ -252,27 +253,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			{
 				int temp = 0;
-				char *filePath = nullptr;
-				char *ringFilePath = nullptr;
+				char* filePath = nullptr;
+				char* ringFilePath = nullptr;
 				XMFLOAT4 startColor = {};
 
 				switch (stageNo)
 				{
 				case 0:
-					filePath = (char *)"./Resources/stage/stage1.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
+					filePath = (char*)"./Resources/stage/stage1.csv";
+					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 100;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				case 1:
-					filePath = (char *)"./Resources/stage/stage2.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
+					filePath = (char*)"./Resources/stage/stage2.csv";
+					ringFilePath = (char*)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 110;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				default:
-					filePath = (char *)"./Resources/stage/stage0.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
+					filePath = (char*)"./Resources/stage/stage0.csv";
+					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 90;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
@@ -403,7 +404,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 							paintBlockCount += 1.0f;
 						}
-					
+
 					}
 					break;
 					case ObjectStatus::RED_BLOCK:
@@ -428,7 +429,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							//地面の色を変える
 							map[y][x] = BlockChange::changeBlockPColor(player.color);
 						}
-						
+
 					}
 					break;
 					case ObjectStatus::FLOOR:
@@ -452,7 +453,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 							paintBlockCount += 1.0f;
 						}
-						
+
 					}
 					break;
 					case ObjectStatus::RED_FLOOR:
@@ -509,24 +510,37 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							map[y][x] = ObjectStatus::BREAK_RING;
 							hp.RecoverDamage(5);
 						}
-						ringCount++;
 					}
-					break;
 					case ObjectStatus::BREAK_RING:
 						ringCount++;
 						break;
+					case ObjectStatus::WARP:
+					{
+						OBB blockOBB;
+
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / (2 * 4), blockSize.y / 2, blockSize.z / 2);
+
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						if (isHit)
+						{
+						}
+					}
+					break;
 					case ObjectStatus::COLLECTION:
 					{
 						OBB blockOBB;
 
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / (2 * 4), blockSize.y / 2, blockSize.z / 2);
 
-						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
 						{
+							// 仮の演出
+							directing.RingStart(); //リングパーティクルスタート
 							map[y][x] = ObjectStatus::NONE;
 						}
 					}
+					break;
 					default:
 						break;
 					}
@@ -613,7 +627,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						}
 					}
 
-					player.rotaMat = XMMatrixRotationY(XMConvertToRadians(0));
+					player.rotaMat = XMMatrixIdentity();
 					directing.pFlyFlag = true;
 					directing.Lap2Start(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
 				}
@@ -621,12 +635,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			break;
 		default:
-			gameStatus = GameStatus::Title;
+			gameStatus = GameStatus::TitleInit;
 			break;
 		}
 
 		if (Input::IsKey(DIK_LEFT))
 		{
+			isClear = true;
 		}
 		if (Input::IsKey(DIK_RIGHT))
 		{
@@ -844,6 +859,14 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						break;
 					case ObjectStatus::WARP:
+						draw.Draw(
+							testPolygon,
+							mapPosition,
+							XMMatrixIdentity(),
+							scale_xyz(10.0f),
+							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							testGraph
+						);
 						break;
 					case ObjectStatus::COLLECTION:
 						draw.DrawOBJ(

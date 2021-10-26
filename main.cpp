@@ -8,9 +8,9 @@
 #include "./Header/LoadCSV.h"
 #include "./Header/BlockChange.h"
 #include "./Header/Directing.h"
+#include"./Header/Score.h"
 #include "./Header/Warp.h"
 #include "./Header/Audio.h"
-
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -57,6 +57,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	directing.Init();
 	directing.ParticleInit(&draw);
 
+	Score stageScore;
+	stageScore.Init();
+
 	Warp warp = {};
 	warp.Init(&draw);
 
@@ -70,6 +73,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
 	int clearGraph = draw.LoadTextrue(L"./Resources/stageclear.png");
+	int gameoverGraph = draw.LoadTextrue(L"./Resources/gameover.png");
 	int titleLoge = draw.LoadTextrue(L"./Resources/titleLogo.png");
 	int testGraph = draw.LoadTextrue(L"./Resources/tex1.png"); //仮描画用の画像
 
@@ -95,7 +99,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	draw.NormalizeUV(goalBox, boxGraph);
 
 	// 音声データの読み込み
-	int testSound = audio.SoundLoadWave("./Resources/Sound/bgm.wav");
+	int testSound = audio.SoundLoadWave("./Resources/Sound/Alarm01.wav");
 	audio.SoundPlayWave(testSound);
 
 	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
@@ -113,7 +117,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	const float floorOffsetY = 10.0f;					//床のY軸の位置
 
 	int ringCount = 0; //色変えリングの数
-	const auto& changeColor = BlockChange::changeColor;
+	const auto &changeColor = BlockChange::changeColor;
 	int ringColor[10] = {}; //リングの色
 
 	int warpCount = 0;
@@ -126,6 +130,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	const int maxStageCount = 5 + 1;      //ステージ数＋タイトル
 	int stageNo = 0;                      //選択されているステージ
+	bool stageSelectTitle = false;       //ステージ選択でタイトルを選択してるかどうか
 	bool isStageClear[maxStageCount - 1]; //各ステージのクリアフラグ
 	float blockCount = 0.0f;      //塗れるブロックの総数
 	float paintBlockCount = 0.0f; //塗ったブロックの数
@@ -140,6 +145,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	}
 
 	int score = 0; //スコア
+	int medal = 0;//メダル数
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
@@ -177,6 +183,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		case GameStatus::Title:
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
+				directing.StartSceneChange();
+				//gameStatus = GameStatus::SelectInit;
+			}
+			if (directing.ChangeScene())
+			{
 				gameStatus = GameStatus::SelectInit;
 			}
 			break;
@@ -191,7 +202,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			);
 
 			stageNo = 0;
-
+			directing.stageSelectInit();
 		case GameStatus::Select:
 			if (Input::IsKey(DIK_LEFT) && Input::IsKey(DIK_RIGHT))
 			{
@@ -200,25 +211,39 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			else if (Input::IsKey(DIK_LEFT))
 			{
 				keyCount++;
-
+				stageSelectTitle = false;
 				if (keyCount % 10 == (10 - 1) % 10)
 				{
-					stageNo--;
-
-					if (stageNo < 0)
+					if (directing.stageSelectFlag == true)
 					{
-						stageNo += maxStageCount;
+						stageNo--;
+						directing.stageSelectEasingStart(XMFLOAT3(-window_width * (stageNo + 1), 0, 0),
+							XMFLOAT3(-window_width * stageNo, 0, 0), 100);
+
+						if (stageNo < 0)
+						{
+							stageNo += maxStageCount - 1;
+						}
 					}
 				}
 			}
 			else if (Input::IsKey(DIK_RIGHT))
 			{
 				keyCount++;
-
+				stageSelectTitle = false;
 				if (keyCount % 10 == (10 + 1) % 10)
 				{
-					stageNo++;
-					stageNo %= maxStageCount;
+					if (directing.stageSelectFlag == true)
+					{
+						directing.stageSelectEasingStart(XMFLOAT3(-window_width * stageNo, 0, 0),
+							XMFLOAT3(-window_width * (stageNo + 1), 0, 0), 100);
+
+						stageNo++;
+						if (stageNo == 5)
+						{
+							stageNo = 0;
+						}
+					}
 				}
 			}
 			else
@@ -226,10 +251,22 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				keyCount = 0;
 			}
 
+			if (Input::IsKey(DIK_UP))
+			{
+				stageSelectTitle = true;
+			}
+			else if (Input::IsKey(DIK_DOWN))
+			{
+				stageSelectTitle = false;
+			}
 
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
-				if (stageNo == maxStageCount - 1)
+				directing.StartSceneChange();
+			}
+			if (directing.ChangeScene())
+			{
+				if (stageSelectTitle == true)
 				{
 					gameStatus = GameStatus::TitleInit;
 				}
@@ -248,6 +285,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 				}
 			}
+			directing.StageSelectUpdate();
 			break;
 		case GameStatus::MainInit:
 			gameStatus = GameStatus::Main;
@@ -260,27 +298,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			{
 				int temp = 0;
-				char* filePath = nullptr;
-				char* ringFilePath = nullptr;
+				char *filePath = nullptr;
+				char *ringFilePath = nullptr;
 				XMFLOAT4 startColor = {};
 
 				switch (stageNo)
 				{
 				case 0:
-					filePath = (char*)"./Resources/stage/stage1.csv";
-					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
+					filePath = (char *)"./Resources/stage/stage1.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 100;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				case 1:
-					filePath = (char*)"./Resources/stage/stage2.csv";
-					ringFilePath = (char*)"./Resources/stage/ringColor2.csv";
+					filePath = (char *)"./Resources/stage/stage2.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 110;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				default:
-					filePath = (char*)"./Resources/stage/stage0.csv";
-					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
+					filePath = (char *)"./Resources/stage/stage1.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 90;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
@@ -331,6 +369,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			laps = 1;
 			score = 0;
+			medal = 0;
 			isClear = false;
 			isGameover = false;
 		case GameStatus::Main:
@@ -338,7 +377,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (isClear == true || isGameover == true)
 				{
-					gameStatus = GameStatus::Title;
+					directing.StartSceneChange();
 				}
 				else
 				{
@@ -350,6 +389,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.jumpFlag = false;
 			}
 
+			if (directing.ChangeScene() && (isClear == true || isGameover == true))
+			{
+				gameStatus = GameStatus::Title;
+			}
 			player.Update();
 
 			// メインカメラの更新
@@ -605,6 +648,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
 						{
+							medal++;
 							// 仮の演出
 							directing.RingStart(); //リングパーティクルスタート
 							map[y][x] = ObjectStatus::NONE;
@@ -622,6 +666,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			directing.ShakeUpdate();
 			directing.Lap1Update(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
 			directing.Lap2Update();
+			directing.Lap2Update();
+			directing.DoubleJumpUpdate(player.pos);
+			if (directing.JumEfectJudge(player.jumpCount, player.color) && Input::IsKeyTrigger(DIK_SPACE))
+			{
+				directing.JumEfectStart();
+			}
 			if (directing.wallFlag == false)
 			{
 				directing.BreakWall(XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, -50.0f, 0), player.pos);
@@ -648,6 +698,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (laps >= 2)
 					{
 						isClear = true;
+						stageScore.MaxScore(stageNo, score, medal);
 						isStageClear[stageNo] = true;
 						directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
 					}
@@ -666,11 +717,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					isGameover = true;
 					directing.ShakeStart(10.0f, 10);
+					directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
 				}
 			}
 			if (isClear == false && isGameover == false)
 			{
 				isGameover = hp.isEmpty();
+				if (isGameover == true)
+				{
+					directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
+				}
 			}
 
 			//ラップ２の戻り処理
@@ -760,22 +816,25 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			DirectDrawing::isDepthWriteBan = false;
 
 			draw.DrawTextrue(window_width / 2.0f, 200.0f, 735.0f, 176.0f, 0.0f, titleLoge, XMFLOAT2(0.5f, 0.0f));
-			draw.DrawString(window_width / 2 - 120, window_height / 2 + 100, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
+			draw.DrawString(window_width / 2.0f - 120.0f, window_height / 2.0f + 100.0f, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
 			break;
 		case GameStatus::SelectInit:
 		case GameStatus::Select:
+		{
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 
-			if (stageNo == maxStageCount - 1)
+			//タイトル戻るボタン
+			if (stageSelectTitle == true)
 			{
-				draw.DrawString(window_width / 2 - 120, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Title");
+				directing.SelectTitle();
 			}
-			else
-			{
-				draw.DrawString(window_width / 2 - 20, window_height / 2 - 40, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "%d", stageNo + 1);
-			}
-			break;
+			//ステージセレクト描画
+			
+
+			directing.StageSelectDraw(stageScore.score, stageScore.medal, window_width, window_height);
+		}
+		break;
 		case GameStatus::MainInit:
 		case GameStatus::Main:
 			ringCount = 0;
@@ -1018,6 +1077,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			directing.RunDraw();
 			directing.RingDraw();
 			directing.explosionDraw();
+			directing.DoubleJumpDraw();
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 
@@ -1025,13 +1085,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
-				directing.scoreDraw(score, 2);
+				directing.scoreDraw(score, medal);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 			if (isGameover == true)
 			{
-				draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
+				XMFLOAT3 scorePos = directing.scoreEasing();
+				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
+				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
@@ -1043,7 +1105,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		default:
 			break;
 		}
-
+		directing.SceneChangeUpdate();
+		directing.SceneChangeDraw();
 		// ループの終了処理
 		draw.PolygonLoopEnd();
 		w.ScreenFlip();

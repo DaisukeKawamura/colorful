@@ -19,6 +19,7 @@ void Directing::Init()
 	wallFlag = true;
 	pFlyFlag = true;
 	wallTime = 8;
+	jumpTime = 0;
 	//走るパーティクル削除
 	for (int i = (int)run.size() - 1; i >= 0; i--)
 	{
@@ -42,6 +43,12 @@ void Directing::Init()
 	{
 		delete explosion[i];
 		explosion.erase(explosion.begin() + i);
+	}
+	//ジャンプ削除
+	for (int i = (int)jump.size() - 1; i >= 0; i--)
+	{
+		delete jump[i];
+		jump.erase(jump.begin() + i);
 	}
 }
 //画像読み込み
@@ -574,6 +581,65 @@ void Directing::SceneChangeDraw()
 	if (sceneChangeFlag == true)
 	{
 		draw->DrawTextrue(0, 0, 1280, 780, 0, 0, XMFLOAT2(0.0f, 0.0f), changeColor);
+	}
+
+}
+//ジャンプエフェクト
+bool Directing::JumEfectJudge(int jumpCount, XMFLOAT4 pColor)
+{
+	if (jumpCount == 0 && pColor.x == yellowJump.x &&
+		pColor.y == yellowJump.y &&
+		pColor.z == yellowJump.z &&
+		pColor.w == yellowJump.w)
+	{
+		return true;
+	}
+	else
+	{
+		return false;
+	}
+}
+void Directing::JumEfectStart()
+{
+	jumpTime = 5;
+}
+void Directing::DoubleJumpUpdate(XMFLOAT3 pPos)
+{
+	if (jumpTime > 0)
+	{
+		XMFLOAT3 speed = { 2.8f,-1.0f,0.0f };
+		for (int i = 0; i < 15; i++)
+		{
+			pPos.x += rand() % 2 - 1.0f;
+			jump.push_back(new Particle(pPos, speed, XMFLOAT3(0.6, 0.6, 0.6), XMFLOAT4(0.3f, 0.3f, 0.3f, 0.3f), 20));
+		}
+		jumpTime--;
+	}
+	for (size_t i = 0; i < jump.size(); i++)
+	{//更新
+		jump[i]->pos = jump[i]->pos + jump[i]->speed;
+		jump[i]->color = jump[i]->color - XMFLOAT4(0.02f, 0.02f, 0.02f, 0.02f);
+		jump[i]->time--;
+		if (jump[i]->time == 2)
+		{
+			jump[i]->DelFlag = false;
+		}
+	}
+	for (int i = (int)jump.size() - 1; i >= 0; i--)
+	{//削除
+		if (jump[i]->DelFlag == false)
+		{
+			delete jump[i];
+			jump.erase(jump.begin() + i);
+		}
+	}
+}
+
+void Directing::DoubleJumpDraw()
+{
+	for (size_t i = 0; i < jump.size(); i++)
+	{//爆発
+		draw->Draw(particlePolygon, jump[i]->pos, jump[i]->rotaMat, jump[i]->scale, jump[i]->color, graph1);
 	}
 
 }

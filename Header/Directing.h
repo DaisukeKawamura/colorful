@@ -162,6 +162,17 @@ public://シーンチェンジ演出
 	void SceneChangeUpdate();
 	//シーンチェンジ描画
 	void SceneChangeDraw();
+public://二段ジャンプ演出
+	const XMFLOAT4 yellowJump = { 0.9f, 0.9f, 0.0f, 1.0f };//黄色
+	vector<Particle *> jump;
+	int jumpTime = 0;//ジャンプエフェクトを出す量
+	bool JumEfectJudge(int jumCount, XMFLOAT4 pColor);
+
+	void JumEfectStart();
+
+	void DoubleJumpUpdate(XMFLOAT3 pPos);
+
+	void DoubleJumpDraw();
 };
 //XMFLOAT3同士の計算
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs);

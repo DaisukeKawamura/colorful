@@ -273,7 +273,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					filePath = (char*)"./Resources/stage/stage1.csv";
 					ringFilePath = (char*)"./Resources/stage/ringColor1.csv";
 					goalMapWidth = 100;
-					startColor = changeColor[BlockChange::ColorNo::GREEN];
+					startColor = changeColor[BlockChange::ColorNo::YELLOW];
 					break;
 				case 1:
 					filePath = (char*)"./Resources/stage/stage2.csv";
@@ -566,6 +566,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			directing.ShakeUpdate();
 			directing.Lap1Update(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
 			directing.Lap2Update();
+			directing.Lap2Update();
+			directing.DoubleJumpUpdate(player.pos);
+			if (directing.JumEfectJudge(player.jumpCount, player.color) && Input::IsKeyTrigger(DIK_SPACE))
+			{
+				directing.JumEfectStart();
+			}
 			if (directing.wallFlag == false)
 			{
 				directing.BreakWall(XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, -50.0f, 0), player.pos);
@@ -974,6 +980,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			directing.RunDraw();
 			directing.RingDraw();
 			directing.explosionDraw();
+			directing.DoubleJumpDraw();
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 

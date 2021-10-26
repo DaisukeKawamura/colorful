@@ -16,7 +16,7 @@ public://ƒƒ“ƒoŠÖ”
 	//Å¬HPæ“¾
 	float GetMinHP() const;
 	//Œ»İ‚ÌHPæ“¾
-	float GetCurrentHP() const;
+	int GetCurrentHP() const;
 
 	//HPŒ¸­
 	void AddDamage(float value);

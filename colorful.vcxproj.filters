@@ -13,6 +13,10 @@
       <UniqueIdentifier>{67DA6AB6-F800-4c08-8B7A-83BB121AAD01}</UniqueIdentifier>
       <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
     </Filter>
+    <Filter Include="ステージファイル">
+      <UniqueIdentifier>{340e4c6d-8473-48c4-831d-e2d50fcb79db}</UniqueIdentifier>
+      <Extensions>csv</Extensions>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="main.cpp">
@@ -36,12 +40,57 @@
     <ClCompile Include="Source\BlockChange.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
+    <ClCompile Include="Source\Directing.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
+    <ClCompile Include="Source\Partcle.cpp">
+      <Filter>ソース ファイル</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <Image Include="Resources\background.png">
       <Filter>リソース ファイル</Filter>
     </Image>
     <Image Include="Resources\ring.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\box.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\check.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\bag1.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\bag2.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\effect2.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\effect3.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\hosi.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\lap1.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\lap2.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\medaru.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\particle.jpg">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\stageclear.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\tex1.png">
       <Filter>リソース ファイル</Filter>
     </Image>
   </ItemGroup>
@@ -64,5 +113,28 @@
     <ClInclude Include="Header\BlockChange.h">
       <Filter>ヘッダー ファイル</Filter>
     </ClInclude>
+    <ClInclude Include="Header\Directing.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Partcle.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="Resources\stage\stage1.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\stage0.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\stage2.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\ringColor2.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
+    <None Include="Resources\stage\ringColor1.csv">
+      <Filter>ステージファイル</Filter>
+    </None>
   </ItemGroup>
 </Project>

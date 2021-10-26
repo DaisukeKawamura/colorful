@@ -2,7 +2,7 @@
 #include <DirectXMath.h>
 #include "./Header/DrawPolygon.h"
 #include "./Header/OBBCollision.h"
-
+#include <Header/LoadCSV.h>
 class Player
 {
 private: // エイリアス
@@ -14,6 +14,8 @@ private: // エイリアス
 public: // 定数
 	static const float gravity;        //重力加速度
 	static const XMFLOAT3 gravityAxis; //重力が加わる方向
+private:
+	static const XMFLOAT4 changeColor[4];
 
 public: // メンバ関数
 	// コンストラクタ
@@ -28,11 +30,10 @@ public: // メンバ関数
 	// 描画
 	void Draw();
 
-	// プレイヤーの頂点データを取得
-	const int& GetPlayerObject() { return playerObject; }
-	// プレイヤーのテクスチャを取得
-	const int& GetPlayerTex() { return playerTex; }
-
+	// プレイヤーのオブジェクトデータを取得 (戻り値が-1で失敗)
+	int GetPlayerObject(const int& color) const;
+	//色のブロックを踏んだ時の処理
+	void ChangeGroundColor(const int map);
 	/// <summary>
 	/// ジャンプ開始時のパワーの設定
 	/// </summary>
@@ -55,10 +56,14 @@ public: // メンバ変数
 	XMFLOAT3 accelVec; //加速度を加える方向
 
 	bool jumpFlag; //ジャンプフラグ
+	int  jumpCount; //ジャンプカウント
+	bool groundFlag; //地面に接したか
+	int  groundColor; //どの色に接したか
 	OBB collision; //当たり判定
+
+	float cameraPosX;//カメラの位置
 private:
-	int playerObject; //プレイヤーの頂点データ
-	int playerTex;    //プレイヤーのテクスチャ
+	int playerObject[4]; //プレイヤーのオブジェクトデータ
 
 	float jumpPower;      //ジャンプパワー
 	float jumpPowerDecay; //ジャンプパワーの減衰量
@@ -66,4 +71,12 @@ private:
 	XMFLOAT3 totalSpeed; //速度を全て足し合わせたもの
 	XMFLOAT3 totalAccel; //加速度を全て足し合わせたもの
 
+};
+//色情報
+enum GroundColor
+{
+	red = 1,
+	blue,
+	green,
+	yellow
 };

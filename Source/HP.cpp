@@ -24,7 +24,7 @@ float HP::GetMinHP() const
 	return P_MinHP;
 }
 
-float HP::GetCurrentHP() const
+int HP::GetCurrentHP() const
 {
 	return P_CurrentHP;
 }

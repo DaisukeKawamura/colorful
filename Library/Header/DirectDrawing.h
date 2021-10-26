@@ -94,10 +94,10 @@ struct CommonData
 		PERSPECTIVE   //透視投影
 	};
 
-	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelinestate; //パイプラインの状態
-	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootsignature; //ルートシグネチャ
+	Microsoft::WRL::ComPtr<ID3D12PipelineState> pipelinestate[5]; //パイプラインの状態
+	Microsoft::WRL::ComPtr<ID3D12RootSignature> rootsignature;    //ルートシグネチャ
 
-	DirectX::XMMATRIX matProjection[2] = {}; //射影行列
+	DirectX::XMMATRIX matProjection[2]; //射影行列
 
 	// コンストラクタ
 	CommonData();
@@ -201,11 +201,15 @@ protected: // エイリアス
 	// Microsoft::WRL::を省略
 	template<class T> using ComPtr = Microsoft::WRL::ComPtr<T>;
 
-protected: // 静的メンバ変数
+public: // 静的メンバ変数
+	static bool isDepthWriteBan; //trueだったら、デプスに対しての上書き禁止
+protected:
 	static vector<Sprite> sprite; //スプライトのデータ
 	static vector<IndexData> spriteIndex; //スプライトのデータのインデックス
 
 	static CommonData spriteData; //スプライトのデータで共通のデータ
+
+	static size_t blendMode; //ブレンドモード
 
 public: // メンバ関数
 	// コンストラクタ
@@ -276,16 +280,9 @@ protected: // メンバ変数
 	ComPtr<ID3DBlob> errorBlob; //エラーオブジェクト
 	ComPtr<ID3DBlob> rootSigBlob;
 
-	CommonData objectData;   //オブジェクトデータで共通のデータ
-	CommonData materialData; //マテリアルデータで共通のデータ
+	CommonData objectData[2];   //オブジェクトデータで共通のデータ
+	CommonData materialData[2]; //マテリアルデータで共通のデータ
 private:
-	// グラフィックスパイプライン設定
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC gpipeline;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC materialPipeline;
-	D3D12_GRAPHICS_PIPELINE_STATE_DESC spritePipeline;
-	D3D12_RENDER_TARGET_BLEND_DESC& blendDesc;
-	D3D12_RENDER_TARGET_BLEND_DESC& spriteBlendDesc;
-
 	float nearClip; //ニアクリップ距離
 	float farClip;  //ファークリップ距離
 

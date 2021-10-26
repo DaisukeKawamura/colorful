@@ -113,3 +113,27 @@ const Vector3 operator/(const Vector3 &v, float s)
 	Vector3 temp(v);
 	return  temp /= s;
 }
+
+const  Vector3 lerp(const Vector3 &start, const Vector3 &end, const float t)
+{
+	return start * (1.0f - t) + end * t;
+}
+
+const Vector3 easeIn(const Vector3 &start, const Vector3 &end, const float t)
+{
+	float y = t * t;
+	return start * (1.0f - y) + end * y;
+
+}
+
+const Vector3 easeOut(const Vector3 &start, const Vector3 &end, const float t)
+{
+	float y = t * (2 - t);
+	return start * (1.0f - y) + end * y;
+}
+
+const Vector3 easeInOut(const Vector3 &start, const Vector3 &end, const float t)
+{
+	float y = t * t * (3 - 2 * t);
+	return start * (1.0f - y) + end * y;
+}

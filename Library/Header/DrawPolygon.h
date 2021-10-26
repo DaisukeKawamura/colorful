@@ -4,6 +4,8 @@
 
 #define MAIN_CAMERA (0)
 
+#define scale_xyz(_scale) DirectX::XMFLOAT3(_scale, _scale, _scale)
+
 class DrawPolygon final : public DebugText
 {
 public: // メンバ関数
@@ -44,6 +46,7 @@ public: // メンバ関数
 
 	// モデルの描画処理
 	int DrawOBJ(const int& object, const XMFLOAT3& position, const XMMATRIX& rotation, const XMFLOAT3& scale,
+		const XMFLOAT4& color = { 1.0f, 1.0f, 1.0f, 1.0f },
 		const bool& isOrthoGraphic = false, const bool& viewMultiFlag = true, const int& parent = -1);
 
 	// カメラの作成
@@ -66,7 +69,7 @@ private:
 	int DrawPolygonInit();
 	
 	// 描画関数の初期化
-	int DrawOBJInit(const int& index);
+	int DrawOBJInit();
 
 	// マテリアル読み込み
 	void LoadMaterial(const std::string& directoryPath, const std::string& filename);
@@ -84,4 +87,6 @@ private: // メンバ変数
 
 	vector<XMMATRIX> matView; //ビュー変換行列(カメラ)
 	int cameraNo;             //カメラの番号（最初はMAIN_CAMERAを指している）
+
+	size_t objModelCount; //objファイルから読み込んだモデルの数
 };

@@ -66,6 +66,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
 	int clearGraph = draw.LoadTextrue(L"./Resources/stageclear.png");
+	int gameoverGraph = draw.LoadTextrue(L"./Resources/gameover.png");
 	int testGraph = draw.LoadTextrue(L"./Resources/tex1.png"); //仮描画用の画像
 
 	// オブジェクトの生成
@@ -170,6 +171,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		case GameStatus::Title:
 			if (Input::IsKeyTrigger(DIK_SPACE))
 			{
+				directing.StartSceneChange();
+				//gameStatus = GameStatus::SelectInit;
+			}
+			if (directing.ChangeScene())
+			{
 				gameStatus = GameStatus::SelectInit;
 			}
 			break;
@@ -221,6 +227,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 
 			if (Input::IsKeyTrigger(DIK_SPACE))
+			{
+				directing.StartSceneChange();
+			}
+			if (directing.ChangeScene())
 			{
 				if (stageNo == maxStageCount - 1)
 				{
@@ -329,7 +339,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (isClear == true || isGameover == true)
 				{
-					gameStatus = GameStatus::Title;
+					directing.StartSceneChange();
 				}
 				else
 				{
@@ -340,7 +350,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				player.jumpFlag = false;
 			}
-
+			
+			if (directing.ChangeScene()&& (isClear == true || isGameover == true))
+			{
+				gameStatus = GameStatus::Title;
+			}
 			player.Update();
 
 			// メインカメラの更新
@@ -596,11 +610,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					isGameover = true;
 					directing.ShakeStart(10.0f, 10);
+					directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
 				}
 			}
 			if (isClear == false && isGameover == false)
 			{
 				isGameover = hp.isEmpty();
+				if (isGameover == true)
+				{
+					directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
+				}
 			}
 
 			//ラップ２の戻り処理
@@ -968,7 +987,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 			if (isGameover == true)
 			{
-				draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
+				XMFLOAT3 scorePos = directing.scoreEasing();
+				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
+				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
@@ -980,7 +1001,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		default:
 			break;
 		}
-
+		directing.SceneChangeUpdate();
+		directing.SceneChangeDraw();
 		// ループの終了処理
 		draw.PolygonLoopEnd();
 		w.ScreenFlip();

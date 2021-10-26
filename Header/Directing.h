@@ -103,7 +103,7 @@ public://1週目演出
 	float lap1TimeRate;				//何％　時間が進んだか(率)
 	Vector3 lap1Pos;
 	bool lap1Flag;
-
+	bool  stopLap1Flag;
 	void Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time);
 
 	void Lap1Draw();
@@ -116,7 +116,7 @@ public:	//2週目演出
 	float lap2TimeRate;				//何％　時間が進んだか(率)
 	Vector3 lap2Pos;
 	bool lap2Flag;
-
+	bool  stopLap2Flag;
 	void Lap2Start(XMFLOAT3 start, XMFLOAT3 end, float time);
 
 	void Lap2Update();
@@ -149,6 +149,19 @@ public:	//壊れる壁と爆発
 	void wallDraw();
 
 	void explosionDraw();
+public://シーンチェンジ演出
+	bool sceneChangeFlag;//暗転しているか
+
+	bool firstHalfFlag;//演出の前半かどうか
+	XMFLOAT4 changeColor;
+	//シーンチェンジ
+	bool ChangeScene();
+	//シーンチェンジ演出スタート
+	void StartSceneChange();
+	//シーンチェンジ更新
+	void SceneChangeUpdate();
+	//シーンチェンジ描画
+	void SceneChangeDraw();
 };
 //XMFLOAT3同士の計算
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs);

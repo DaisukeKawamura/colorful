@@ -29,6 +29,12 @@ public:// パーティクル画像読み込み
 	int wallBreakGraph; //壊れる壁
 	int starGraph;		//星の画像
 	int medalGraph;		//メダルの画像
+	int SelectGraph;	//セレクト画面
+	int SelectBotanGraph;//ステージ選択の左右のやつ
+	int SelectBackBotan;//戻るボタンの画像
+	int percentGraph;	//パーセントの画像
+	int stageNumberGraph;//ステージの数字
+	int scoreNumberGraph;//スコアの数字
 	void ParticleInit(DrawPolygon *draw);
 
 public:// 死亡時シェイク
@@ -173,6 +179,35 @@ public://二段ジャンプ演出
 	void DoubleJumpUpdate(XMFLOAT3 pPos);
 
 	void DoubleJumpDraw();
+public://ステージセレクト
+	Vector3 stageSelectStart;				//スタート地点
+	Vector3 stageSelectEnd;					//エンド地点
+	float stageSelectEasingTime;
+	float stageSelectMaxTime;				//全体時間[s]
+	float stageSelectTimeRate;				//何％　時間が進んだか(率)
+	bool stageSelectFlag;
+	bool stageFlag;
+	void stageSelectInit();
+
+	//スコアイージング/スタート位置、終了位置、進む時間
+	void stageSelectEasingStart(XMFLOAT3 start, XMFLOAT3 end, float Time);
+	//スコアイージング更新
+	XMFLOAT3 stageSelectEasing();
+public:
+	bool selectTitleFlag = true;
+	int selectTitleR = 0;
+	XMFLOAT3 stageSlectPos = { 0,0,0 };
+
+public://ステージセレクト
+
+	void StageSelectUpdate();
+
+	void StageSelectDraw(const int score[], const int medal[], int window_width, int window_height);
+
+	void SelectTitle();
+public://数字の描画
+	void NumberDraw(const int score, int posX, int posY, const int width, const int height);
+
 };
 //XMFLOAT3同士の計算
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs);

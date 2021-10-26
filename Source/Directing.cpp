@@ -14,6 +14,8 @@ void Directing::Init()
 	//ü‰ñƒtƒ‰ƒO‰Šú‰»
 	lap1Flag = true;
 	lap2Flag = true;
+	stopLap1Flag = true;
+	stopLap2Flag = true;
 	wallFlag = true;
 	pFlyFlag = true;
 	wallTime = 8;
@@ -123,7 +125,7 @@ void Directing::scoreDraw(const int score, const int medal)
 {
 	if (scoreDirectFlag == true)
 	{
-		scoreTime == 0;
+		scoreTime = 0;
 		for (int i = 0; i < 3; i++)
 		{
 			starScale[i] = 0;
@@ -343,6 +345,11 @@ void Directing::Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time)
 
 	lap1TimeRate = min(lap1EasingTime / lap1MaxTime, 1.0f);
 
+	if (lap1TimeRate >= 1.0f)
+	{
+		stopLap1Flag = false;
+	}
+
 	//lap1Pos = easeOut(lap1Start, lap1End, lap1TimeRate);
 	lap1Pos = easeIn(lap1Start, lap1End, lap1TimeRate);
 	//lap1Pos = easeInOut(lap1Start, lap1End, lap1TimeRate);
@@ -350,7 +357,7 @@ void Directing::Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time)
 
 void Directing::Lap1Draw()
 {
-	if (lap1Flag == false)
+	if (lap1Flag == false && stopLap1Flag == true)
 	{
 		draw->DrawTextrue(lap1Pos.x, lap1Pos.y, 200, 100, 0, lap1Graph, XMFLOAT2(0.0f, 0.0f));
 	}
@@ -362,27 +369,37 @@ void Directing::Lap2Start(XMFLOAT3 start, XMFLOAT3 end, float time)
 	if (lap2Flag == true)
 	{
 		lap2Flag = false;
+		stopLap2Flag = true;
 		this->lap2Start = Vector3(start.x, start.y, start.z);
 		this->lap2End = Vector3(end.x, end.y, end.z);
 		this->lap2MaxTime = time;
+		lap2EasingTime = 0;
+		lap2TimeRate = 0;
 		lap2EasingTime = 0;
 	}
 }
 
 void Directing::Lap2Update()
 {
-	lap2EasingTime++;
+	if (lap2Flag == false && stopLap2Flag == true)
+	{
+		lap2EasingTime++;
 
-	lap2TimeRate = min(lap2EasingTime / lap2MaxTime, 1.0f);
-
-	//lap2Pos = easeOut(lap2Start, lap2End, lap2TimeRate);
-	lap2Pos = easeIn(lap2Start, lap2End, lap2TimeRate);
-	//lap2Pos = easeInOut(lap2Start, lap2End, lap2TimeRate);
+		lap2TimeRate = min(lap2EasingTime / lap2MaxTime, 1.0f);
+		if (lap2TimeRate >= 1.0f)
+		{
+			stopLap2Flag = false;
+		}
+		//lap2Pos = easeOut(lap2Start, lap2End, lap2TimeRate);
+		lap2Pos = easeIn(lap2Start, lap2End, lap2TimeRate);
+		//lap2Pos = easeInOut(lap2Start, lap2End, lap2TimeRate);
+	}
+	
 }
 
 void Directing::Lap2Draw()
 {
-	if (lap2Flag == false)
+	if (lap2Flag == false && stopLap2Flag == true)
 	{
 		draw->DrawTextrue(lap2Pos.x, lap2Pos.y, 200, 100, 0, lap2Graph, XMFLOAT2(0.0f, 0.0f));
 	}

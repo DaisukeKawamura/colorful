@@ -8,6 +8,7 @@
 #include "./Header/LoadCSV.h"
 #include "./Header/BlockChange.h"
 #include "./Header/Directing.h"
+#include "./Header/Warp.h"
 #include "./Header/Audio.h"
 
 /*ウィンドウサイズ*/
@@ -46,15 +47,18 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	Input::Init(w);
 
-	Player player;
+	Player player = {};
 	player.Init(&draw);
 
-	HP hp;
+	HP hp = {};
 	hp.Init(25, 1, 60);
 
-	Directing directing;
+	Directing directing = {};
 	directing.Init();
 	directing.ParticleInit(&draw);
+
+	Warp warp = {};
+	warp.Init(&draw);
 
 	Audio audio;
 	audio.Init();
@@ -66,6 +70,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int goalGraph = draw.LoadTextrue(L"./Resources/check.png");
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
 	int clearGraph = draw.LoadTextrue(L"./Resources/stageclear.png");
+	int titleLoge = draw.LoadTextrue(L"./Resources/titleLogo.png");
 	int testGraph = draw.LoadTextrue(L"./Resources/tex1.png"); //仮描画用の画像
 
 	// オブジェクトの生成
@@ -90,7 +95,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	draw.NormalizeUV(goalBox, boxGraph);
 
 	// 音声データの読み込み
-	int testSound = audio.SoundLoadWave("./Resources/Sound/Alarm01.wav");
+	int testSound = audio.SoundLoadWave("./Resources/Sound/bgm.wav");
 	audio.SoundPlayWave(testSound);
 
 	XMFLOAT3 cameraPos = { 0, 0, -100 }; //カメラの位置
@@ -110,6 +115,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int ringCount = 0; //色変えリングの数
 	const auto& changeColor = BlockChange::changeColor;
 	int ringColor[10] = {}; //リングの色
+
+	int warpCount = 0;
 
 	size_t goalMapWidth = 90;
 
@@ -292,6 +299,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					break;
 				}
 
+				warp.WarpInit(map, stageNo);
+
 				if (goalMapWidth >= MAP_WIDTH)
 				{
 					goalMapWidth = MAP_WIDTH - 1;
@@ -373,6 +382,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 
 			ringCount = 0;
+			warpCount = 0;
 
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
@@ -387,7 +397,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
 
-						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
 
 						if (isHit)
@@ -407,6 +417,27 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 					}
 					break;
+					case ObjectStatus::NOPAINT_BLOCK:
+					{
+						OBB blockOBB;
+
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
+
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						bool isHitDown = false;
+
+						if (isHit)
+						{//押し戻し処理
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
+						}
+						//地面についた時の処理
+						if (isHitDown)
+						{
+							//hp.AddDamage(0.01f);
+							player.groundFlag = true;
+						}
+					}
+					break;
 					case ObjectStatus::RED_BLOCK:
 					case ObjectStatus::BLUE_BLOCK:
 					case ObjectStatus::GREEN_BLOCK:
@@ -414,8 +445,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						OBB blockOBB;
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
-						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool isHitDown = false;
+
 						if (isHit)
 						{//押し戻し処理
 							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
@@ -436,8 +469,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						OBB blockOBB;
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool HitDown = false;
-						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+
 						if (isHit)
 						{//押し戻し処理
 							OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
@@ -456,16 +491,37 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 					}
 					break;
+					case ObjectStatus::NOPAINT_FLOOR:
+					{
+						OBB blockOBB;
+						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+						bool isHitDown = false;
+
+						if (isHit)
+						{//押し戻し処理
+							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
+						}
+						//地面についた時の処理
+						if (isHitDown)
+						{
+							//hp.AddDamage(0.005f);
+							player.groundFlag = true;
+						}
+					}
+					break;
 					case ObjectStatus::RED_FLOOR:
 					case ObjectStatus::BLUE_FLOOR:
 					case ObjectStatus::GREEN_FLOOR:
 					case ObjectStatus::YELLOW_FLOOR:
 					{
 						OBB blockOBB;
-
 						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						bool HitDown = false;
-						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+
 						if (isHit)
 						{//押し戻し処理
 							OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
@@ -523,7 +579,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
 						{
+							auto temp = warp.WarpPos(warpCount);
+
+							if (temp.x != (float)x || temp.y != (float)y)
+							{
+								XMFLOAT3 warpPosition = {
+									temp.x * blockSize.x + mapOffset.x,
+									temp.y * (-blockSize.y) + mapOffset.y,
+									mapOffset.z
+								};
+								player.pos = warpPosition;
+								player.cameraPosX = player.pos.x;
+								player.collision.Initilize(player.pos, player.rotaMat, 5, 5, 5);
+							}
 						}
+						warpCount++;
 					}
 					break;
 					case ObjectStatus::COLLECTION:
@@ -689,7 +759,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 
-			draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "PAINTWO");
+			draw.DrawTextrue(window_width / 2.0f, 200.0f, 735.0f, 176.0f, 0.0f, titleLoge, XMFLOAT2(0.5f, 0.0f));
 			draw.DrawString(window_width / 2 - 120, window_height / 2 + 100, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
 			break;
 		case GameStatus::SelectInit:
@@ -859,14 +929,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						break;
 					case ObjectStatus::WARP:
-						draw.Draw(
-							testPolygon,
-							mapPosition,
-							XMMatrixIdentity(),
-							scale_xyz(10.0f),
-							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-							testGraph
-						);
+						warp.Draw(mapPosition);
 						break;
 					case ObjectStatus::COLLECTION:
 						draw.DrawOBJ(

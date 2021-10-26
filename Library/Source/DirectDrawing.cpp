@@ -1212,7 +1212,7 @@ int DirectDrawing::SetDrawBlendMode(int blendMode)
 
 	this->blendMode = blendMode;
 
-	return this->blendMode;
+	return (int)(this->blendMode);
 }
 
 HRESULT DirectDrawing::SetNearFar(float nearClip, float farClip)

@@ -154,6 +154,7 @@
     <ClCompile Include="Source\Partcle.cpp" />
     <ClCompile Include="Source\Player.cpp" />
     <ClCompile Include="Source\Vector3.cpp" />
+    <ClCompile Include="Source\Warp.cpp" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="Library\Library.vcxproj">
@@ -186,13 +187,14 @@
     <ClInclude Include="Header\Partcle.h" />
     <ClInclude Include="Header\Player.h" />
     <ClInclude Include="Header\Vector3.h" />
+    <ClInclude Include="Header\Warp.h" />
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\stage\ringColor1.csv" />
     <None Include="Resources\stage\ringColor2.csv" />
-    <None Include="Resources\stage\stage0.csv" />
     <None Include="Resources\stage\stage1.csv" />
     <None Include="Resources\stage\stage2.csv" />
+    <None Include="Resources\stage\warpData2.csv" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

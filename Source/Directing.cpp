@@ -184,7 +184,10 @@ void Directing::scoreDraw(const int score, const int medal)
 			}
 
 		}
-
+		//スコア数字
+		NumberDraw(score, 800, 280, 60, 60);
+		//パーセント
+		draw->DrawTextrue(830, 248, 70, 70, 0, percentGraph, XMFLOAT2(0.0f, 0.0f));
 		scoreTime++;
 	}
 }

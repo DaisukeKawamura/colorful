@@ -9,7 +9,7 @@
 #include "./Header/BlockChange.h"
 #include "./Header/Directing.h"
 #include "./Header/Audio.h"
-
+#include"./Header/Score.h"
 /*ウィンドウサイズ*/
 const int window_width = 1280; //横幅
 const int window_height = 720; //縦幅
@@ -55,6 +55,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	Directing directing;
 	directing.Init();
 	directing.ParticleInit(&draw);
+
+	Score stageScore;
+	stageScore.Init();
 
 	Audio audio;
 	audio.Init();
@@ -135,6 +138,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	}
 
 	int score = 0; //スコア
+	int medal = 0;//メダル数
 
 	bool isClear = false;    //クリアかどうか
 	bool isGameover = false; //ゲームオーバーかどうか
@@ -356,6 +360,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			laps = 1;
 			score = 0;
+			medal = 0;
 			isClear = false;
 			isGameover = false;
 		case GameStatus::Main:
@@ -573,6 +578,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
 						if (isHit)
 						{
+							medal++;
 							// 仮の演出
 							directing.RingStart(); //リングパーティクルスタート
 							map[y][x] = ObjectStatus::NONE;
@@ -622,6 +628,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (laps >= 2)
 					{
 						isClear = true;
+						stageScore.MaxScore(stageNo, score, medal);
 						isStageClear[stageNo] = true;
 						directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
 					}
@@ -753,11 +760,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				directing.SelectTitle();
 			}
 			//ステージセレクト描画
-			int scoreMax[5] = { 63,14,67,90,89 };//ステージごとのスコア仮
+			
 
-			int medal[5] = { 2,3,1,0,3 };//ステージごとのメダル仮
-
-			directing.StageSelectDraw(scoreMax, medal, window_width, window_height);
+			directing.StageSelectDraw(stageScore.score, stageScore.medal, window_width, window_height);
 		}
 		break;
 		case GameStatus::MainInit:
@@ -1017,7 +1022,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
-				directing.scoreDraw(score, 2);
+				directing.scoreDraw(score, medal);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}

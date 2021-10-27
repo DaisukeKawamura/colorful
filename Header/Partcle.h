@@ -1,16 +1,18 @@
 #pragma once
 #include <stdlib.h>
 #include "./Header/DrawPolygon.h"
+#include "./Header/Vector3.h"
 using namespace DirectX;
 using namespace std;
 class Particle
 {
 public:
-	Particle(XMFLOAT3 pos, XMFLOAT3 speed, XMFLOAT3 scale, XMFLOAT4 color,float time);
+	Particle();
+	Particle(Vector3 pos, Vector3 speed, Vector3 scale, XMFLOAT4 color,float time);
 	~Particle();
-	XMFLOAT3 pos;     //座標
-	XMFLOAT3 speed;	  //スピード
-	XMFLOAT3 scale;   //スケール
+	Vector3 pos;     //座標
+	Vector3 speed;   //スピード
+	Vector3 scale;   //スケール
 	XMFLOAT4 color;   //色
 	XMMATRIX rotaMat; //回転行列
 	float time;

@@ -214,8 +214,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (directing.stageSelectFlag == true)
 					{
 						stageNo--;
-						directing.stageSelectEasingStart(XMFLOAT3(-window_width * (stageNo + 1), 0, 0),
-							XMFLOAT3(-window_width * stageNo, 0, 0), 40);
+						directing.stageSelectEasingStart(XMFLOAT3((float)(-window_width * (stageNo + 1)), 0, 0),
+							XMFLOAT3((float)(-window_width * stageNo), 0, 0), 40.0f);
 
 						if (stageNo < 0)
 						{
@@ -232,8 +232,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					if (directing.stageSelectFlag == true)
 					{
-						directing.stageSelectEasingStart(XMFLOAT3(-window_width * stageNo, 0, 0),
-							XMFLOAT3(-window_width * (stageNo + 1), 0, 0), 40);
+						directing.stageSelectEasingStart(XMFLOAT3((float)(-window_width * stageNo), 0, 0),
+							XMFLOAT3((float)(-window_width * (stageNo + 1)), 0, 0), 40.0f);
 
 						stageNo++;
 						if (stageNo == 5)
@@ -373,7 +373,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (isClear == true || isGameover == true)
 				{
-
 					directing.StartSceneChange();
 				}
 				else
@@ -634,7 +633,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						{
 							auto temp = warp.WarpPos(warpCount);
 
-							if (temp.x != (float)x || temp.y != (float)y)
+							if ((temp.x != -1.0f) || (temp.y != -1.0f))
 							{
 								XMFLOAT3 warpPosition = {
 									temp.x * blockSize.x + mapOffset.x,
@@ -642,10 +641,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 									mapOffset.z
 								};
 								player.pos = warpPosition;
-								player.cameraPosX = player.pos.x;
 								player.collision.Initilize(player.pos, player.rotaMat, 5, 5, 5);
 							}
 						}
+						warp.ParticleUpdate(warpCount);
 						warpCount++;
 					}
 					break;
@@ -807,6 +806,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			scrollX += window_width * 2;
 		}
 
+		warpCount = 0;
+
 		switch (oldGameStatus)
 		{
 		case GameStatus::TitleInit:
@@ -829,8 +830,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				directing.SelectTitle();
 			}
 			//ステージセレクト描画
-
-
 			directing.StageSelectDraw(stageScore.score, stageScore.medal, window_width, window_height);
 		}
 		break;
@@ -884,20 +883,20 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-						/*case ObjectStatus::ITEM:
-							draw.DrawOBJ(
-								itemModel,
-								mapPosition,
-								XMMatrixRotationX(XMConvertToRadians(0)),
-								XMFLOAT3(5.0f, 5.0f, 5.0f),
-								XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
-							);
-							break;*/
+					/*case ObjectStatus::ITEM:
+						draw.DrawOBJ(
+							itemModel,
+							mapPosition,
+							XMMatrixIdentity(),
+							XMFLOAT3(5.0f, 5.0f, 5.0f),
+							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
+						);
+						break;*/
 					case ObjectStatus::RING:
 						draw.DrawOBJ(
 							ringModel,
 							mapPosition,
-							XMMatrixRotationY(XMConvertToRadians(0)),
+							XMMatrixIdentity(),
 							XMFLOAT3(10.0f, 10.0f, 10.0f),
 							changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]]
 						);
@@ -987,7 +986,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						break;
 					case ObjectStatus::WARP:
-						warp.Draw(mapPosition);
+						warp.Draw(warpCount, mapPosition);
+						warpCount++;
 						break;
 					case ObjectStatus::COLLECTION:
 						draw.DrawOBJ(
@@ -1090,7 +1090,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 #if _DEBUG
 			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
-			draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
+			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
 #endif // _DEBUG
 			break;
 		default:

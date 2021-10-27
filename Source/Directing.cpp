@@ -223,7 +223,7 @@ void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 
 		if (run[i]->time >= 20)
 		{//™X‚É‘å‚«‚­‚·‚é
-			run[i]->scale = run[i]->scale + XMFLOAT3(0.05f, 0.05f, 0.05f);
+			run[i]->scale = run[i]->scale + Vector3(0.05f, 0.05f, 0.05f);
 		}
 		//F‚ð”–‚­‚µ‚Ä‚¢‚­
 		run[i]->color = run[i]->color - XMFLOAT4(0.04f, 0.04f, 0.04f, 0.04f);
@@ -685,7 +685,7 @@ void Directing::StageSelectDraw(const int score[], const int medal[], int window
 	}
 	draw->DrawTextrue(65, 65, 160 + selectTitleR, 160 + selectTitleR, 0, SelectBackBotan);
 	//¶‰E‚Ì¨
-	draw->DrawTextrue(0, 0, window_width, window_height, 0, SelectBotanGraph, XMFLOAT2(0.0f, 0.0f));
+	draw->DrawTextrue(0.0f, 0.0f, (float)window_width, (float)window_height, 0.0f, SelectBotanGraph, XMFLOAT2(0.0f, 0.0f));
 }
 
 
@@ -718,8 +718,8 @@ void Directing::NumberDraw(const int score, const  int posX, const int posY, con
 	{
 		if (score % 10 == i)
 		{
-			draw->DrawCutTextrue(posX, posY, width, height,
-				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+			draw->DrawCutTextrue((float)posX, (float)posY, (float)width, (float)height,
+				XMFLOAT2((float)(stageNumXY * i), 0.0f), XMFLOAT2((float)stageNumXY, (float)stageNumXY), 0, scoreNumberGraph);
 		}
 
 	}
@@ -731,8 +731,8 @@ void Directing::NumberDraw(const int score, const  int posX, const int posY, con
 			{
 				break;
 			}
-			draw->DrawCutTextrue(posX - numDistance, posY, width, height,
-				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+			draw->DrawCutTextrue((float)(posX - numDistance), (float)posY, (float)width, (float)height,
+				XMFLOAT2((float)(stageNumXY * i), 0), XMFLOAT2((float)stageNumXY, (float)stageNumXY), 0, scoreNumberGraph);
 		}
 
 	}
@@ -744,8 +744,8 @@ void Directing::NumberDraw(const int score, const  int posX, const int posY, con
 			{
 				break;
 			}
-			draw->DrawCutTextrue(posX - numDistance * 2, posY, width, height,
-				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+			draw->DrawCutTextrue((float)(posX - numDistance * 2), (float)posY, (float)width, (float)height,
+				XMFLOAT2((float)(stageNumXY * i), 0), XMFLOAT2((float)stageNumXY, (float)stageNumXY), 0, scoreNumberGraph);
 		}
 	}
 }

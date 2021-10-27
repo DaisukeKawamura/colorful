@@ -62,7 +62,6 @@ public: // メンバ変数
 	OBB collision; //当たり判定
 
 	float cameraPosX;//カメラの位置
-	float cameraPosY;//カメラの位置
 private:
 	int playerObject[4]; //プレイヤーのオブジェクトデータ
 

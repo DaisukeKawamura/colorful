@@ -71,7 +71,6 @@ void Player::Init(DrawPolygon *draw)
 	this->totalAccel = XMFLOAT3(0, 0, 0);
 
 	this->cameraPosX = pos.x;
-	this->cameraPosY = pos.y;
 }
 
 void Player::Update()

@@ -24,8 +24,6 @@ public:// パーティクル画像読み込み
 	int graph1;			//パーティクルテクスチャその1
 	int graph2;			//パーティクルテクスチャその2
 	int graph3;			//パーティクルテクスチャその3
-	int lap1Graph;      //Lap1の画像
-	int lap2Graph;      //Lap2の画像
 	int wallBreakGraph; //壊れる壁
 	int starGraph;		//星の画像
 	int medalGraph;		//メダルの画像
@@ -70,19 +68,7 @@ public://スコア演出
 	int  medalScale[3];
 	//星とメダルの描画/スコア、メダル
 	void scoreDraw(const int score, const int medal, const int  selectRetryFlag);
-public:	//アイテムイージング
-	//Vector3 itemStart;				//スタート地点
-	//Vector3 itemEnd;				//エンド地点
-	//float itemEasingTime;
-	//float itemMaxTime;				//全体時間[s]
-	//float itemTimeRate;				//何％　時間が進んだか(率)
-	//float itemCameraPos;
-	//bool itemFlag;
-	//XMFLOAT3 itemScale;
-	////アイテムイージング/スタート位置、終了位置、進む時間
-	//void ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos);
 
-	//XMFLOAT3 ItemUpdate(XMFLOAT3 cameraPos);
 public:	//プレイヤーRunパーティクル
 	vector<Particle *> run;
 
@@ -102,34 +88,6 @@ public:// 色変わる瞬間のパーティクル
 
 	void RingDraw();
 
-public://1週目演出
-
-	Vector3 lap1Start;				//スタート地点
-	Vector3 lap1End;				//エンド地点
-	float lap1EasingTime;
-	float lap1MaxTime;				//全体時間[s]
-	float lap1TimeRate;				//何％　時間が進んだか(率)
-	Vector3 lap1Pos;
-	bool lap1Flag;
-	bool  stopLap1Flag;
-	void Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time);
-
-	void Lap1Draw();
-
-public:	//2週目演出
-	Vector3 lap2Start;				//スタート地点
-	Vector3 lap2End;				//エンド地点
-	float lap2EasingTime;
-	float lap2MaxTime;				//全体時間[s]
-	float lap2TimeRate;				//何％　時間が進んだか(率)
-	Vector3 lap2Pos;
-	bool lap2Flag;
-	bool  stopLap2Flag;
-	void Lap2Start(XMFLOAT3 start, XMFLOAT3 end, float time);
-
-	void Lap2Update();
-
-	void Lap2Draw();
 public://プレイヤー飛ばし
 	Vector3 playerStart;				//スタート地点
 	Vector3 controlPoint1;				//制御点1

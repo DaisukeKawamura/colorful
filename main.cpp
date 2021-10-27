@@ -731,7 +731,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 				}
 			}
-			if (player.pos.y <= -70.0f || player.cameraPosX - player.pos.x > 90)
+			if (player.pos.y <= -70.0f || player.cameraPosX - player.pos.x > 150)
 			{
 				if (isClear == false)
 				{
@@ -1071,7 +1071,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			//‰ó‚ê‚é•Ç
 			if (directing.wallFlag == true)
 			{
-				for (int i = 0; i < 10; i++)
+				for (int i = 0; i < 20; i++)
 				{
 					draw.Draw(
 						wallBreak,

@@ -70,9 +70,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
 	int clearGraph = draw.LoadTextrue(L"./Resources/stageclear.png");
 	int gameoverGraph = draw.LoadTextrue(L"./Resources/gameover.png");
-	int titleLoge = draw.LoadTextrue(L"./Resources/titleLogo.png");
+	int titleGraph = draw.LoadTextrue(L"./Resources/title.png");
 	int testGraph = draw.LoadTextrue(L"./Resources/tex1.png"); //仮描画用の画像
-
+	int breakwallGraph = draw.LoadTextrue(L"./Resources/goal1.png");
+	int noPaintGraph = draw.LoadTextrue(L"./Resources/black.png");
 	// オブジェクトの生成
 	const XMFLOAT3 blockSize = { 40.0f, 20.0f, 20.0f };                         //ブロック一個分の大きさ
 	int box = draw.Create3Dbox(blockSize.x, blockSize.y, blockSize.z);          //ブロック
@@ -80,7 +81,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int startBox = draw.Create3Dbox(240.0f, blockSize.y, blockSize.z); //スタート部分の床
 	int goalBox = draw.Create3Dbox(320.0f, blockSize.y, blockSize.z);  //ゴール部分の床
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);  //ゴールの旗
-	int wallBreak = draw.Create3Dbox(20.0f, 200.0f, 20.0f);//壊れる壁
+	int wallBreak = draw.Create3Dbox(20.0f, 20.0f, 20.0f);//壊れる壁
 	int testPolygon = draw.CreateTriangle({ 0.0f, 1.0f, 0.0f }, { 0.5f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f }, { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f }); //仮描画用のポリゴン
 
 	// モデルの読み込み
@@ -198,7 +199,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				upVec, MAIN_CAMERA
 			);
 
-			stageNo = 0;
 			directing.stageSelectInit();
 		case GameStatus::Select:
 			if (Input::IsKey(DIK_LEFT) && Input::IsKey(DIK_RIGHT))
@@ -214,8 +214,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (directing.stageSelectFlag == true)
 					{
 						stageNo--;
-						directing.stageSelectEasingStart(XMFLOAT3(-window_width * (stageNo + 1), 0, 0),
-							XMFLOAT3(-window_width * stageNo, 0, 0), 40);
+						directing.stageSelectEasingStart(XMFLOAT3((float)(-window_width * (stageNo + 1)), 0, 0),
+							XMFLOAT3((float)(-window_width * stageNo), 0, 0), 40.0f);
 
 						if (stageNo < 0)
 						{
@@ -232,8 +232,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					if (directing.stageSelectFlag == true)
 					{
-						directing.stageSelectEasingStart(XMFLOAT3(-window_width * stageNo, 0, 0),
-							XMFLOAT3(-window_width * (stageNo + 1), 0, 0), 40);
+						directing.stageSelectEasingStart(XMFLOAT3((float)(-window_width * stageNo), 0, 0),
+							XMFLOAT3((float)(-window_width * (stageNo + 1)), 0, 0), 40.0f);
 
 						stageNo++;
 						if (stageNo == 5)
@@ -373,7 +373,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (isClear == true || isGameover == true)
 				{
-
 					directing.StartSceneChange();
 				}
 				else
@@ -409,7 +408,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					gameStatus = GameStatus::Select;
 				}
-				
+
 			}
 			player.Update();
 
@@ -634,7 +633,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						{
 							auto temp = warp.WarpPos(warpCount);
 
-							if (temp.x != (float)x || temp.y != (float)y)
+							if ((temp.x != -1.0f) || (temp.y != -1.0f))
 							{
 								XMFLOAT3 warpPosition = {
 									temp.x * blockSize.x + mapOffset.x,
@@ -642,10 +641,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 									mapOffset.z
 								};
 								player.pos = warpPosition;
-								player.cameraPosX = player.pos.x;
 								player.collision.Initilize(player.pos, player.rotaMat, 5, 5, 5);
 							}
 						}
+						warp.ParticleUpdate(warpCount);
 						warpCount++;
 					}
 					break;
@@ -674,10 +673,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			directing.RunUpdate(player.pos, player.color);
 			directing.RingUpdate(player.pos, player.color);
 			directing.ShakeUpdate();
-			directing.Lap1Update(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
-			directing.Lap2Update();
-			directing.Lap2Update();
 			directing.DoubleJumpUpdate(player.pos);
+			directing.StageSelectUpdate();
 			if (directing.JumEfectJudge(player.jumpCount, player.color) && Input::IsKeyTrigger(DIK_SPACE))
 			{
 				directing.JumEfectStart();
@@ -757,7 +754,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 					player.rotaMat = XMMatrixIdentity();
 					directing.pFlyFlag = true;
-					directing.Lap2Start(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
 				}
 			}
 
@@ -769,7 +765,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		if (Input::IsKey(DIK_LEFT))
 		{
-			isClear = true;
+			//	isClear = true;
 		}
 		if (Input::IsKey(DIK_RIGHT))
 		{
@@ -810,6 +806,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			scrollX += window_width * 2;
 		}
 
+		warpCount = 0;
+
 		switch (oldGameStatus)
 		{
 		case GameStatus::TitleInit:
@@ -817,8 +815,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 
-			draw.DrawTextrue(window_width / 2.0f, 200.0f, 735.0f, 176.0f, 0.0f, titleLoge, XMFLOAT2(0.5f, 0.0f));
-			draw.DrawString(window_width / 2.0f - 120.0f, window_height / 2.0f + 100.0f, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
+			draw.DrawTextrue(0, 0,window_width, window_height, 0.0f, titleGraph, XMFLOAT2(0.0f, 0.0f));
+			//draw.DrawString(window_width / 2.0f - 120.0f, window_height / 2.0f + 100.0f, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
 			break;
 		case GameStatus::SelectInit:
 		case GameStatus::Select:
@@ -832,8 +830,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				directing.SelectTitle();
 			}
 			//ステージセレクト描画
-
-
 			directing.StageSelectDraw(stageScore.score, stageScore.medal, window_width, window_height);
 		}
 		break;
@@ -863,8 +859,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-							boxGraph
+							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							noPaintGraph
 						);
 						break;
 					case ObjectStatus::FLOOR:
@@ -891,7 +887,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						draw.DrawOBJ(
 							itemModel,
 							mapPosition,
-							XMMatrixRotationX(XMConvertToRadians(0)),
+							XMMatrixIdentity(),
 							XMFLOAT3(5.0f, 5.0f, 5.0f),
 							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
 						);
@@ -900,7 +896,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						draw.DrawOBJ(
 							ringModel,
 							mapPosition,
-							XMMatrixRotationY(XMConvertToRadians(0)),
+							XMMatrixIdentity(),
 							XMFLOAT3(10.0f, 10.0f, 10.0f),
 							changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]]
 						);
@@ -990,7 +986,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						);
 						break;
 					case ObjectStatus::WARP:
-						warp.Draw(mapPosition);
+						warp.Draw(warpCount, mapPosition);
+						warpCount++;
 						break;
 					case ObjectStatus::COLLECTION:
 						draw.DrawOBJ(
@@ -1012,7 +1009,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMMatrixIdentity(),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				boxGraph
+				noPaintGraph
 			);
 			/*ゴール地点*/
 			if (directing.wallFlag == false)
@@ -1040,7 +1037,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMMatrixIdentity(),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				boxGraph
+				noPaintGraph
 			);
 
 			player.Draw();
@@ -1048,31 +1045,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			//壊れる壁
 			if (directing.wallFlag == true)
 			{
-				draw.Draw(
-					wallBreak,
-					XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0),
-					XMMatrixIdentity(),
-					XMFLOAT3(1.0f, 1.0f, 1.0f),
-					XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-					boxGraph
-				);
+				for (int i = 0; i < 10; i++)
+				{
+					draw.Draw(
+						wallBreak,
+						XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, -30.0f + i * 20, 0),
+						XMMatrixIdentity(),
+						XMFLOAT3(1.0f, 1.0f, 1.0f),
+						XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+						breakwallGraph
+					);
+				}
+
 			}
 
-			////アイテムイージング
-			//if (directing.itemFlag == true)
-			//{
-			//	XMFLOAT3 itemPos = directing.ItemUpdate(XMFLOAT3(player.cameraPosX, 0.0f, 0));
 
-			//	draw.DrawOBJ(
-			//		itemModel,
-			//		itemPos,
-			//		XMMatrixRotationX(XMConvertToRadians(0)),
-			//		directing.itemScale,
-			//		XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
-			//	);
-			//}
-			directing.Lap1Draw();
-			directing.Lap2Draw();
 			directing.wallDraw();
 			DirectDrawing::isDepthWriteBan = true;
 			draw.SetDrawBlendMode(BLENDMODE_ADD);
@@ -1088,7 +1075,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMFLOAT3 scorePos = directing.scoreEasing();
 
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
-				directing.scoreDraw(score, medal,selectRetryFlag);
+				directing.scoreDraw(score, medal, selectRetryFlag);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
@@ -1098,17 +1085,17 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
 				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
-				directing.GameOverButtonDraw(scorePos,selectRetryFlag);
+				directing.GameOverButtonDraw(scorePos, selectRetryFlag);
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
 			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
-			draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
+			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
 #endif // _DEBUG
 			break;
 		default:
 			break;
-		}
+			}
 		directing.SceneChangeUpdate();
 		directing.SceneChangeDraw();
 		// ループの終了処理
@@ -1117,9 +1104,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		if (isLoopEnd == true) { break; }
 		if (Input::IsKey(DIK_ESCAPE)) { break; }
-	}
+		}
 
 	w.WindowEnd();
 
 	return 0;
-}
+	}

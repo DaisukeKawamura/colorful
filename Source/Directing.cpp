@@ -9,11 +9,6 @@ void Directing::Init()
 	//スコアイージング初期化
 	scoreFlag = true;
 	scoreDirectFlag = true;
-	//周回フラグ初期化
-	lap1Flag = true;
-	lap2Flag = true;
-	stopLap1Flag = true;
-	stopLap2Flag = true;
 	wallFlag = true;
 	pFlyFlag = true;
 	wallTime = 8;
@@ -59,9 +54,7 @@ void Directing::ParticleInit(DrawPolygon *draw)
 		this->graph1 = this->draw->LoadTextrue(L"./Resources/particle.jpg");
 		this->graph2 = this->draw->LoadTextrue(L"./Resources/effect2.png");
 		this->graph3 = this->draw->LoadTextrue(L"./Resources/effect3.png");
-		this->lap1Graph = this->draw->LoadTextrue(L"./Resources/lap1.png");
-		this->lap2Graph = this->draw->LoadTextrue(L"./Resources/lap2.png");
-		this->wallBreakGraph = this->draw->LoadTextrue(L"./Resources/box.png");
+		this->wallBreakGraph = this->draw->LoadTextrue(L"./Resources/goal1.png");
 		this->SelectGraph = this->draw->LoadTextrue(L"./Resources/stageselect.png");
 		this->SelectBotanGraph = this->draw->LoadTextrue(L"./Resources/stageselectBotan.png");
 		this->starGraph = this->draw->LoadTextrue(L"./Resources/hosi.png");
@@ -230,7 +223,7 @@ void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 
 		if (run[i]->time >= 20)
 		{//徐々に大きくする
-			run[i]->scale = run[i]->scale + XMFLOAT3(0.05f, 0.05f, 0.05f);
+			run[i]->scale = run[i]->scale + Vector3(0.05f, 0.05f, 0.05f);
 		}
 		//色を薄くしていく
 		run[i]->color = run[i]->color - XMFLOAT4(0.04f, 0.04f, 0.04f, 0.04f);
@@ -320,81 +313,7 @@ void Directing::RingDraw()
 		draw->Draw(particlePolygon, ring[i]->pos, ring[i]->rotaMat, ring[i]->scale, ring[i]->color, graph2);
 	}
 }
-//1週目演出
-void Directing::Lap1Update(XMFLOAT3 start, XMFLOAT3 end, float time)
-{
-	if (lap1Flag == true)
-	{
-		lap1Flag = false;
-		this->lap1Start = Vector3(start.x, start.y, start.z);
-		this->lap1End = Vector3(end.x, end.y, end.z);
-		this->lap1MaxTime = time;
-		lap1EasingTime = 0;
-	}
 
-	lap1EasingTime++;
-
-	lap1TimeRate = min(lap1EasingTime / lap1MaxTime, 1.0f);
-
-	if (lap1TimeRate >= 1.0f)
-	{
-		stopLap1Flag = false;
-	}
-
-	//lap1Pos = easeOut(lap1Start, lap1End, lap1TimeRate);
-	lap1Pos = easeIn(lap1Start, lap1End, lap1TimeRate);
-	//lap1Pos = easeInOut(lap1Start, lap1End, lap1TimeRate);
-}
-
-void Directing::Lap1Draw()
-{
-	if (lap1Flag == false && stopLap1Flag == true)
-	{
-		draw->DrawTextrue(lap1Pos.x, lap1Pos.y, 200, 100, 0, lap1Graph, XMFLOAT2(0.0f, 0.0f));
-	}
-}
-
-//2週目演出
-void Directing::Lap2Start(XMFLOAT3 start, XMFLOAT3 end, float time)
-{
-	if (lap2Flag == true)
-	{
-		lap2Flag = false;
-		stopLap2Flag = true;
-		this->lap2Start = Vector3(start.x, start.y, start.z);
-		this->lap2End = Vector3(end.x, end.y, end.z);
-		this->lap2MaxTime = time;
-		lap2EasingTime = 0;
-		lap2TimeRate = 0;
-		lap2EasingTime = 0;
-	}
-}
-
-void Directing::Lap2Update()
-{
-	if (lap2Flag == false && stopLap2Flag == true)
-	{
-		lap2EasingTime++;
-
-		lap2TimeRate = min(lap2EasingTime / lap2MaxTime, 1.0f);
-		if (lap2TimeRate >= 1.0f)
-		{
-			stopLap2Flag = false;
-		}
-		//lap2Pos = easeOut(lap2Start, lap2End, lap2TimeRate);
-		lap2Pos = easeIn(lap2Start, lap2End, lap2TimeRate);
-		//lap2Pos = easeInOut(lap2Start, lap2End, lap2TimeRate);
-	}
-
-}
-
-void Directing::Lap2Draw()
-{
-	if (lap2Flag == false && stopLap2Flag == true)
-	{
-		draw->DrawTextrue(lap2Pos.x, lap2Pos.y, 200, 100, 0, lap2Graph, XMFLOAT2(0.0f, 0.0f));
-	}
-}
 //2週目演出
 void Directing::FlyStart(XMFLOAT3 start, XMFLOAT3 controlPoint1, XMFLOAT3 controlPoint2, XMFLOAT3 end, float time)
 {
@@ -764,9 +683,9 @@ void Directing::StageSelectDraw(const int score[], const int medal[], int window
 				XMFLOAT2(stageNumXY * i + stageNumXY, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, stageNumberGraph);
 		}
 	}
-	draw->DrawTextrue(50, 50, 96 + selectTitleR, 96 + selectTitleR, 0, SelectBackBotan);
+	draw->DrawTextrue(65, 65, 160 + selectTitleR, 160 + selectTitleR, 0, SelectBackBotan);
 	//左右の→
-	draw->DrawTextrue(0, 0, window_width, window_height, 0, SelectBotanGraph, XMFLOAT2(0.0f, 0.0f));
+	draw->DrawTextrue(0.0f, 0.0f, (float)window_width, (float)window_height, 0.0f, SelectBotanGraph, XMFLOAT2(0.0f, 0.0f));
 }
 
 
@@ -799,8 +718,8 @@ void Directing::NumberDraw(const int score, const  int posX, const int posY, con
 	{
 		if (score % 10 == i)
 		{
-			draw->DrawCutTextrue(posX, posY, width, height,
-				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+			draw->DrawCutTextrue((float)posX, (float)posY, (float)width, (float)height,
+				XMFLOAT2((float)(stageNumXY * i), 0.0f), XMFLOAT2((float)stageNumXY, (float)stageNumXY), 0, scoreNumberGraph);
 		}
 
 	}
@@ -808,8 +727,12 @@ void Directing::NumberDraw(const int score, const  int posX, const int posY, con
 	{
 		if (score / 10 % 10 == i)
 		{
-			draw->DrawCutTextrue(posX - numDistance, posY, width, height,
-				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+			if (score / 10 % 10 == 0)
+			{
+				break;
+			}
+			draw->DrawCutTextrue((float)(posX - numDistance), (float)posY, (float)width, (float)height,
+				XMFLOAT2((float)(stageNumXY * i), 0), XMFLOAT2((float)stageNumXY, (float)stageNumXY), 0, scoreNumberGraph);
 		}
 
 	}
@@ -817,8 +740,12 @@ void Directing::NumberDraw(const int score, const  int posX, const int posY, con
 	{
 		if (score / 100 % 10 == i)
 		{
-			draw->DrawCutTextrue(posX - numDistance * 2, posY, width, height,
-				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
+			if (score / 100 % 10 == 0)
+			{
+				break;
+			}
+			draw->DrawCutTextrue((float)(posX - numDistance * 2), (float)posY, (float)width, (float)height,
+				XMFLOAT2((float)(stageNumXY * i), 0), XMFLOAT2((float)stageNumXY, (float)stageNumXY), 0, scoreNumberGraph);
 		}
 	}
 }
@@ -848,16 +775,16 @@ void Directing::GameOverButtonDraw(XMFLOAT3 scorePos, int selectRetryFlag)
 	if (selectRetryFlag)
 	{
 		//リトライボタン
-		draw->DrawTextrue(512, 445 + scorePos.y, 110+clearOverSelectR, 110 + clearOverSelectR, 0, retryButtonGraph);
+		draw->DrawTextrue(480, 450 + scorePos.y, 135 + clearOverSelectR, 135 + clearOverSelectR, 0, retryButtonGraph);
 		//セレクトボタン
-		draw->DrawTextrue(766, 445 + scorePos.y, 110 , 110, 0, selectbuttonGraph);
+		draw->DrawTextrue(800, 450 + scorePos.y, 135, 135, 0, selectbuttonGraph);
 	}
 	else
 	{
 		//セレクトボタン
-		draw->DrawTextrue(766, 445 + scorePos.y, 110 + clearOverSelectR, 110 + clearOverSelectR, 0, selectbuttonGraph);
+		draw->DrawTextrue(800, 450 + scorePos.y, 135 + clearOverSelectR, 135 + clearOverSelectR, 0, selectbuttonGraph);
 		//リトライボタン
-		draw->DrawTextrue(512, 445 + scorePos.y, 110 , 110 , 0, retryButtonGraph);
+		draw->DrawTextrue(480, 450 + scorePos.y, 135, 135, 0, retryButtonGraph);
 	}
 }
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs)

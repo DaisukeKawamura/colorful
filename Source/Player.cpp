@@ -1,5 +1,6 @@
 #include "./Header/Player.h"
 #include "./Header/BlockChange.h"
+#include "./Header/Input.h"
 
 const float Player::gravity = 0.70f;
 const DirectX::XMFLOAT3 Player::gravityAxis = XMFLOAT3(0, -1, 0);
@@ -128,7 +129,13 @@ void Player::Update()
 	groundColor = false;
 
 	// 青ブロック踏んだ時
-	if (color.x == changeColor[BlockChange::ColorNo::BLUE].x &&
+	if (Input::IsKey(DIK_UP))
+	{
+#if _DEBUG
+		speed = 0.0f;
+#endif // _DEBUG
+	}
+	else if (color.x == changeColor[BlockChange::ColorNo::BLUE].x &&
 		color.y == changeColor[BlockChange::ColorNo::BLUE].y &&
 		color.z == changeColor[BlockChange::ColorNo::BLUE].z &&
 		color.w == changeColor[BlockChange::ColorNo::BLUE].w)
@@ -182,12 +189,21 @@ void Player::Update()
 
 	//プレイヤーの移動速度に合わせる
 	cameraPosX += totalAccel.x + totalSpeed.x;
-	//カメラから見た定位置まで戻る/////////
-	if (pos.x < cameraPosX)
+	//カメラから見た定位置まで戻る
+	if (pos.x > cameraPosX)
+	{
+		cameraPosX += 2.0f;
+	}
+	else if (pos.x < cameraPosX)
 	{
 		if (oldPos.x < pos.x)
 		{
 			pos.x += 0.3f;
+
+			if (pos.x > cameraPosX)
+			{
+				pos.x = cameraPosX;
+			}
 		}
 	}
 

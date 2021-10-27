@@ -22,7 +22,7 @@
     <ClCompile Include="main.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Source\OBBCollision.cpp">
+    <ClCompile Include="Source\Directing.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Source\Vector3.cpp">
@@ -37,7 +37,7 @@
     <ClCompile Include="Source\BlockChange.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
-    <ClCompile Include="Source\Directing.cpp">
+    <ClCompile Include="Source\OBBCollision.cpp">
       <Filter>ソース ファイル</Filter>
     </ClCompile>
     <ClCompile Include="Source\Partcle.cpp">
@@ -51,16 +51,39 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="Header\BlockChange.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Directing.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\HP.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\LoadCSV.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\OBBCollision.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Partcle.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Player.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Score.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Vector3.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+    <ClInclude Include="Header\Warp.h">
+      <Filter>ヘッダー ファイル</Filter>
+    </ClInclude>
+  </ItemGroup>
+  <ItemGroup>
     <Image Include="Resources\background.png">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Resources\ring.png">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Resources\box.png">
-      <Filter>リソース ファイル</Filter>
-    </Image>
-    <Image Include="Resources\check.png">
       <Filter>リソース ファイル</Filter>
     </Image>
     <Image Include="Resources\bag1.png">
@@ -69,13 +92,19 @@
     <Image Include="Resources\bag2.png">
       <Filter>リソース ファイル</Filter>
     </Image>
+    <Image Include="Resources\box.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\check.png">
+      <Filter>リソース ファイル</Filter>
+    </Image>
     <Image Include="Resources\effect2.png">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="Resources\effect3.png">
+    <Image Include="Resources\hosi.png">
       <Filter>リソース ファイル</Filter>
     </Image>
-    <Image Include="Resources\hosi.png">
+    <Image Include="Resources\effect3.png">
       <Filter>リソース ファイル</Filter>
     </Image>
     <Image Include="Resources\lap1.png">
@@ -88,6 +117,9 @@
       <Filter>リソース ファイル</Filter>
     </Image>
     <Image Include="Resources\particle.jpg">
+      <Filter>リソース ファイル</Filter>
+    </Image>
+    <Image Include="Resources\ring.png">
       <Filter>リソース ファイル</Filter>
     </Image>
     <Image Include="Resources\stageclear.png">
@@ -128,19 +160,31 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="Resources\stage\stage1.csv">
-      <Filter>ステージファイル</Filter>
+      <Filter>ステージ ファイル</Filter>
     </None>
     <None Include="Resources\stage\stage2.csv">
-      <Filter>ステージファイル</Filter>
-    </None>
-    <None Include="Resources\stage\ringColor2.csv">
-      <Filter>ステージファイル</Filter>
-    </None>
-    <None Include="Resources\stage\ringColor1.csv">
-      <Filter>ステージファイル</Filter>
+      <Filter>ステージ ファイル</Filter>
     </None>
     <None Include="Resources\stage\warpData2.csv">
-      <Filter>ステージファイル</Filter>
+      <Filter>ステージ ファイル</Filter>
     </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Filter Include="ヘッダー ファイル">
+      <UniqueIdentifier>{b5ef6139-a422-41fb-946a-fb28ff1f839b}</UniqueIdentifier>
+      <Extensions>h;hh;hpp;hxx;h++;hm;inl;inc;ipp;xsd</Extensions>
+    </Filter>
+    <Filter Include="リソース ファイル">
+      <UniqueIdentifier>{a429c9d8-8fde-4f0d-922d-ae81934530ee}</UniqueIdentifier>
+      <Extensions>rc;ico;cur;bmp;dlg;rc2;rct;bin;rgs;gif;jpg;jpeg;jpe;resx;tiff;tif;png;wav;mfcribbon-ms</Extensions>
+    </Filter>
+    <Filter Include="ステージ ファイル">
+      <UniqueIdentifier>{4fa846d2-d6f1-45ff-975c-1636e7c329a7}</UniqueIdentifier>
+      <Extensions>csv</Extensions>
+    </Filter>
+    <Filter Include="ソース ファイル">
+      <UniqueIdentifier>{d31e54d2-5aad-4996-8540-ebb8dd959ed0}</UniqueIdentifier>
+      <Extensions>cpp;c;cc;cxx;c++;cppm;ixx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
+    </Filter>
   </ItemGroup>
 </Project>

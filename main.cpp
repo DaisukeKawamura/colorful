@@ -126,7 +126,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	int laps = 1; //周回数
 
-	const int maxStageCount = 5;      //ステージ数＋タイトル
+	const int maxStageCount = 6;      //ステージ数
 	int stageNo = 0;                      //選択されているステージ
 	bool stageSelectTitle = false;       //ステージ選択でタイトルを選択してるかどうか
 	bool isStageClear[maxStageCount]; //各ステージのクリアフラグ
@@ -135,11 +135,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	for (size_t i = 0; i < sizeof(isStageClear); i++)
 	{
-#if _DEBUG
 		isStageClear[i] = true; //デバッグ用にステージを全開放
-#else
-		isStageClear[i] = false;
-#endif
 	}
 	//リトライがtrueゲームオーバーはfalse
 	bool selectRetryFlag = true;
@@ -306,19 +302,43 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 				case 0:
 					filePath = (char *)"./Resources/stage/stage1.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
-					goalMapWidth = 100;
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
+					goalMapWidth = 50;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				case 1:
 					filePath = (char *)"./Resources/stage/stage2.csv";
 					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
-					goalMapWidth = 110;
+					goalMapWidth = 50;
+					startColor = changeColor[BlockChange::ColorNo::GREEN];
+					break;
+				case 2://
+					filePath = (char *)"./Resources/stage/stage3.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
+					goalMapWidth = 60;
+					startColor = changeColor[BlockChange::ColorNo::BLUE];
+					break;
+				case 3://
+					filePath = (char *)"./Resources/stage/stage4.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor4.csv";
+					goalMapWidth = 60;
+					startColor = changeColor[BlockChange::ColorNo::GREEN];
+					break;
+				case 4:
+					filePath = (char *)"./Resources/stage/stage5.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor5.csv";
+					goalMapWidth = 60;
+					startColor = changeColor[BlockChange::ColorNo::GREEN];
+					break;
+				case 5:
+					filePath = (char *)"./Resources/stage/stage6.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor6.csv";
+					goalMapWidth = 50;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				default:
 					filePath = (char *)"./Resources/stage/stage1.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 90;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
@@ -412,22 +432,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					gameStatus = GameStatus::Select;
 				}
-
 			}
 
 			player.Update();
-			//死んでからも追従しないように
-			if (isGameover == false)
-			{
-				player.cameraPosY = player.pos.y;
-			}
 
 			// メインカメラの更新
 			if (player.cameraPosX < goalMapWidth * blockSize.x + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + player.cameraPosY + directing.shakeY, player.pos.z - 260.0f),
-					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f + player.cameraPosY, player.pos.z),
+					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 260.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
 
@@ -905,8 +919,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-							boxGraph
+							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							noPaintGraph
 						);
 						break;
 						/*case ObjectStatus::ITEM:
@@ -1085,7 +1099,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			}
 
-
 			directing.wallDraw();
 			DirectDrawing::isDepthWriteBan = true;
 			draw.SetDrawBlendMode(BLENDMODE_ADD);
@@ -1103,7 +1116,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
 				directing.scoreDraw(score, medal, selectRetryFlag);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
-				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
+				//draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 			if (isGameover == true)
 			{
@@ -1112,7 +1125,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
 				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 				directing.GameOverButtonDraw(scorePos, selectRetryFlag);
-				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
 			//draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
@@ -1122,7 +1134,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			break;
 		default:
 			break;
-		}
+			}
 		directing.SceneChangeUpdate();
 		directing.SceneChangeDraw();
 		// ループの終了処理
@@ -1131,9 +1143,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		if (isLoopEnd == true) { break; }
 		if (Input::IsKey(DIK_ESCAPE)) { break; }
-	}
+		}
 
 	w.WindowEnd();
 
 	return 0;
-}
+	}

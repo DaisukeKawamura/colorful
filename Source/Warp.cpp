@@ -60,11 +60,17 @@ void Warp::WarpInit(const int map[MAP_HEIGHT][MAP_WIDTH], const int& stageNo)
 
 	switch (stageNo)
 	{
-	case 1:
-		filePath = (char*)"./Resources/stage/warpData2.csv";
+	case 3:
+		filePath = (char *)"./Resources/stage/warpData4.csv";
+		break;
+	case 4:
+		filePath = (char *)"./Resources/stage/warpData5.csv";
+		break;
+	case 5:
+		filePath = (char *)"./Resources/stage/warpData6.csv";
 		break;
 	default:
-		filePath = (char*)"./Resources/stage/warpData2.csv";
+		filePath = (char*)"./Resources/stage/warpData4.csv";
 		break;
 	}
 
@@ -103,7 +109,7 @@ void Warp::WarpInit(const int map[MAP_HEIGHT][MAP_WIDTH], const int& stageNo)
 	time = 0;
 }
 
-const Warp::XMFLOAT2& Warp::WarpPos(const int& warpNo)
+const Warp::XMFLOAT2 Warp::WarpPos(const int& warpNo)
 {
 	if (warpNo < 0 || warpNo >= warpCount)
 	{

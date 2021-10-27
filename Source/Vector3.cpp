@@ -4,13 +4,18 @@
 using namespace std;
 
 Vector3::Vector3() :
-	Vector3(0, 0, 0)
+	DirectX::XMFLOAT3(0, 0, 0)
 {
 
 }
 
 Vector3::Vector3(float x, float y, float z) :
-	x(x), y(y), z(z)
+	DirectX::XMFLOAT3(x, y, z)
+{
+}
+
+Vector3::Vector3(const DirectX::XMFLOAT3& v) :
+	DirectX::XMFLOAT3(v)
 {
 }
 
@@ -51,6 +56,15 @@ Vector3 Vector3::operator+() const
 Vector3 Vector3::operator-() const
 {
 	return Vector3(-x, -y, -z);
+}
+
+Vector3& Vector3::operator=(const DirectX::XMFLOAT3& v)
+{
+	this->x = v.x;
+	this->y = v.y;
+	this->z = v.z;
+
+	return *this;
 }
 
 Vector3 &Vector3::operator+=(const Vector3 &v)

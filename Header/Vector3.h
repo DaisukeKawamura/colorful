@@ -1,15 +1,17 @@
 #pragma once
-class Vector3
-{
+#include <DirectXMath.h>
 
+class Vector3 : public DirectX::XMFLOAT3
+{
 public:
-	float x;
-	float y;
-	float z;
+	//float x;
+	//float y;
+	//float z;
 public:
 	//コンストラクタ
 	Vector3();							//零ベクトルとする
 	Vector3(float x, float y, float z);	//x成分、y成分、z成分を指定しての生成
+	Vector3(const DirectX::XMFLOAT3& v);
 
 	//メンバ関数
 	static  float length(const Vector3 &v) ;				//ノルム（長さ）を求める
@@ -23,6 +25,7 @@ public:
 	Vector3 operator-() const;
 
 	//代入演算子オーバーロード
+	Vector3 &operator=(const DirectX::XMFLOAT3 &v);
 	Vector3 &operator+=(const Vector3 &v);
 	Vector3 &operator-=(const Vector3 &v);
 	Vector3 &operator*=(float s);

@@ -9,8 +9,6 @@ void Directing::Init()
 	//スコアイージング初期化
 	scoreFlag = true;
 	scoreDirectFlag = true;
-	//アイテムイージング初期化
-	itemFlag = false;
 	//周回フラグ初期化
 	lap1Flag = true;
 	lap2Flag = true;
@@ -72,6 +70,8 @@ void Directing::ParticleInit(DrawPolygon *draw)
 		this->percentGraph = this->draw->LoadTextrue(L"./Resources/percent.png");
 		this->stageNumberGraph = this->draw->LoadTextrue(L"./Resources/stagenum.png");
 		this->scoreNumberGraph = this->draw->LoadTextrue(L"./Resources/scorenum.png");
+		this->retryButtonGraph = this->draw->LoadTextrue(L"./Resources/retrybutton.png");
+		this->selectbuttonGraph = this->draw->LoadTextrue(L"./Resources/selectbutton.png");
 		this->particlePolygon = this->draw->CreateRect(10, 10);
 		this->wallBreak3D = this->draw->Create3Dbox(10.0f, 10.0f, 20.0f);
 		this->draw->NormalizeUV(wallBreak3D, wallBreakGraph);
@@ -134,7 +134,7 @@ XMFLOAT3 Directing::scoreEasing()
 	}
 	return XMFLOAT3(scoreStart.x, position.y, scoreStart.z);
 }
-void Directing::scoreDraw(const int score, const int medal)
+void Directing::scoreDraw(const int score, const int medal, const int  selectRetryFlag)
 {
 	if (scoreDirectFlag == true)
 	{
@@ -188,50 +188,25 @@ void Directing::scoreDraw(const int score, const int medal)
 		NumberDraw(score, 800, 280, 60, 60);
 		//パーセント
 		draw->DrawTextrue(830, 248, 70, 70, 0, percentGraph, XMFLOAT2(0.0f, 0.0f));
+		ClearOverSelect();
+		if (selectRetryFlag)
+		{
+			//リトライボタン
+			draw->DrawTextrue(843, 637, 135 + clearOverSelectR, 135 + clearOverSelectR, 0, retryButtonGraph);
+			//セレクトボタン
+			draw->DrawTextrue(1014, 637, 135, 135, 0, selectbuttonGraph);
+		}
+		else
+		{
+			//セレクトボタン
+			draw->DrawTextrue(1014, 637, 135 + clearOverSelectR, 135 + clearOverSelectR, 0, selectbuttonGraph);
+			//リトライボタン
+			draw->DrawTextrue(843, 637, 135, 135, 0, retryButtonGraph);
+		}
 		scoreTime++;
 	}
 }
-//アイテムイージング
-void Directing::ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos)
-{
-	itemFlag = true;
-	this->itemStart = Vector3(start.x, start.y, start.z);
-	this->itemEnd = Vector3(end.x, end.y, end.z);
-	this->itemCameraPos = cameraPos;
-	this->itemMaxTime = time;
-	itemScale = XMFLOAT3(5.0f, 5.0f, 5.0f);
-	itemEasingTime = 0;
-}
 
-XMFLOAT3 Directing::ItemUpdate(XMFLOAT3 cameraPos)
-{
-	//カメラにあわせて毎ターン更新
-	float cameraSpeed = cameraPos.x - itemCameraPos;
-	itemCameraPos += cameraSpeed;
-	itemStart.x += cameraSpeed;
-	itemEnd.x += cameraSpeed;
-
-	itemEasingTime++;
-
-	itemTimeRate = min(itemEasingTime / itemMaxTime, 1.0f);
-
-	if (itemScale.x > 0.0f)
-	{
-		itemScale = itemScale - XMFLOAT3(0.05f, 0.05f, 0.05f);
-	}
-
-	if (itemTimeRate >= 1.0f)
-	{
-		itemFlag = false;
-	}
-
-	Vector3 position;
-	//position = easeOut(itemStart, itemEnd, itemTimeRate);
-	//position = easeIn(itemStart, itemEnd, itemTimeRate);
-	position = easeInOut(itemStart, itemEnd, itemTimeRate);
-
-	return XMFLOAT3(position.x, position.y, position.z);
-}
 //プレイヤーRunパーティクル
 void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 {
@@ -845,6 +820,44 @@ void Directing::NumberDraw(const int score, const  int posX, const int posY, con
 			draw->DrawCutTextrue(posX - numDistance * 2, posY, width, height,
 				XMFLOAT2(stageNumXY * i, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, scoreNumberGraph);
 		}
+	}
+}
+void Directing::ClearOverSelect()
+{
+	if (clearOverSelectFlag == true)
+	{
+		clearOverSelectR++;
+		if (clearOverSelectR >= 15)
+		{
+			clearOverSelectFlag = false;
+		}
+	}
+	else
+	{
+		clearOverSelectR--;
+		if (clearOverSelectR < 0)
+		{
+			clearOverSelectFlag = true;
+		}
+	}
+}
+void Directing::GameOverButtonDraw(XMFLOAT3 scorePos, int selectRetryFlag)
+{
+
+	ClearOverSelect();
+	if (selectRetryFlag)
+	{
+		//リトライボタン
+		draw->DrawTextrue(512, 445 + scorePos.y, 110+clearOverSelectR, 110 + clearOverSelectR, 0, retryButtonGraph);
+		//セレクトボタン
+		draw->DrawTextrue(766, 445 + scorePos.y, 110 , 110, 0, selectbuttonGraph);
+	}
+	else
+	{
+		//セレクトボタン
+		draw->DrawTextrue(766, 445 + scorePos.y, 110 + clearOverSelectR, 110 + clearOverSelectR, 0, selectbuttonGraph);
+		//リトライボタン
+		draw->DrawTextrue(512, 445 + scorePos.y, 110 , 110 , 0, retryButtonGraph);
 	}
 }
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs)

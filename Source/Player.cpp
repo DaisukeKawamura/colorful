@@ -55,7 +55,7 @@ void Player::Init(DrawPolygon *draw)
 	this->pos = XMFLOAT3(0, 0, 0);
 	this->oldPos = XMFLOAT3(0, 0, 0);
 	this->rotaMat = XMMatrixIdentity();
-	this->scale = scale_xyz(4.0f);
+	this->scale = scale_xyz(5.0f);
 	this->color = XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f);
 
 	this->speed = 2.8f;

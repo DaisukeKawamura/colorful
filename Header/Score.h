@@ -5,8 +5,8 @@ public:
 	Score();
 
 	~Score();
-	int score[5];
-	int medal[5];
+	int score[15];
+	int medal[15];
 
 	void Init();
 

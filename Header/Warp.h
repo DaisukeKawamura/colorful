@@ -27,7 +27,7 @@ public: //メンバ関数
 	// ワープの初期化
 	void WarpInit(const int map[MAP_HEIGHT][MAP_WIDTH], const int& stageNo);
 	// ワープ（warpNo:入口側の番号）
-	const XMFLOAT2& WarpPos(const int& warpNo);
+	const XMFLOAT2 WarpPos(const int& warpNo);
 	// 演出の更新（warpNo:入口側の番号）
 	void ParticleUpdate(const int& warpNo);
 	// 描画（warpNo:入口側の番号）

@@ -103,7 +103,7 @@ void Warp::WarpInit(const int map[MAP_HEIGHT][MAP_WIDTH], const int& stageNo)
 	time = 0;
 }
 
-const Warp::XMFLOAT2& Warp::WarpPos(const int& warpNo)
+const Warp::XMFLOAT2 Warp::WarpPos(const int& warpNo)
 {
 	if (warpNo < 0 || warpNo >= warpCount)
 	{

@@ -316,6 +316,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					goalMapWidth = 110;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
+				case 2:
+					filePath = (char *)"./Resources/stage/stage3.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
+					goalMapWidth = 60;
+					startColor = changeColor[BlockChange::ColorNo::BLUE];
+					break;
 				default:
 					filePath = (char *)"./Resources/stage/stage1.csv";
 					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
@@ -905,8 +911,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-							boxGraph
+							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							noPaintGraph
 						);
 						break;
 						/*case ObjectStatus::ITEM:
@@ -1112,7 +1118,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
 				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
 				directing.GameOverButtonDraw(scorePos, selectRetryFlag);
-				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
 			//draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);

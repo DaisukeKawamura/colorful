@@ -135,11 +135,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	for (size_t i = 0; i < sizeof(isStageClear); i++)
 	{
-#if _DEBUG
 		isStageClear[i] = true; //デバッグ用にステージを全開放
-#else
-		isStageClear[i] = false;
-#endif
 	}
 	//リトライがtrueゲームオーバーはfalse
 	bool selectRetryFlag = true;
@@ -418,22 +414,16 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					gameStatus = GameStatus::Select;
 				}
-
 			}
 
 			player.Update();
-			//死んでからも追従しないように
-			if (isGameover == false)
-			{
-				player.cameraPosY = player.pos.y;
-			}
 
 			// メインカメラの更新
 			if (player.cameraPosX < goalMapWidth * blockSize.x + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + player.cameraPosY + directing.shakeY, player.pos.z - 260.0f),
-					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f + player.cameraPosY, player.pos.z),
+					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 260.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
 
@@ -737,7 +727,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 				}
 			}
-			if (player.pos.y <= -70.0f || player.cameraPosX - player.pos.x > 90)
+			if (player.pos.y <= -70.0f || player.cameraPosX - player.pos.x > 150)
 			{
 				if (isClear == false)
 				{
@@ -1077,7 +1067,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			//壊れる壁
 			if (directing.wallFlag == true)
 			{
-				for (int i = 0; i < 10; i++)
+				for (int i = 0; i < 20; i++)
 				{
 					draw.Draw(
 						wallBreak,
@@ -1136,9 +1126,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		if (isLoopEnd == true) { break; }
 		if (Input::IsKey(DIK_ESCAPE)) { break; }
-	}
+		}
 
 	w.WindowEnd();
 
 	return 0;
-}
+	}

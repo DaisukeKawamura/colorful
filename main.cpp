@@ -126,7 +126,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	int laps = 1; //周回数
 
-	const int maxStageCount = 5;      //ステージ数＋タイトル
+	const int maxStageCount = 6;      //ステージ数
 	int stageNo = 0;                      //選択されているステージ
 	bool stageSelectTitle = false;       //ステージ選択でタイトルを選択してるかどうか
 	bool isStageClear[maxStageCount]; //各ステージのクリアフラグ
@@ -308,7 +308,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					break;
 				case 1:
 					filePath = (char *)"./Resources/stage/stage2.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor3.csv";
 					goalMapWidth = 50;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
@@ -327,6 +327,12 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				case 4:
 					filePath = (char *)"./Resources/stage/stage5.csv";
 					ringFilePath = (char *)"./Resources/stage/ringColor5.csv";
+					goalMapWidth = 60;
+					startColor = changeColor[BlockChange::ColorNo::GREEN];
+					break;
+				case 5:
+					filePath = (char *)"./Resources/stage/stage6.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor6.csv";
 					goalMapWidth = 50;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
@@ -1093,7 +1099,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			}
 
-
 			directing.wallDraw();
 			DirectDrawing::isDepthWriteBan = true;
 			draw.SetDrawBlendMode(BLENDMODE_ADD);
@@ -1111,7 +1116,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
 				directing.scoreDraw(score, medal, selectRetryFlag);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
-				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
+				//draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 			if (isGameover == true)
 			{

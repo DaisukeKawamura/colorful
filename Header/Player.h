@@ -42,7 +42,7 @@ public: // メンバ関数
 	void JumpStart(float jumpPower, float jumpPowerDecay);
 
 public: // メンバ変数
-	DrawPolygon* draw;  //描画用
+	DrawPolygon* draw; //描画用
 
 	XMFLOAT3 pos;     //座標
 	XMFLOAT3 oldPos;  //1つ前の座標

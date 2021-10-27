@@ -12,7 +12,7 @@ Score::~Score()
 
 void Score::Init()
 {
-	for (int i = 0; i < 5; i++)
+	for (int i = 0; i < 15; i++)
 	{
 		score[i] = 0;
 		medal[i] = 0;

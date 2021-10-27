@@ -591,7 +591,7 @@ void Directing::StageSelectUpdate()
 	}
 }
 
-void Directing::StageSelectDraw(const int score[], const int medal[], int window_width, int window_height)
+void Directing::StageSelectDraw(const int score[], const int medal[], const int maxStage, int window_width, int window_height)
 {
 	int starOfsetX = 433, starOfsetY = 383;
 	int starR = 120, starDistance = 145;
@@ -605,7 +605,7 @@ void Directing::StageSelectDraw(const int score[], const int medal[], int window
 
 	int numberOfsetX = 820, numberOfsetY = 340;
 
-	for (int i = -1; i < 6; i++)
+	for (int i = -1; i < maxStage + 1; i++)
 	{//ステージセレクト
 		draw->DrawTextrue(stageSlectPos.x + window_width * i, 0, window_width, window_height, 0, SelectGraph, XMFLOAT2(0.0f, 0.0f));
 
@@ -613,27 +613,27 @@ void Directing::StageSelectDraw(const int score[], const int medal[], int window
 		{//ステージ５番目
 			for (int j = 0; j < 3/*star[5]*/; j++)
 			{
-				if (score[4] >= clearScore[j])
+				if (score[maxStage - 1] >= clearScore[j])
 				{
 					draw->DrawTextrue(stageSlectPos.x + window_width * i + starOfsetX + starDistance * j,
 						starOfsetY, starR, starR, 0, starGraph, XMFLOAT2(0.0f, 0.0f));
 				}
 			}
-			for (int j = 0; j < medal[4]; j++)
+			for (int j = 0; j < medal[maxStage - 1]; j++)
 			{
 				draw->DrawTextrue(stageSlectPos.x + window_width * i + medalOfsetX + medalDistance * j,
 					medalOfsetY, medalR, medalR, 0, medalGraph, XMFLOAT2(0.0f, 0.0f));
 			}
 			//スコア数字
-			NumberDraw(score[4], stageSlectPos.x + window_width * i + numberOfsetX, numberOfsetY, 60, 60);
+			NumberDraw(score[maxStage - 1], stageSlectPos.x + window_width * i + numberOfsetX, numberOfsetY, 60, 60);
 			//パーセント
 			draw->DrawTextrue(stageSlectPos.x + window_width * i + 850,
 				310, stageNumXY, stageNumXY, 0, percentGraph, XMFLOAT2(0.0f, 0.0f));
 			//ステージ番号
 			draw->DrawCutTextrue(stageSlectPos.x + stageNumOfsetX + window_width * i, stageNumOfsetY, stageNumR, stageNumR,
-				XMFLOAT2(stageNumXY * 5, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, stageNumberGraph);
+				XMFLOAT2(stageNumXY * maxStage, 0), XMFLOAT2(stageNumXY, stageNumXY), 0, stageNumberGraph);
 		}
-		else if (i == 5)
+		else if (i == maxStage)
 		{//ステージ1番目
 			for (int j = 0; j < 3/*star[0]*/; j++)
 			{

@@ -4,7 +4,6 @@
 #include "./Header/SafeDelete.h"
 #include "./Header/Player.h"
 #include "./Header/OBBCollision.h"
-#include "./Header/HP.h"
 #include "./Header/LoadCSV.h"
 #include "./Header/BlockChange.h"
 #include "./Header/Directing.h"
@@ -50,9 +49,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	Player player = {};
 	player.Init(&draw);
 
-	HP hp = {};
-	hp.Init(25, 1, 60);
-
 	Directing directing = {};
 	directing.Init();
 	directing.ParticleInit(&draw);
@@ -88,7 +84,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int testPolygon = draw.CreateTriangle({ 0.0f, 1.0f, 0.0f }, { 0.5f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f }, { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f }); //仮描画用のポリゴン
 
 	// モデルの読み込み
-	int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/");    //アイテム
+	//int itemModel = draw.CreateOBJModel("./Resources/item/4.obj", "./Resources/item/");    //アイテム
 	int ringModel = draw.CreateOBJModel("./Resources/ring/5.obj", "./Resources/ring/");    //リング
 	int coinModel = draw.CreateOBJModel("./Resources/coin/coin.obj", "./Resources/coin/"); //収集アイテムのコイン
 
@@ -143,7 +139,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		isStageClear[i] = false;
 #endif
 	}
-
+	//リトライがtrueゲームオーバーはfalse
+	bool selectRetryFlag = true;
 	int score = 0; //スコア
 	int medal = 0;//メダル数
 
@@ -218,7 +215,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						stageNo--;
 						directing.stageSelectEasingStart(XMFLOAT3(-window_width * (stageNo + 1), 0, 0),
-							XMFLOAT3(-window_width * stageNo, 0, 0), 100);
+							XMFLOAT3(-window_width * stageNo, 0, 0), 40);
 
 						if (stageNo < 0)
 						{
@@ -236,7 +233,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (directing.stageSelectFlag == true)
 					{
 						directing.stageSelectEasingStart(XMFLOAT3(-window_width * stageNo, 0, 0),
-							XMFLOAT3(-window_width * (stageNo + 1), 0, 0), 100);
+							XMFLOAT3(-window_width * (stageNo + 1), 0, 0), 40);
 
 						stageNo++;
 						if (stageNo == 5)
@@ -291,7 +288,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			gameStatus = GameStatus::Main;
 
 			player.Init(&draw);
-			hp.Init(25, 1, 60);
 			directing.Init();
 			player.pos = startPlayerPos;
 			player.cameraPosX = player.pos.x;
@@ -377,6 +373,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (isClear == true || isGameover == true)
 				{
+
 					directing.StartSceneChange();
 				}
 				else
@@ -389,9 +386,30 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.jumpFlag = false;
 			}
 
+			if ((isClear == true || isGameover == true) && (Input::IsKeyTrigger(DIK_LEFT) || Input::IsKeyTrigger(DIK_RIGHT)))
+			{//タイトルかリトライか
+				if (selectRetryFlag == true)
+				{
+					selectRetryFlag = false;
+				}
+				else
+				{
+					selectRetryFlag = true;
+				}
+			}
+
+
 			if (directing.ChangeScene() && (isClear == true || isGameover == true))
 			{
-				gameStatus = GameStatus::Title;
+				if (selectRetryFlag == true)
+				{
+					gameStatus = GameStatus::MainInit;
+				}
+				else
+				{
+					gameStatus = GameStatus::Select;
+				}
+				
 			}
 			player.Update();
 
@@ -399,7 +417,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			if (player.cameraPosX < goalMapWidth * blockSize.x + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 170.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 210.0f),
 					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
@@ -450,7 +468,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						//地面についた時の処理
 						if (isHitDown)
 						{
-							hp.AddDamage(0.01f);
 							player.groundFlag = true;
 							//地面の色を変える
 							map[y][x] = BlockChange::changeBlockPColor(player.color);
@@ -500,7 +517,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						if (isHitDown)
 						{
 							player.ChangeGroundColor(map[y][x]);
-							hp.AddDamage(0.01f);
 							player.groundFlag = true;
 							//地面の色を変える
 							map[y][x] = BlockChange::changeBlockPColor(player.color);
@@ -526,8 +542,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							player.groundFlag = true;
 							//地面の色を変える
 							map[y][x] = BlockChange::changeFloorPColor(player.color);
-
-							hp.AddDamage(0.005f);
 
 							paintBlockCount += 1.0f;
 						}
@@ -576,12 +590,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							player.ChangeGroundColor(map[y][x]);
 							//地面の色を変える
 							map[y][x] = BlockChange::changeFloorPColor(player.color);
-
-							hp.AddDamage(0.005f);
 						}
 					}
 					break;
-					case ObjectStatus::ITEM:
+					/*case ObjectStatus::ITEM:
 					{
 						OBB itemOBB;
 						itemOBB.Initilize(mapPosition, XMMatrixIdentity(), 5.0f, 5.0f, 5.0f);
@@ -590,11 +602,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 						{
 							directing.ItemStart(XMFLOAT3(x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z),
 								XMFLOAT3(player.cameraPosX - 35, 110, 0), 50, player.cameraPosX);
-							hp.RecoverDamage(5);
 							map[y][x] = ObjectStatus::BREAK_ITEM;
 						}
 					}
-					break;
+					break;*/
 					case ObjectStatus::RING:
 					{
 						OBB blockOBB;
@@ -607,7 +618,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							directing.RingStart();//リングパーティクルスタート
 							player.color = changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]];
 							map[y][x] = ObjectStatus::BREAK_RING;
-							hp.RecoverDamage(5);
 						}
 					}
 					case ObjectStatus::BREAK_RING:
@@ -720,14 +730,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
 				}
 			}
-			if (isClear == false && isGameover == false)
-			{
-				isGameover = hp.isEmpty();
-				if (isGameover == true)
-				{
-					directing.scoreEasingStart(XMFLOAT3(0, -400, 0), XMFLOAT3(0, 0, 0), 20);
-				}
-			}
 
 			//ラップ２の戻り処理
 			if (directing.pFlyFlag == false)
@@ -735,7 +737,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.pos = directing.PFly();
 				player.cameraPosX = player.pos.x;
 				draw.SetCamera(
-					XMFLOAT3(player.pos.x + 100.0f + directing.shakeX, player.pos.y + 30.0f + directing.shakeY, player.pos.z - 170.0f),
+					XMFLOAT3(player.pos.x + 130.0f + directing.shakeX, player.pos.y + 30.0f + directing.shakeY, player.pos.z - 170.0f),
 					XMFLOAT3(player.pos.x + 100.0f, player.pos.y + 30.0f + directing.shakeY, player.pos.z),
 					upVec, MAIN_CAMERA);
 				player.rotaMat = XMMatrixRotationZ(XMConvertToRadians(directing.playerAngle));
@@ -830,7 +832,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				directing.SelectTitle();
 			}
 			//ステージセレクト描画
-			
+
 
 			directing.StageSelectDraw(stageScore.score, stageScore.medal, window_width, window_height);
 		}
@@ -885,7 +887,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					case ObjectStatus::ITEM:
+					/*case ObjectStatus::ITEM:
 						draw.DrawOBJ(
 							itemModel,
 							mapPosition,
@@ -893,7 +895,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMFLOAT3(5.0f, 5.0f, 5.0f),
 							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
 						);
-						break;
+						break;*/
 					case ObjectStatus::RING:
 						draw.DrawOBJ(
 							ringModel,
@@ -1056,19 +1058,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				);
 			}
 
-			//アイテムイージング
-			if (directing.itemFlag == true)
-			{
-				XMFLOAT3 itemPos = directing.ItemUpdate(XMFLOAT3(player.cameraPosX, 0.0f, 0));
+			////アイテムイージング
+			//if (directing.itemFlag == true)
+			//{
+			//	XMFLOAT3 itemPos = directing.ItemUpdate(XMFLOAT3(player.cameraPosX, 0.0f, 0));
 
-				draw.DrawOBJ(
-					itemModel,
-					itemPos,
-					XMMatrixRotationX(XMConvertToRadians(0)),
-					directing.itemScale,
-					XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
-				);
-			}
+			//	draw.DrawOBJ(
+			//		itemModel,
+			//		itemPos,
+			//		XMMatrixRotationX(XMConvertToRadians(0)),
+			//		directing.itemScale,
+			//		XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
+			//	);
+			//}
 			directing.Lap1Draw();
 			directing.Lap2Draw();
 			directing.wallDraw();
@@ -1084,21 +1086,23 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			if (isClear == true)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
+
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
-				directing.scoreDraw(score, medal);
+				directing.scoreDraw(score, medal,selectRetryFlag);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 			if (isGameover == true)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
+
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
 				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
+				directing.GameOverButtonDraw(scorePos,selectRetryFlag);
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
 			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
-			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "ink:%d", hp.GetCurrentHP());
 			draw.DrawString(0, 128, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
 #endif // _DEBUG
 			break;

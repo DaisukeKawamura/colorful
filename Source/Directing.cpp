@@ -9,8 +9,6 @@ void Directing::Init()
 	//スコアイージング初期化
 	scoreFlag = true;
 	scoreDirectFlag = true;
-	//アイテムイージング初期化
-	itemFlag = false;
 	//周回フラグ初期化
 	lap1Flag = true;
 	lap2Flag = true;
@@ -208,47 +206,7 @@ void Directing::scoreDraw(const int score, const int medal, const int  selectRet
 		scoreTime++;
 	}
 }
-//アイテムイージング
-void Directing::ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos)
-{
-	itemFlag = true;
-	this->itemStart = Vector3(start.x, start.y, start.z);
-	this->itemEnd = Vector3(end.x, end.y, end.z);
-	this->itemCameraPos = cameraPos;
-	this->itemMaxTime = time;
-	itemScale = XMFLOAT3(5.0f, 5.0f, 5.0f);
-	itemEasingTime = 0;
-}
 
-XMFLOAT3 Directing::ItemUpdate(XMFLOAT3 cameraPos)
-{
-	//カメラにあわせて毎ターン更新
-	float cameraSpeed = cameraPos.x - itemCameraPos;
-	itemCameraPos += cameraSpeed;
-	itemStart.x += cameraSpeed;
-	itemEnd.x += cameraSpeed;
-
-	itemEasingTime++;
-
-	itemTimeRate = min(itemEasingTime / itemMaxTime, 1.0f);
-
-	if (itemScale.x > 0.0f)
-	{
-		itemScale = itemScale - XMFLOAT3(0.05f, 0.05f, 0.05f);
-	}
-
-	if (itemTimeRate >= 1.0f)
-	{
-		itemFlag = false;
-	}
-
-	Vector3 position;
-	//position = easeOut(itemStart, itemEnd, itemTimeRate);
-	//position = easeIn(itemStart, itemEnd, itemTimeRate);
-	position = easeInOut(itemStart, itemEnd, itemTimeRate);
-
-	return XMFLOAT3(position.x, position.y, position.z);
-}
 //プレイヤーRunパーティクル
 void Directing::RunUpdate(XMFLOAT3 pPos, XMFLOAT4 pColor)
 {

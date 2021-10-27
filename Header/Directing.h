@@ -71,18 +71,18 @@ public://スコア演出
 	//星とメダルの描画/スコア、メダル
 	void scoreDraw(const int score, const int medal, const int  selectRetryFlag);
 public:	//アイテムイージング
-	Vector3 itemStart;				//スタート地点
-	Vector3 itemEnd;				//エンド地点
-	float itemEasingTime;
-	float itemMaxTime;				//全体時間[s]
-	float itemTimeRate;				//何％　時間が進んだか(率)
-	float itemCameraPos;
-	bool itemFlag;
-	XMFLOAT3 itemScale;
-	//アイテムイージング/スタート位置、終了位置、進む時間
-	void ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos);
+	//Vector3 itemStart;				//スタート地点
+	//Vector3 itemEnd;				//エンド地点
+	//float itemEasingTime;
+	//float itemMaxTime;				//全体時間[s]
+	//float itemTimeRate;				//何％　時間が進んだか(率)
+	//float itemCameraPos;
+	//bool itemFlag;
+	//XMFLOAT3 itemScale;
+	////アイテムイージング/スタート位置、終了位置、進む時間
+	//void ItemStart(XMFLOAT3 start, XMFLOAT3 end, float time, float cameraPos);
 
-	XMFLOAT3 ItemUpdate(XMFLOAT3 cameraPos);
+	//XMFLOAT3 ItemUpdate(XMFLOAT3 cameraPos);
 public:	//プレイヤーRunパーティクル
 	vector<Particle *> run;
 

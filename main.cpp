@@ -414,14 +414,20 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				}
 
 			}
+
 			player.Update();
+			//死んでからも追従しないように
+			if (isGameover == false)
+			{
+				player.cameraPosY = player.pos.y;
+			}
 
 			// メインカメラの更新
 			if (player.cameraPosX < goalMapWidth * blockSize.x + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 210.0f),
-					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f, player.pos.z),
+					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + player.cameraPosY + directing.shakeY, player.pos.z - 260.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f + player.cameraPosY, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
 

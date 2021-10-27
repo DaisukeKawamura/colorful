@@ -70,9 +70,11 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int boxGraph = draw.LoadTextrue(L"./Resources/box.png");
 	int clearGraph = draw.LoadTextrue(L"./Resources/stageclear.png");
 	int gameoverGraph = draw.LoadTextrue(L"./Resources/gameover.png");
-	int titleLoge = draw.LoadTextrue(L"./Resources/titleLogo.png");
+	int titleGraph = draw.LoadTextrue(L"./Resources/title.png");
 	int testGraph = draw.LoadTextrue(L"./Resources/tex1.png"); //仮描画用の画像
-
+	int breakwallGraph = draw.LoadTextrue(L"./Resources/goal1.png");
+	int noPaintGraph = draw.LoadTextrue(L"./Resources/black.png");
+	int playerScoreGraph = draw.LoadTextrue(L"./Resources/bag3.png");
 	// オブジェクトの生成
 	const XMFLOAT3 blockSize = { 40.0f, 20.0f, 20.0f };                         //ブロック一個分の大きさ
 	int box = draw.Create3Dbox(blockSize.x, blockSize.y, blockSize.z);          //ブロック
@@ -80,7 +82,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int startBox = draw.Create3Dbox(240.0f, blockSize.y, blockSize.z); //スタート部分の床
 	int goalBox = draw.Create3Dbox(320.0f, blockSize.y, blockSize.z);  //ゴール部分の床
 	int goalFlag = draw.CreateRect(100.0f, 20.0f);  //ゴールの旗
-	int wallBreak = draw.Create3Dbox(20.0f, 200.0f, 20.0f);//壊れる壁
+	int wallBreak = draw.Create3Dbox(20.0f, 20.0f, 20.0f);//壊れる壁
 	int testPolygon = draw.CreateTriangle({ 0.0f, 1.0f, 0.0f }, { 0.5f, 0.0f }, { 1.0f, -1.0f, 0.0f }, { 1.0f, 1.0f }, { -1.0f, -1.0f, 0.0f }, { 0.0f, 1.0f }); //仮描画用のポリゴン
 
 	// モデルの読み込み
@@ -124,10 +126,10 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 	int laps = 1; //周回数
 
-	const int maxStageCount = 5 + 1;      //ステージ数＋タイトル
+	const int maxStageCount = 5;      //ステージ数＋タイトル
 	int stageNo = 0;                      //選択されているステージ
 	bool stageSelectTitle = false;       //ステージ選択でタイトルを選択してるかどうか
-	bool isStageClear[maxStageCount - 1]; //各ステージのクリアフラグ
+	bool isStageClear[maxStageCount]; //各ステージのクリアフラグ
 	float blockCount = 0.0f;      //塗れるブロックの総数
 	float paintBlockCount = 0.0f; //塗ったブロックの数
 
@@ -153,6 +155,9 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 	int keyCount = 0;   //キー入力され続けたの時間
 	bool isHit = false;
 	bool isLoopEnd = false; //無限ループを抜けるかどうか
+
+	float colorDrawHeight = 0;//塗った量の画像の大きさ
+	float colorDrawOne = 0.93f;//1%当たりの塗る量
 
 	while (true)
 	{
@@ -208,7 +213,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				keyCount++;
 				stageSelectTitle = false;
-				if (keyCount % 10 == (10 - 1) % 10)
+				if (keyCount % 10 == (10 + 1) % 10)
 				{
 					if (directing.stageSelectFlag == true)
 					{
@@ -218,7 +223,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 						if (stageNo < 0)
 						{
-							stageNo += maxStageCount - 1;
+							stageNo += maxStageCount;
 						}
 					}
 				}
@@ -235,7 +240,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							XMFLOAT3((float)(-window_width * (stageNo + 1)), 0, 0), 40.0f);
 
 						stageNo++;
-						if (stageNo == 5)
+						if (stageNo == maxStageCount)
 						{
 							stageNo = 0;
 						}
@@ -361,7 +366,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					}
 				}
 			}
-
+			colorDrawHeight = 0;
 			laps = 1;
 			score = 0;
 			medal = 0;
@@ -407,7 +412,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 					gameStatus = GameStatus::Select;
 				}
-				
+
 			}
 			player.Update();
 
@@ -442,240 +447,239 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 			ringCount = 0;
 			warpCount = 0;
-
-			for (int y = 0; y < MAP_HEIGHT; y++)
+			if (directing.pFlyFlag == true)
 			{
-				for (size_t x = 0; x < goalMapWidth + 1; x++)
+				for (int y = 0; y < MAP_HEIGHT; y++)
 				{
-					XMFLOAT3 mapPosition = { x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z };
-					switch (map[y][x])
+					for (size_t x = 0; x < goalMapWidth + 1; x++)
 					{
-					case ObjectStatus::BLOCK:
-					{
-						OBB blockOBB;
-
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
-
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						bool isHitDown = false;
-
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
-						}
-						//地面についた時の処理
-						if (isHitDown)
+						XMFLOAT3 mapPosition = { x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z };
+						switch (map[y][x])
 						{
-							player.groundFlag = true;
-							//地面の色を変える
-							map[y][x] = BlockChange::changeBlockPColor(player.color);
-
-							paintBlockCount += 1.0f;
-						}
-
-					}
-					break;
-					case ObjectStatus::NOPAINT_BLOCK:
-					{
-						OBB blockOBB;
-
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
-
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						bool isHitDown = false;
-
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
-						}
-						//地面についた時の処理
-						if (isHitDown)
+						case ObjectStatus::BLOCK:
 						{
-							//hp.AddDamage(0.01f);
-							player.groundFlag = true;
-						}
-					}
-					break;
-					case ObjectStatus::RED_BLOCK:
-					case ObjectStatus::BLUE_BLOCK:
-					case ObjectStatus::GREEN_BLOCK:
-					case ObjectStatus::YELLOW_BLOCK:
-					{
-						OBB blockOBB;
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
+							OBB blockOBB;
 
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						bool isHitDown = false;
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
 
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
-						}
-						//地面についた時の処理
-						if (isHitDown)
-						{
-							player.ChangeGroundColor(map[y][x]);
-							player.groundFlag = true;
-							//地面の色を変える
-							map[y][x] = BlockChange::changeBlockPColor(player.color);
-						}
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							bool isHitDown = false;
 
-					}
-					break;
-					case ObjectStatus::FLOOR:
-					{
-						OBB blockOBB;
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
-
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						bool HitDown = false;
-
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
-						}
-						//地面に触れたらの処理
-						if (HitDown)
-						{
-							player.groundFlag = true;
-							//地面の色を変える
-							map[y][x] = BlockChange::changeFloorPColor(player.color);
-
-							paintBlockCount += 1.0f;
-						}
-
-					}
-					break;
-					case ObjectStatus::NOPAINT_FLOOR:
-					{
-						OBB blockOBB;
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
-
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						bool isHitDown = false;
-
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
-						}
-						//地面についた時の処理
-						if (isHitDown)
-						{
-							//hp.AddDamage(0.005f);
-							player.groundFlag = true;
-						}
-					}
-					break;
-					case ObjectStatus::RED_FLOOR:
-					case ObjectStatus::BLUE_FLOOR:
-					case ObjectStatus::GREEN_FLOOR:
-					case ObjectStatus::YELLOW_FLOOR:
-					{
-						OBB blockOBB;
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
-
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						bool HitDown = false;
-
-						if (isHit)
-						{//押し戻し処理
-							OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
-						}
-						//地面に触れたらの処理
-						if (HitDown)
-						{
-							player.groundFlag = true;
-							player.ChangeGroundColor(map[y][x]);
-							//地面の色を変える
-							map[y][x] = BlockChange::changeFloorPColor(player.color);
-						}
-					}
-					break;
-					/*case ObjectStatus::ITEM:
-					{
-						OBB itemOBB;
-						itemOBB.Initilize(mapPosition, XMMatrixIdentity(), 5.0f, 5.0f, 5.0f);
-						bool isHit = OBBCollision::ColOBBs(player.collision, itemOBB);
-						if (isHit)
-						{
-							directing.ItemStart(XMFLOAT3(x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z),
-								XMFLOAT3(player.cameraPosX - 35, 110, 0), 50, player.cameraPosX);
-							map[y][x] = ObjectStatus::BREAK_ITEM;
-						}
-					}
-					break;*/
-					case ObjectStatus::RING:
-					{
-						OBB blockOBB;
-
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), 5.0f, 10.0f, 10.0f);
-
-						bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						if (isHit)
-						{
-							directing.RingStart();//リングパーティクルスタート
-							player.color = changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]];
-							map[y][x] = ObjectStatus::BREAK_RING;
-						}
-					}
-					case ObjectStatus::BREAK_RING:
-						ringCount++;
-						break;
-					case ObjectStatus::WARP:
-					{
-						OBB blockOBB;
-
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / (2 * 4), blockSize.y / 2, blockSize.z / 2);
-
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						if (isHit)
-						{
-							auto temp = warp.WarpPos(warpCount);
-
-							if ((temp.x != -1.0f) || (temp.y != -1.0f))
+							if (isHit)
+							{//押し戻し処理
+								OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
+							}
+							//地面についた時の処理
+							if (isHitDown)
 							{
-								XMFLOAT3 warpPosition = {
-									temp.x * blockSize.x + mapOffset.x,
-									temp.y * (-blockSize.y) + mapOffset.y,
-									mapOffset.z
-								};
-								player.pos = warpPosition;
-								player.collision.Initilize(player.pos, player.rotaMat, 5, 5, 5);
+								player.groundFlag = true;
+								//地面の色を変える
+								map[y][x] = BlockChange::changeBlockPColor(player.color);
+
+								paintBlockCount += 1.0f;
+							}
+
+						}
+						break;
+						case ObjectStatus::NOPAINT_BLOCK:
+						{
+							OBB blockOBB;
+
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
+
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							bool isHitDown = false;
+
+							if (isHit)
+							{//押し戻し処理
+								OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
+							}
+							//地面についた時の処理
+							if (isHitDown)
+							{
+								//hp.AddDamage(0.01f);
+								player.groundFlag = true;
 							}
 						}
-						warp.ParticleUpdate(warpCount);
-						warpCount++;
-					}
-					break;
-					case ObjectStatus::COLLECTION:
-					{
-						OBB blockOBB;
-
-						blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / (2 * 4), blockSize.y / 2, blockSize.z / 2);
-
-						isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
-						if (isHit)
-						{
-							medal++;
-							// 仮の演出
-							directing.RingStart(); //リングパーティクルスタート
-							map[y][x] = ObjectStatus::NONE;
-						}
-					}
-					break;
-					default:
 						break;
+						case ObjectStatus::RED_BLOCK:
+						case ObjectStatus::BLUE_BLOCK:
+						case ObjectStatus::GREEN_BLOCK:
+						case ObjectStatus::YELLOW_BLOCK:
+						{
+							OBB blockOBB;
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / 2, blockSize.z / 2);
+
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							bool isHitDown = false;
+
+							if (isHit)
+							{//押し戻し処理
+								OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown, map[(y + 1) % MAP_HEIGHT][x], map[(y - 1) % MAP_HEIGHT][x]);
+							}
+							//地面についた時の処理
+							if (isHitDown)
+							{
+								player.ChangeGroundColor(map[y][x]);
+								player.groundFlag = true;
+								//地面の色を変える
+								map[y][x] = BlockChange::changeBlockPColor(player.color);
+							}
+
+						}
+						break;
+						case ObjectStatus::FLOOR:
+						{
+							OBB blockOBB;
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							bool HitDown = false;
+
+							if (isHit)
+							{//押し戻し処理
+								OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
+							}
+							//地面に触れたらの処理
+							if (HitDown)
+							{
+								player.groundFlag = true;
+								//地面の色を変える
+								map[y][x] = BlockChange::changeFloorPColor(player.color);
+
+								paintBlockCount += 1.0f;
+							}
+
+						}
+						break;
+						case ObjectStatus::NOPAINT_FLOOR:
+						{
+							OBB blockOBB;
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							bool isHitDown = false;
+
+							if (isHit)
+							{//押し戻し処理
+								OBBCollision::PushbackPolygon(player.pos, player.oldPos, player.collision, blockOBB, isHitDown);
+							}
+							//地面についた時の処理
+							if (isHitDown)
+							{
+								//hp.AddDamage(0.005f);
+								player.groundFlag = true;
+							}
+						}
+						break;
+						case ObjectStatus::RED_FLOOR:
+						case ObjectStatus::BLUE_FLOOR:
+						case ObjectStatus::GREEN_FLOOR:
+						case ObjectStatus::YELLOW_FLOOR:
+						{
+							OBB blockOBB;
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / 2, blockSize.y / (2 * 4), blockSize.z / 2);
+
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							bool HitDown = false;
+
+							if (isHit)
+							{//押し戻し処理
+								OBBCollision::PushbackFloor(player.pos, player.oldPos, player.collision, blockOBB, HitDown);
+							}
+							//地面に触れたらの処理
+							if (HitDown)
+							{
+								player.groundFlag = true;
+								player.ChangeGroundColor(map[y][x]);
+								//地面の色を変える
+								map[y][x] = BlockChange::changeFloorPColor(player.color);
+							}
+						}
+						break;
+						/*case ObjectStatus::ITEM:
+						{
+							OBB itemOBB;
+							itemOBB.Initilize(mapPosition, XMMatrixIdentity(), 5.0f, 5.0f, 5.0f);
+							bool isHit = OBBCollision::ColOBBs(player.collision, itemOBB);
+							if (isHit)
+							{
+								directing.ItemStart(XMFLOAT3(x * blockSize.x + mapOffset.x, y * (-blockSize.y) + mapOffset.y, mapOffset.z),
+									XMFLOAT3(player.cameraPosX - 35, 110, 0), 50, player.cameraPosX);
+								map[y][x] = ObjectStatus::BREAK_ITEM;
+							}
+						}
+						break;*/
+						case ObjectStatus::RING:
+						{
+							OBB blockOBB;
+
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), 5.0f, 10.0f, 10.0f);
+
+							bool isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							if (isHit)
+							{
+								directing.RingStart();//リングパーティクルスタート
+								player.color = changeColor[ringColor[ringCount % (sizeof(ringColor) / sizeof(ringColor[0]))]];
+								map[y][x] = ObjectStatus::BREAK_RING;
+							}
+						}
+						case ObjectStatus::BREAK_RING:
+							ringCount++;
+							break;
+						case ObjectStatus::WARP:
+						{
+							OBB blockOBB;
+
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / (2 * 4), blockSize.y / 2, blockSize.z / 2);
+
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							if (isHit)
+							{
+								auto temp = warp.WarpPos(warpCount);
+
+								if ((temp.x != -1.0f) || (temp.y != -1.0f))
+								{
+									XMFLOAT3 warpPosition = {
+										temp.x * blockSize.x + mapOffset.x,
+										temp.y * (-blockSize.y) + mapOffset.y,
+										mapOffset.z
+									};
+									player.pos = warpPosition;
+									player.collision.Initilize(player.pos, player.rotaMat, 5, 5, 5);
+								}
+							}
+							warp.ParticleUpdate(warpCount);
+							warpCount++;
+						}
+						break;
+						case ObjectStatus::COLLECTION:
+						{
+							OBB blockOBB;
+
+							blockOBB.Initilize(mapPosition, XMMatrixIdentity(), blockSize.x / (2 * 4), blockSize.y / 2, blockSize.z / 2);
+
+							isHit = OBBCollision::ColOBBs(player.collision, blockOBB);
+							if (isHit)
+							{
+								medal++;
+								// 仮の演出
+								directing.RingStart(); //リングパーティクルスタート
+								map[y][x] = ObjectStatus::NONE;
+							}
+						}
+						break;
+						default:
+							break;
+						}
 					}
 				}
 			}
-
 			directing.RunUpdate(player.pos, player.color);
 			directing.RingUpdate(player.pos, player.color);
 			directing.ShakeUpdate();
-			directing.Lap1Update(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
-			directing.Lap2Update();
-			directing.Lap2Update();
 			directing.DoubleJumpUpdate(player.pos);
+			directing.StageSelectUpdate();
 			if (directing.JumEfectJudge(player.jumpCount, player.color) && Input::IsKeyTrigger(DIK_SPACE))
 			{
 				directing.JumEfectStart();
@@ -693,6 +697,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			}
 
 			score = (int)(paintBlockCount / blockCount * 100.0f);
+
+			colorDrawHeight = score * colorDrawOne;
 
 			if (player.pos.x > goalMapWidth * blockSize.x + mapOffset.x)
 			{
@@ -755,7 +761,6 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 					player.rotaMat = XMMatrixIdentity();
 					directing.pFlyFlag = true;
-					directing.Lap2Start(XMFLOAT3(1100, 200, 0), XMFLOAT3(-200, 200, 0), 80);
 				}
 			}
 
@@ -767,6 +772,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 		if (Input::IsKey(DIK_LEFT))
 		{
+			//	isClear = true;
 		}
 		if (Input::IsKey(DIK_RIGHT))
 		{
@@ -816,8 +822,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			draw.SetDrawBlendMode(BLENDMODE_ALPHA);
 			DirectDrawing::isDepthWriteBan = false;
 
-			draw.DrawTextrue(window_width / 2.0f, 200.0f, 735.0f, 176.0f, 0.0f, titleLoge, XMFLOAT2(0.5f, 0.0f));
-			draw.DrawString(window_width / 2.0f - 120.0f, window_height / 2.0f + 100.0f, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
+			draw.DrawTextrue(0, 0, window_width, window_height, 0.0f, titleGraph, XMFLOAT2(0.0f, 0.0f));
+			//draw.DrawString(window_width / 2.0f - 120.0f, window_height / 2.0f + 100.0f, 3.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Please SPACE");
 			break;
 		case GameStatus::SelectInit:
 		case GameStatus::Select:
@@ -831,11 +837,24 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				directing.SelectTitle();
 			}
 			//ステージセレクト描画
-			directing.StageSelectDraw(stageScore.score, stageScore.medal, window_width, window_height);
+			directing.StageSelectDraw(stageScore.score, stageScore.medal, maxStageCount, window_width, window_height);
 		}
 		break;
 		case GameStatus::MainInit:
 		case GameStatus::Main:
+			//視覚的スコアの量
+			if (player.groundFlag == false)
+			{
+				draw.DrawTextrue(30.0f, 129.0f, 110.0f, colorDrawHeight, 0, 0, XMFLOAT2(0.0f, 1.0f), XMFLOAT4(0.6f, 0.6f, 0.6f, 1.0f));
+			}
+			else
+			{
+				draw.DrawTextrue(30.0f, 129.0f, 115.0f, colorDrawHeight, 0, 0, XMFLOAT2(0.0f, 1.0f), player.color);
+			}
+
+			//視覚的スコアの外枠
+			draw.DrawTextrue(85.0f, 90.0f, 220.0f, 220.0f, 0, playerScoreGraph);
+
 			ringCount = 0;
 			for (int y = 0; y < MAP_HEIGHT; y++)
 			{
@@ -860,8 +879,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							mapPosition,
 							XMMatrixIdentity(),
 							XMFLOAT3(1.0f, 1.0f, 1.0f),
-							XMFLOAT4(0.5f, 0.5f, 0.5f, 1.0f),
-							boxGraph
+							XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+							noPaintGraph
 						);
 						break;
 					case ObjectStatus::FLOOR:
@@ -884,15 +903,15 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 							boxGraph
 						);
 						break;
-					/*case ObjectStatus::ITEM:
-						draw.DrawOBJ(
-							itemModel,
-							mapPosition,
-							XMMatrixIdentity(),
-							XMFLOAT3(5.0f, 5.0f, 5.0f),
-							XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
-						);
-						break;*/
+						/*case ObjectStatus::ITEM:
+							draw.DrawOBJ(
+								itemModel,
+								mapPosition,
+								XMMatrixIdentity(),
+								XMFLOAT3(5.0f, 5.0f, 5.0f),
+								XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
+							);
+							break;*/
 					case ObjectStatus::RING:
 						draw.DrawOBJ(
 							ringModel,
@@ -1010,7 +1029,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMMatrixIdentity(),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				boxGraph
+				noPaintGraph
 			);
 			/*ゴール地点*/
 			if (directing.wallFlag == false)
@@ -1038,7 +1057,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMMatrixIdentity(),
 				XMFLOAT3(1.0f, 1.0f, 1.0f),
 				XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-				boxGraph
+				noPaintGraph
 			);
 
 			player.Draw();
@@ -1046,31 +1065,21 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			//壊れる壁
 			if (directing.wallFlag == true)
 			{
-				draw.Draw(
-					wallBreak,
-					XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, 50.0f, 0),
-					XMMatrixIdentity(),
-					XMFLOAT3(1.0f, 1.0f, 1.0f),
-					XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
-					boxGraph
-				);
+				for (int i = 0; i < 10; i++)
+				{
+					draw.Draw(
+						wallBreak,
+						XMFLOAT3(goalMapWidth * blockSize.x + mapOffset.x, -30.0f + i * 20, 0),
+						XMMatrixIdentity(),
+						XMFLOAT3(1.0f, 1.0f, 1.0f),
+						XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f),
+						breakwallGraph
+					);
+				}
+
 			}
 
-			////アイテムイージング
-			//if (directing.itemFlag == true)
-			//{
-			//	XMFLOAT3 itemPos = directing.ItemUpdate(XMFLOAT3(player.cameraPosX, 0.0f, 0));
 
-			//	draw.DrawOBJ(
-			//		itemModel,
-			//		itemPos,
-			//		XMMatrixRotationX(XMConvertToRadians(0)),
-			//		directing.itemScale,
-			//		XMFLOAT4(0.0f, 1.0f, 0.0f, 1.0f)
-			//	);
-			//}
-			directing.Lap1Draw();
-			directing.Lap2Draw();
 			directing.wallDraw();
 			DirectDrawing::isDepthWriteBan = true;
 			draw.SetDrawBlendMode(BLENDMODE_ADD);
@@ -1086,7 +1095,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				XMFLOAT3 scorePos = directing.scoreEasing();
 
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
-				directing.scoreDraw(score, medal,selectRetryFlag);
+				directing.scoreDraw(score, medal, selectRetryFlag);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
@@ -1096,12 +1105,13 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
 				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
-				directing.GameOverButtonDraw(scorePos,selectRetryFlag);
+				directing.GameOverButtonDraw(scorePos, selectRetryFlag);
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG
-			draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
-			draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
+			//draw.DrawString(0, 0, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "laps:%d", laps);
+			//draw.DrawString(0, 64, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "stage:%d", stageNo + 1);
+			draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 #endif // _DEBUG
 			break;
 		default:

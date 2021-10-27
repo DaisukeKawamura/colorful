@@ -302,19 +302,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				{
 				case 0:
 					filePath = (char *)"./Resources/stage/stage1.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 50;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				case 1:
 					filePath = (char *)"./Resources/stage/stage2.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor3.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 50;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;
 				case 2://
 					filePath = (char *)"./Resources/stage/stage3.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 60;
 					startColor = changeColor[BlockChange::ColorNo::BLUE];
 					break;
@@ -338,7 +338,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					break;
 				default:
 					filePath = (char *)"./Resources/stage/stage1.csv";
-					ringFilePath = (char *)"./Resources/stage/ringColor1.csv";
+					ringFilePath = (char *)"./Resources/stage/ringColor2.csv";
 					goalMapWidth = 90;
 					startColor = changeColor[BlockChange::ColorNo::GREEN];
 					break;

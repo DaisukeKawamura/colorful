@@ -70,7 +70,7 @@ void Warp::WarpInit(const int map[MAP_HEIGHT][MAP_WIDTH], const int& stageNo)
 		filePath = (char *)"./Resources/stage/warpData6.csv";
 		break;
 	default:
-		filePath = (char*)"./Resources/stage/warpData2.csv";
+		filePath = (char*)"./Resources/stage/warpData4.csv";
 		break;
 	}
 

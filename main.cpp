@@ -215,7 +215,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					{
 						stageNo--;
 						directing.stageSelectEasingStart(XMFLOAT3(-window_width * (stageNo + 1), 0, 0),
-							XMFLOAT3(-window_width * stageNo, 0, 0), 100);
+							XMFLOAT3(-window_width * stageNo, 0, 0), 40);
 
 						if (stageNo < 0)
 						{
@@ -233,7 +233,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 					if (directing.stageSelectFlag == true)
 					{
 						directing.stageSelectEasingStart(XMFLOAT3(-window_width * stageNo, 0, 0),
-							XMFLOAT3(-window_width * (stageNo + 1), 0, 0), 100);
+							XMFLOAT3(-window_width * (stageNo + 1), 0, 0), 40);
 
 						stageNo++;
 						if (stageNo == 5)
@@ -417,7 +417,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			if (player.cameraPosX < goalMapWidth * blockSize.x + mapOffset.x)
 			{
 				draw.SetCamera(
-					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 170.0f),
+					XMFLOAT3(player.cameraPosX + 100.0f + directing.shakeX, 30.0f + directing.shakeY, player.pos.z - 210.0f),
 					XMFLOAT3(player.cameraPosX + 100.0f, 50.0f, player.pos.z),
 					upVec, MAIN_CAMERA);
 			}
@@ -737,7 +737,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.pos = directing.PFly();
 				player.cameraPosX = player.pos.x;
 				draw.SetCamera(
-					XMFLOAT3(player.pos.x + 100.0f + directing.shakeX, player.pos.y + 30.0f + directing.shakeY, player.pos.z - 170.0f),
+					XMFLOAT3(player.pos.x + 130.0f + directing.shakeX, player.pos.y + 30.0f + directing.shakeY, player.pos.z - 170.0f),
 					XMFLOAT3(player.pos.x + 100.0f, player.pos.y + 30.0f + directing.shakeY, player.pos.z),
 					upVec, MAIN_CAMERA);
 				player.rotaMat = XMMatrixRotationZ(XMConvertToRadians(directing.playerAngle));

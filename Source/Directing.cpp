@@ -414,7 +414,7 @@ void Directing::FlyStart(XMFLOAT3 start, XMFLOAT3 controlPoint1, XMFLOAT3 contro
 XMFLOAT3 Directing::PFly()
 {
 	pFlyEasingTime++;
-	playerAngle += 2.0f;
+	playerAngle += 10.0f;
 	pFlyTimeRate = min(pFlyEasingTime / pFlyMaxTime, 1.0f);
 
 	Vector3 a = lerp(playerStart, controlPoint1, pFlyTimeRate);

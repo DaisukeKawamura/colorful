@@ -87,8 +87,8 @@ int Audio::SoundLoadWave(const char* filePath)
 	// Dataチャンクの読み込み
 	Audio::Chunk data;
 	file.read((char*)&data, sizeof(data));
-	// JUNKチャンクを検出した場合
-	if (strncmp(data.id, "JUNK", 4) == 0)
+	// JUNKチャンクかLISTチャンクを検出した場合
+	if (strncmp(data.id, "JUNK", 4) == 0 || strncmp(data.id, "LIST", 4) == 0)
 	{
 		// 読み取り位置をJUNKチャンクの終わりまで進める
 		file.seekg(data.size, ios_base::cur);

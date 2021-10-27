@@ -27,44 +27,48 @@ int LoadCSV(int map[MAP_HEIGHT][MAP_WIDTH], const char* FilePath, int LoadStopNu
 		return err;
 	}
 
+	bool isMinus = false;
+
 	for (int y = 0; y < MAP_HEIGHT;)
 	{
 		bool end = false;
 		fgets(string, 256, fileHandle);
-		for (int x = 0, j = 0; x < MAP_WIDTH; j++)
+		for (int x = 0, i = 0; x < MAP_WIDTH; i++)
 		{
-			if (string[j] == '\0')
+			if (string[i] == '\0')
 			{
 				// 読み込み終了
 				fgets(string, 256, fileHandle);
-				j = 0;
+				i = 0;
 			}
-			else if (string[j] == '\n')
+			else if (string[i] == '\n')
 			{
 				// 改行
 				y++;
 				break;
 			}
-			else if (string[j] == ',')
+			else if (string[i] == ',')
 			{
 				// 次の数字へ
 				x++;
+				isMinus = false;
 			}
-			else if (string[j] == '-')
+			else if (string[i] == '-')
 			{
-				map[y][x] *= -1;
-
-				if (map[y][x] == LoadStopNumber)
-				{
-					// ヒットしたら、読み込みを強制的に終了する。
-					end = true;
-					break;
-				}
+				isMinus = true;
 			}
-			else
+			else if (string[i] >= '0' && string[i] <= '9')
 			{
 				map[y][x] *= 10;
-				map[y][x] += string[j] - '0';
+
+				if (isMinus == true)
+				{
+					map[y][x] -= string[i] - '0';
+				}
+				else
+				{
+					map[y][x] += string[i] - '0';
+				}
 
 				if (map[y][x] == LoadStopNumber)
 				{
@@ -102,32 +106,36 @@ int LoadCSV1D(int* mapArray, const size_t& mapSize, const char* FilePath, int Lo
 		return err;
 	}
 
+	bool isMinus = false;
+
 	while (fgets(string, 256, fileHandle) != nullptr)
 	{
 		bool end = false;
 
-		for (int i = 0; string[i] != '\0' && string[i] != '\n'; i++)
+		for (int i = 0; string[i] != '\0'; i++)
 		{
-			if (string[i] == ',')
+			if (string[i] == ',' || string[i] == '\n')
 			{
 				// 次の数字へ
 				index++;
+				isMinus = false;
 			}
 			else if (string[i] == '-')
 			{
-				mapArray[index] *= -1;
-
-				if (mapArray[index] == LoadStopNumber)
-				{
-					// ヒットしたら、読み込みを強制的に終了する。
-					end = true;
-					break;
-				}
+				isMinus = true;
 			}
-			else
+			else if(string[i] >= '0' && string[i] <= '9')
 			{
 				mapArray[index] *= 10;
-				mapArray[index] += string[i] - '0';
+
+				if (isMinus == true)
+				{
+					mapArray[index] -= string[i] - '0';
+				}
+				else
+				{
+					mapArray[index] += string[i] - '0';
+				}
 
 				if (mapArray[index] == LoadStopNumber)
 				{

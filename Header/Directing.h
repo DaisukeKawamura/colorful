@@ -162,7 +162,7 @@ public://ステージセレクト
 
 	void StageSelectUpdate();
 
-	void StageSelectDraw(const int score[], const int medal[], int window_width, int window_height);
+	void StageSelectDraw(const int score[], const int medal[], const int maxStage, int window_width, int window_height);
 
 	void SelectTitle();
 public://数字の描画

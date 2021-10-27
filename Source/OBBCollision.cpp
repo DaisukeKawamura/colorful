@@ -214,7 +214,7 @@ FLOAT OBBCollision::LenSegOnSeparateAxis(Vector3 &Sep, Vector3 &e1, Vector3 &e2,
 	return r1 + r2 + r3;
 }
 
-void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPosition, OBB& player, OBB& block, bool& HitDown, const int up, const int down)
+void OBBCollision::PushbackPolygon(XMFLOAT3 &position, const XMFLOAT3 &oldPosition, OBB &player, OBB &block, bool &HitDown, const int up, const int down)
 {
 	//プレイヤー座標
 	float PRight = position.x + player.GetLen_W(0), PLeft = position.x - player.GetLen_W(0);
@@ -230,7 +230,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//左上
 	if (oldLeft >= BRight && oldUp <= BDown)
 	{
-		if (up == BLOCK || up == RED_BLOCK || up == BLUE_BLOCK || up == GREEN_BLOCK || up == YELLOW_BLOCK)
+		if (up == BLOCK || up == RED_BLOCK || up == BLUE_BLOCK || up == GREEN_BLOCK || up == YELLOW_BLOCK || up == NOPAINT_BLOCK)
 		{
 		}
 		//上にブロックがなかったら上優先
@@ -242,7 +242,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//左下
 	else if (oldLeft >= BRight && oldDown >= BUp)
 	{
-		if (down == BLOCK || down == RED_BLOCK || down == BLUE_BLOCK || down == GREEN_BLOCK || down == YELLOW_BLOCK)
+		if (down == BLOCK || down == RED_BLOCK || down == BLUE_BLOCK || down == GREEN_BLOCK || down == YELLOW_BLOCK || up == NOPAINT_BLOCK)
 		{
 		}
 		//下にブロックがなかったら下優先
@@ -254,7 +254,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//右上
 	else if (oldRight <= BLeft && oldUp <= BDown)
 	{
-		if (up == BLOCK || up == RED_BLOCK || up == BLUE_BLOCK || up == GREEN_BLOCK || up == YELLOW_BLOCK)
+		if (up == BLOCK || up == RED_BLOCK || up == BLUE_BLOCK || up == GREEN_BLOCK || up == YELLOW_BLOCK || up == NOPAINT_BLOCK)
 		{
 		}
 		//上にブロックがなかったら上優先
@@ -266,7 +266,7 @@ void OBBCollision::PushbackPolygon(XMFLOAT3& position, const XMFLOAT3& oldPositi
 	//右下
 	else if (oldRight <= BLeft && oldDown >= BUp)
 	{
-		if (down == BLOCK || down == RED_BLOCK || down == BLUE_BLOCK || down == GREEN_BLOCK || down == YELLOW_BLOCK)
+		if (down == BLOCK || down == RED_BLOCK || down == BLUE_BLOCK || down == GREEN_BLOCK || down == YELLOW_BLOCK || up == NOPAINT_BLOCK)
 		{
 		}
 		//下にブロックがなかったら下優先

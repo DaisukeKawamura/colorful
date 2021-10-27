@@ -143,7 +143,8 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 		isStageClear[i] = false;
 #endif
 	}
-
+	//リトライがtrueゲームオーバーはfalse
+	bool selectRetryFlag = true;
 	int score = 0; //スコア
 	int medal = 0;//メダル数
 
@@ -377,6 +378,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			{
 				if (isClear == true || isGameover == true)
 				{
+
 					directing.StartSceneChange();
 				}
 				else
@@ -389,9 +391,30 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				player.jumpFlag = false;
 			}
 
+			if ((isClear == true || isGameover == true) && (Input::IsKeyTrigger(DIK_LEFT) || Input::IsKeyTrigger(DIK_RIGHT)))
+			{//タイトルかリトライか
+				if (selectRetryFlag == true)
+				{
+					selectRetryFlag = false;
+				}
+				else
+				{
+					selectRetryFlag = true;
+				}
+			}
+
+
 			if (directing.ChangeScene() && (isClear == true || isGameover == true))
 			{
-				gameStatus = GameStatus::Title;
+				if (selectRetryFlag == true)
+				{
+					gameStatus = GameStatus::MainInit;
+				}
+				else
+				{
+					gameStatus = GameStatus::Select;
+				}
+				
 			}
 			player.Update();
 
@@ -830,7 +853,7 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 				directing.SelectTitle();
 			}
 			//ステージセレクト描画
-			
+
 
 			directing.StageSelectDraw(stageScore.score, stageScore.medal, window_width, window_height);
 		}
@@ -1084,16 +1107,19 @@ int WINAPI WinMain(_In_ HINSTANCE, _In_opt_ HINSTANCE, _In_ LPSTR, _In_ int)
 			if (isClear == true)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
+
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, clearGraph, XMFLOAT2(0.0f, 0.0f));
-				directing.scoreDraw(score, medal);
+				directing.scoreDraw(score, medal,selectRetryFlag);
 				//draw.DrawString(scorePos.x, scorePos.y, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "Clear");
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 			if (isGameover == true)
 			{
 				XMFLOAT3 scorePos = directing.scoreEasing();
+
 				draw.DrawTextrue(scorePos.x, scorePos.y, window_width, window_height, 0, gameoverGraph, XMFLOAT2(0.0f, 0.0f));
 				//draw.DrawString(window_width / 2 - 120, window_height / 2 - 160, 5.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "GameOver");
+				directing.GameOverButtonDraw(scorePos,selectRetryFlag);
 				draw.DrawString(0, 192, 4.0f, XMFLOAT4(1.0f, 1.0f, 1.0f, 1.0f), "score:%d", score);
 			}
 #if _DEBUG

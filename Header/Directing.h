@@ -35,6 +35,8 @@ public:// パーティクル画像読み込み
 	int percentGraph;	//パーセントの画像
 	int stageNumberGraph;//ステージの数字
 	int scoreNumberGraph;//スコアの数字
+	int retryButtonGraph;//リトライボタン
+	int selectbuttonGraph;//セレクトボタン
 	void ParticleInit(DrawPolygon *draw);
 
 public:// 死亡時シェイク
@@ -67,7 +69,7 @@ public://スコア演出
 	int  starScale[3];
 	int  medalScale[3];
 	//星とメダルの描画/スコア、メダル
-	void scoreDraw(const int score, const int medal);
+	void scoreDraw(const int score, const int medal, const int  selectRetryFlag);
 public:	//アイテムイージング
 	Vector3 itemStart;				//スタート地点
 	Vector3 itemEnd;				//エンド地点
@@ -207,7 +209,13 @@ public://ステージセレクト
 	void SelectTitle();
 public://数字の描画
 	void NumberDraw(const int score, int posX, int posY, const int width, const int height);
+public://ステージクリアとゲームオーバーの選択演出
+	bool clearOverSelectFlag = true;
+	int clearOverSelectR = 0;
 
+	void ClearOverSelect();
+	//1ゲームオーバーのボタン描画
+	void GameOverButtonDraw(XMFLOAT3 scorePos, int selectRetryFlag);
 };
 //XMFLOAT3同士の計算
 const  DirectX::XMFLOAT3 operator+(const  DirectX::XMFLOAT3 &lhs, const  DirectX::XMFLOAT3 rhs);
